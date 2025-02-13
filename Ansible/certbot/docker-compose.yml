@@ -1,0 +1,17 @@
+services:
+  certbot:
+    image: certbot/dns-cloudflare:latest
+    secrets:
+      - source: cloudflare
+        target: cloudflare
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+    command: certonly --dns-cloudflare --dns-cloudflare-propagation-seconds 60 --dns-cloudflare-credentials /run/secrets/cloudflare --agree-tos --email ${EMAIL}  --no-eff-email -d ${DOMAIN} --preferred-challenges dns-01
+
+secrets:
+  cloudflare:
+    file: ./cloudflare.ini

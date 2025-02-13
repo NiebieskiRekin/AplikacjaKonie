@@ -5,6 +5,10 @@ Terraform/.terraform.lock.hcl
 Terraform/.terraform/
 Ansible/inventory/gcp.yaml
 Ansible/postgres/.env
+Ansible/postgres/cloudflare.ini
+Ansible/certbot/cloudflare.ini
+Ansible/certbot/.env
+Ansible/certbot/notes.md
 
 # Logs
 logs

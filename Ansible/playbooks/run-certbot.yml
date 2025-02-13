@@ -1,0 +1,54 @@
+- name: Run certbot in docker
+  hosts: main
+  vars:
+    src: /home/niebieskirekin/Dokumenty/AplikacjaKonie/Kod/Ansible/certbot/
+    dest: "/home/{{ ansible_user }}"
+  tasks:
+    - name: Copy config
+      ansible.builtin.copy:
+        src: "{{ src }}"
+        dest: "{{ dest }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+    - name: Start certbot
+      community.docker.docker_compose_v2:
+        project_src: "{{ dest }}/certbot"
+      register: logs_output
+
+    - name: Show logs
+      ansible.builtin.debug:
+        var: logs_output
+
+    - name: Check if successful
+      ansible.builtin.assert:
+        that: logs_output is success
+
+    - name: Extract certificates and keys from logs
+      ansible.builtin.set_fact:
+        certificate: "{{ logs_output | regex_findall('\/etc\/letsencrypt\/live\/.*\/fullchain.*.pem', multiline=True, ignorecase=True) | first | realpath }}"
+        key: "{{ logs_output | regex_findall('\/etc\/letsencrypt\/live\/.*\/privkey.*.pem', multiline=True, ignorecase=True) | first | realpath }}"
+
+    - name: Create certifactes directory
+      ansible.builtin.file:
+        path: "{{ dest }}/postgres/certs"
+        state: directory
+        owner: 70
+        group: 70
+        mode: "0777"
+
+    - name: Copy certificate
+      ansible.builtin.copy:
+        src: "{{ certificate }}"
+        dest: "{{ dest }}/postgres/certs/fullchain.pem"
+        owner: 70
+        group: 70
+        mode: "0644"
+
+    - name: Copy key
+      ansible.builtin.copy:
+        src: "{{ key }}"
+        dest: "{{ dest }}/postgres/certs/privkey.pem"
+        owner: 70
+        group: 70
+        mode: "0644"
