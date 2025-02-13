@@ -1,0 +1,21 @@
+- name: Setup postgres on docker
+  hosts: main
+  vars:
+    src: /home/niebieskirekin/Dokumenty/AplikacjaKonie/Kod/Ansible/postgres
+    dest: "/home/{{ ansible_user }}"
+  tasks:
+    - name: Copy config
+      ansible.builtin.copy:
+        src: "{{ src }}"
+        dest: "{{ dest }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+    # - name: log into docker hub registry
+    #   docker_login:
+    #     email: "your-email@address"
+    #     username: "a-dockerhub-username"
+    #     password: "a-dockerhub-password"
+    - name: Start postgres
+      community.docker.docker_compose_v2:
+        project_src: "{{ dest }}/postgres"

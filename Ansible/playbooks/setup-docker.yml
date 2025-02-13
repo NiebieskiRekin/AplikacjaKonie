@@ -1,0 +1,57 @@
+- name: Setup docker install
+  hosts: main
+  become: true
+  vars:
+    deb_architecture:
+      {
+        "armv6l": "armhf",
+        "armv7l": "armhf",
+        "aarch64": "arm64",
+        "x86_64": "amd64",
+        "i386": "i386",
+      }
+  tasks:
+    - name: Install required system packages
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          # - python3-pip
+          # - virtualenv
+          # - python3-setuptools
+        state: latest # noqa package-latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: true
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ arch }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        state: present
+      vars:
+        arch: "{{ deb_architecture[ansible_architecture] }}"
+
+    - name: Update apt and install docker-ce
+      ansible.builtin.apt:
+        pkg:
+          - docker-ce
+          # - python3-docker
+        state: latest # noqa package-latest
+        update_cache: true
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+        state: present
+
+    # - name: Activate changes to groups
+    #   shell: newgrp docker

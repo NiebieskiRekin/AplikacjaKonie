@@ -3,6 +3,8 @@ Terraform/terraform.tfstate.backup
 Terraform/terraform.tfstate
 Terraform/.terraform.lock.hcl
 Terraform/.terraform/
+Ansible/inventory/gcp.yaml
+Ansible/postgres/.env
 
 # Logs
 logs
