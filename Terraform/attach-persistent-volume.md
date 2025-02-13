@@ -33,3 +33,19 @@ Open the /etc/fstab file in a text editor and create an entry that includes the 
 ```
 UUID=efd59af0-5e91-4976-9dfb-1274b1de9533 /mnt/disks/pg_data ext4 discard,defaults,nofail 0 2
 ```
+
+# Setup database
+
+Create a data directory
+
+```bash
+mkdir -p /mnt/disks/pg_data/data
+```
+
+Set permissions
+
+```bash
+docker_UID=$(docker compose exec -it postgres id -g postgres) # 70
+docker_GID=$(docker compose exec -it postgres id -g postgres) # 70
+sudo chown 70:70 -R /mnt/disks/pg_data/data
+```
