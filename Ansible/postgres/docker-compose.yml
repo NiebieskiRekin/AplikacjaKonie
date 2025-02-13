@@ -1,51 +1,22 @@
 services:
-  # privatebin:
-  #   image: privatebin/unit-pdo:latest
-  #   restart: always
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - privatebin
-  #     - traefik
-  #   volumes:
-  #     - ./conf.php:/srv/cfg/conf.php:Z
-  #     - ./privatebin-data:/srv/data:Z
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: 0.15
-  #         memory: 80M
-  #   labels:
-  #     traefik.enable: true
-  #     traefik.http.routers.privatebin.entrypoints: websecure
-  #     traefik.http.routers.privatebin.rule: Host(`${PRIVATEBIN_HOST}`)
-  #
-  #     traefik.http.routers.privatebin.tls: "true"
-  #     traefik.http.routers.privatebin.tls.certResolver: acme_tls
-  #     traefik.http.routers.privatebin.tls.domains[0].main: niebieskirekin1.duckdns.org
-  #     traefik.http.routers.privatebin.tls.domains[0].sans[0]: ${TRAEFIK_DASHBOARD_HOST}
-  #     traefik.http.routers.privatebin.tls.domains[0].sans[1]: ${JENKINS_HOST}
-  #     traefik.http.routers.privatebin.tls.domains[0].sans[2]: ${LARAVEL_HOST}
-  #     traefik.http.routers.privatebin.tls.domains[0].sans[3]: ${PRIVATEBIN_HOST}
-
   postgres:
     image: postgres:alpine
     restart: always
     user: postgres
-    # command:
-    #   - "-c 'config_file=/etc/postgresql/postgresql.conf'"
     env_file:
       - path: .env
         required: true
     ports:
-      - 1234:5432
+      - 5432:5432
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: dev
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
+      # - pg_data:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf:ro
+      - ./certs:/var/letsencrypt:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
@@ -58,11 +29,6 @@ services:
         limits:
           cpus: 1.8
           memory: 900M
-    labels:
-      - traefik.enable=false
 
 networks:
   postgres:
-
-volumes:
-  pgdata:
