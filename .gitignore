@@ -1,14 +1,21 @@
-Terraform/terraform.tfvars
-Terraform/terraform.tfstate.backup
-Terraform/terraform.tfstate
-Terraform/.terraform.lock.hcl
-Terraform/.terraform/
-Ansible/inventory/gcp.yaml
-Ansible/postgres/.env
-Ansible/postgres/cloudflare.ini
-Ansible/certbot/cloudflare.ini
-Ansible/certbot/.env
-Ansible/certbot/notes.md
+# just in case
+*.env
+
+# infra
+infra/Terraform/terraform.tfvars
+*.tfstate*
+*terraform.tfvars
+infra/Terraform/terraform.tfstate.backup
+infra/Terraform/terraform.tfstate
+infra/Terraform/.terraform.lock.hcl
+infra/Terraform/.terraform/
+infra/Terraform/notes.md
+infra/Ansible/inventory/gcp.yaml
+infra/Ansible/postgres/.env
+infra/Ansible/postgres/cloudflare.ini
+infra/Ansible/certbot/cloudflare.ini
+infra/Ansible/certbot/.env
+infra/Ansible/certbot/notes.md
 
 # Logs
 logs
@@ -140,12 +147,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-Terraform/.terraform
-Terraform/.terraform.lock.hcl
-Terraform/terraform.tfstate
-Terraform/terraform.tfstate.backup
-Terraform/terraform.tfvars
-Ansible/certbot/cloudflare.ini
-Ansible/certbot/notes.md
-Ansible/inventory/gcp.yaml
-Terraform/notes.md
