@@ -1,18 +1,16 @@
 {
   "name": "aplikacja-konie",
   "version": "0.1.0",
-  "main": ".",
   "scripts": {
-    "build": "concurrently \"npm run backend:build\" & \"npm run frontend:build\"",
-    "start": "concurrently \"npm run client:start\" & \"npm run server:start\"",
-    "lint": "eslint . --ext .ts",
-    "dev": "concurrently \"npm run client:dev\" & \"npm run server:dev\"",
-    "format": "prettier --write \"./**/*.{ts,tsx}\""
+    "dev": "concurrently -p \"[{name}]\" -n \"b,f\" -c \"bgGray.bold,bgCyan.bold\" \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "concurrently -p \"[{name}]\" -n \"b,f\" -c \"bgGray.bold,bgCyan.bold\" \"npm --prefix backend run build\" \"npm --prefix frontend run build\"",
+    "start": "concurrently -p \"[{name}]\" -n \"b,f\" -c \"bgGray.bold,bgCyan.bold\" \"npm --prefix backend run start\" \"npm --prefix frontend run start\"",
+    "lint": "npx eslint .",
+    "format": "npx prettier --write \"**/*.{ts,tsx}\""
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "description": "",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/NiebieskiRekin/AplikacjaKonie/"
