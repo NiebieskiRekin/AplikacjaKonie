@@ -1,10 +1,8 @@
 {
   "name": "aplikacja-konie-backend",
   "version": "0.1.0",
-  "type": "module",
   "scripts": {
     "build": "npx tsc",
-    "lint": "eslint . --ext .ts",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts"
   },
