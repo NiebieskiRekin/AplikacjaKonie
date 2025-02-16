@@ -5,6 +5,7 @@ import {
   varchar,
   date,
   serial,
+  uuid,
   customType,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
@@ -30,21 +31,27 @@ export const hodowcyKoni = public_schema.table("hodowcy_koni", {
 });
 
 export const hodowlakoni = pgSchema("hodowlakoni1");
+
 export const rodzajeKoni = hodowlakoni.enum("rodzaje_koni", [
   "Konie hodowlane",
   "Konie rekreacyjne",
   "Źrebaki",
   "Konie sportowe",
 ]);
+
 export const rodzajeZdarzenProfilaktycznych = hodowlakoni.enum(
   "rodzaje_zdarzen_profilaktycznych",
   ["Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"]
 );
+
 export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
   "rodzaje_zdarzen_rozrodczych",
   ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
 );
 
+export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
+
+// TODO: drzewo genealogiczne?
 export const konie = hodowlakoni.table(
   "konie",
   {
@@ -59,7 +66,7 @@ export const konie = hodowlakoni.table(
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
-    plec: varchar(),
+    plec: plcie("plec"),
   },
   () => [
     check(
@@ -71,18 +78,20 @@ export const konie = hodowlakoni.table(
 
 export const konieRelations = relations(konie, ({ many }) => ({
   zdjeciaKoni: many(zdjeciaKoni),
+  choroby: many(choroby),
   rozrody: many(rozrody),
   leczenia: many(leczenia),
   zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
   podkucia: many(podkucia),
 }));
 
+// NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey(),
   kon: integer("kon")
     .primaryKey()
     .references(() => konie.id),
-  file: integer("file")
+  file: uuid("file")
     .notNull()
     .references(() => files.id),
   width: integer("width").notNull(),
@@ -101,7 +110,7 @@ export const zdjeciaKoniRelations = relations(zdjeciaKoni, ({ one }) => ({
 }));
 
 export const files = hodowlakoni.table("files", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey(),
   filename: varchar("filename").notNull(),
   mimetype: varchar("mimetype").notNull(),
   data: bytea("data").notNull(),
@@ -148,6 +157,15 @@ export const choroby = hodowlakoni.table("choroby", {
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
 
+export const chorobyRelations = relations(choroby, ({ one }) => ({
+  kon: one(konie, {
+    fields: [choroby.kon],
+    references: [konie.id],
+  }),
+}));
+
+// TODO: zastanów się nad złożonym primary_key(id,kon)
+// TODO: grupowanie zdarzeń?
 export const leczenia = hodowlakoni.table("leczenia", {
   id: serial("id").primaryKey(),
   kon: integer("kon").references(() => konie.id),
@@ -156,6 +174,20 @@ export const leczenia = hodowlakoni.table("leczenia", {
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
 
+export const leczeniaRelations = relations(leczenia, ({ one }) => ({
+  kon: one(konie, {
+    fields: [leczenia.kon],
+    references: [konie.id],
+  }),
+  weterynarz: one(weterynarze, {
+    fields: [leczenia.weterynarz],
+    references: [weterynarze.id],
+  }),
+}));
+
+// TODO: zastanów się nad złożonym primary_key(id,kon)
+// TODO: uwzględnienie potomstwa
+// TODO: uwzględnienie rodziców
 export const rozrody = hodowlakoni.table("rozrody", {
   id: serial("id").primaryKey(),
   kon: integer("kon").references(() => konie.id),
@@ -165,17 +197,45 @@ export const rozrody = hodowlakoni.table("rozrody", {
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
 
+export const rozrodyRelations = relations(rozrody, ({ one }) => ({
+  kon: one(konie, {
+    fields: [rozrody.kon],
+    references: [konie.id],
+  }),
+  weterynarz: one(weterynarze, {
+    fields: [rozrody.weterynarz],
+    references: [weterynarze.id],
+  }),
+}));
+
+// TODO: zastanów się nad złożonym primary_key(id,kon)
+// TODO: grupowanie zdarzeń?
 export const zdarzeniaProfilaktyczne = hodowlakoni.table(
   "zdarzenia_profilaktyczne",
   {
     id: serial("id").primaryKey(),
     kon: integer("kon").references(() => konie.id),
+    weterynarz: integer("weterynarz").references(() => weterynarze.id),
     dataZdarzenia: date("data_zdarzenia").defaultNow(),
     dataWaznosci: date("data_waznosci"),
     rodzajZdarzenia:
       rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia").notNull(),
     opisZdarzenia: varchar("opis_zdarzenia"),
   }
+);
+
+export const zdarzeniaProfilaktyczneRelations = relations(
+  zdarzeniaProfilaktyczne,
+  ({ one }) => ({
+    kon: one(konie, {
+      fields: [zdarzeniaProfilaktyczne.kon],
+      references: [konie.id],
+    }),
+    weterynarz: one(weterynarze, {
+      fields: [zdarzeniaProfilaktyczne.weterynarz],
+      references: [weterynarze.id],
+    }),
+  })
 );
 
 export const weterynarze = hodowlakoni.table(
@@ -187,3 +247,9 @@ export const weterynarze = hodowlakoni.table(
   },
   () => [NUMER_TELEFONU_CHECK]
 );
+
+export const weterynarzeRelations = relations(weterynarze, ({ many }) => ({
+  rozrody: many(rozrody),
+  leczenia: many(leczenia),
+  zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
+}));
