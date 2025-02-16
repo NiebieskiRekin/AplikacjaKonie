@@ -1,5 +1,6 @@
 import {
   pgSchema,
+  pgTable,
   check,
   integer,
   varchar,
@@ -22,13 +23,17 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
-export const public_schema = pgSchema("public");
-
-export const hodowcyKoni = public_schema.table("hodowcy_koni", {
-  id: serial("id").primaryKey(),
-  nazwa: varchar("nazwa"),
-  schema: varchar("schema"),
-});
+export const hodowcyKoni = pgTable(
+  "hodowcy_koni",
+  {
+    id: serial("id").primaryKey(),
+    nazwa: varchar("nazwa"),
+    numer_telefonu: NUMER_TELEFONU.notNull(),
+    email: varchar("email").notNull(),
+    schema: varchar("schema"),
+  },
+  () => [NUMER_TELEFONU_CHECK]
+);
 
 export const hodowlakoni = pgSchema("hodowlakoni1");
 
@@ -88,9 +93,7 @@ export const konieRelations = relations(konie, ({ many }) => ({
 // NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   id: uuid("id").primaryKey(),
-  kon: integer("kon")
-    .primaryKey()
-    .references(() => konie.id),
+  kon: integer("kon").references(() => konie.id),
   file: uuid("file")
     .notNull()
     .references(() => files.id),
