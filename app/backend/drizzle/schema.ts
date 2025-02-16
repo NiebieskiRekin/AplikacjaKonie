@@ -17,7 +17,7 @@ const NUMER_TELEFONU_CHECK = check(
   sql`regexp_like(numer_telefonu,'[\s\d+-]*','gi')`
 );
 
-const binary = customType<{ data: Buffer; default: false }>({
+export const bytea = customType<{ data: Buffer }>({
   dataType() {
     return "bytea";
   },
@@ -45,11 +45,12 @@ export const konie = hodowlakoni.table(
     id: serial("id").primaryKey(),
     numerPrzyzyciowy: varchar("numer_przyzyciowy").notNull().unique(),
     numerChipa: varchar("numer_chipa", { length: 15 }).notNull().unique(),
-    rocznikUrodzenia: integer("rocznik_urodzenia").default(sql`extract(year from CURRENT_DATE)`),
+    rocznikUrodzenia: integer("rocznik_urodzenia").default(
+      sql`extract(year from CURRENT_DATE)`
+    ),
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: varchar(),
-    zdjecieKonia: integer("zdjecie_konia").references(() => zdjeciaKoni.id),
   },
   () => [
     check(
@@ -59,28 +60,49 @@ export const konie = hodowlakoni.table(
   ]
 );
 
-
-
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   id: serial("id").primaryKey(),
-  x100: binary(),
-  x1000: binary(),
+  kon: integer("kon").primaryKey().references(() => konie.id),
+  file: integer("file").notNull().references()
+  width: integer('width').notNull()
+  height: 
 });
 
 
 
+export const files = hodowlakoni.table('files', {
+  id: serial('id').primaryKey(),
+  filename: varchar('filename').notNull(),
+  mimetype: varchar('mimetype').notNull(),
+  data: bytea('data').notNull(),
+});
+
+export const zdjeciaKoniRelations = hodowlakoni.table(
+  zdjeciaKoni,
+  ({ one }) => ({
+    kon: one(konie, {
+      fields: [zdjeciaKoni.kon],
+      references: [konie.id],
+    }),
+  })
+);
 
 export const podkucia = hodowlakoni.table("podkucia", {
   id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia"),
   dataWaznosci: date("data_waznosci"),
-  kowal: integer("kowal"),
+  kon: integer("kon").references(() => konie.id),
+  kowal: integer("kowal").references(() => kowale.id),
 });
 
 export const podkuciaRelations = relations(podkucia, ({ one }) => ({
   kowal: one(kowale, {
     fields: [podkucia.kowal],
     references: [kowale.id],
+  }),
+  kon: one(konie, {
+    fields: [podkucia.kon],
+    references: [konie.id],
   }),
 }));
 
@@ -97,9 +119,6 @@ export const kowale = hodowlakoni.table(
 export const kowaleRelations = relations(kowale, ({ many }) => ({
   podkucia: many(podkucia),
 }));
-
-
-
 
 export const leczenia = hodowlakoni.table("leczenia", {
   id: serial("id").primaryKey(),
