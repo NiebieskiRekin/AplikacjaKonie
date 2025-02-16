@@ -21,6 +21,14 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
+export const public_schema = pgSchema("public");
+
+export const hodowcyKoni = public_schema.table("hodowcy_koni", {
+  id: serial("id").primaryKey(),
+  nazwa: varchar("nazwa"),
+  schema: varchar("schema"),
+});
+
 export const hodowlakoni = pgSchema("hodowlakoni1");
 export const rodzajeKoni = hodowlakoni.enum("rodzaje_koni", [
   "Konie hodowlane",
@@ -30,26 +38,36 @@ export const rodzajeKoni = hodowlakoni.enum("rodzaje_koni", [
 ]);
 export const rodzajeZdarzenProfilaktycznych = hodowlakoni.enum(
   "rodzaje_zdarzen_profilaktycznych",
-  ["Odrobaczanie", "Podanie witamin", "Szczepienie", "Dentysta"]
+  ["Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"]
 );
 export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
   "rodzaje_zdarzen_rozrodczych",
-  ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie"]
+  ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
 );
 
-export const konie = hodowlakoni.table("konie", {
-  id: serial("id").primaryKey(),
-  numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 })
-    .notNull()
-    .unique(),
-  numerChipa: varchar("numer_chipa", { length: 15 }).notNull().unique(),
-  rocznikUrodzenia: integer("rocznik_urodzenia").default(
-    sql`extract(year from CURRENT_DATE)`
-  ),
-  dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
-  rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
-  plec: varchar(),
-});
+export const konie = hodowlakoni.table(
+  "konie",
+  {
+    id: serial("id").primaryKey(),
+    numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 })
+      .notNull()
+      .unique(),
+    numerChipa: varchar("numer_chipa", { length: 15 }).notNull().unique(),
+    rocznikUrodzenia: integer("rocznik_urodzenia").default(
+      sql`extract(year from CURRENT_DATE)`
+    ),
+    dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
+    dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
+    rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
+    plec: varchar(),
+  },
+  () => [
+    check(
+      "odejscie_pozniej_niz_przybycie",
+      sql`(data_odejscia_ze_stajni is null and data_przybycia_do_stajni is null) or data_przybycia_do_stajni < data_odejscia_ze_stajni`
+    ),
+  ]
+);
 
 export const konieRelations = relations(konie, ({ many }) => ({
   zdjeciaKoni: many(zdjeciaKoni),
@@ -122,28 +140,40 @@ export const kowaleRelations = relations(kowale, ({ many }) => ({
   podkucia: many(podkucia),
 }));
 
+export const choroby = hodowlakoni.table("choroby", {
+  id: serial("id").primaryKey(),
+  kon: integer("kon").references(() => konie.id),
+  dataRozpoczecia: date("data_rozpoczecia").notNull().defaultNow(),
+  dataZakonczenia: date("data_zakonczenia"),
+  opisZdarzenia: varchar("opis_zdarzenia").notNull(),
+});
+
 export const leczenia = hodowlakoni.table("leczenia", {
   id: serial("id").primaryKey(),
+  kon: integer("kon").references(() => konie.id),
+  weterynarz: integer("weterynarz").references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
-  weterynarz: integer("weterynarz"),
 });
 
 export const rozrody = hodowlakoni.table("rozrody", {
   id: serial("id").primaryKey(),
-  dataZdarzenia: date("data_zdarzenia").notNull(),
+  kon: integer("kon").references(() => konie.id),
+  weterynarz: integer("weterynarz").references(() => weterynarze.id),
+  dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   rodzajZdarzenia: rodzajeZdarzenRozrodczych("rodzaj_zdarzenia").notNull(),
-  weterynarz: integer("weterynarz"),
-  opisZdarzenia: varchar("opis_zdarzenia"),
+  opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
 
 export const zdarzeniaProfilaktyczne = hodowlakoni.table(
   "zdarzenia_profilaktyczne",
   {
     id: serial("id").primaryKey(),
-    dataZdarzenia: date("data_zdarzenia"),
+    kon: integer("kon").references(() => konie.id),
+    dataZdarzenia: date("data_zdarzenia").defaultNow(),
     dataWaznosci: date("data_waznosci"),
-    rodzajZdarzenia: rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia"),
+    rodzajZdarzenia:
+      rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia").notNull(),
     opisZdarzenia: varchar("opis_zdarzenia"),
   }
 );
