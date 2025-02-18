@@ -15,6 +15,13 @@
       "when": 1739716359730,
       "tag": "0001_true_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739911998126,
+      "tag": "0002_even_luminals",
+      "breakpoints": true
     }
   ]
 }
