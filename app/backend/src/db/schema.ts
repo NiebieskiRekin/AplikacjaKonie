@@ -12,10 +12,10 @@ import {
 import { relations, sql } from "drizzle-orm";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
-const NUMER_TELEFONU_CHECK = check(
-  "numer_telefonu",
-  sql`regexp_like(numer_telefonu,'[\s\d+-]*','gi')`
-);
+// const NUMER_TELEFONU_CHECK = check(
+//   "numer_telefonu",
+//   sql`regexp_like(numer_telefonu,'[\s\d+-]*','gi')`
+// );
 
 export const bytea = customType<{ data: Buffer }>({
   dataType() {
@@ -31,8 +31,7 @@ export const hodowcyKoni = pgTable(
     numer_telefonu: NUMER_TELEFONU.notNull(),
     email: varchar("email").notNull(),
     schema: varchar("schema"),
-  },
-  () => [NUMER_TELEFONU_CHECK]
+  }
 );
 
 export const hodowlakoni = pgSchema("hodowlakoni1");
@@ -145,7 +144,6 @@ export const kowale = hodowlakoni.table(
     imieINazwisko: varchar("imie_i_nazwisko").notNull(),
     numerTelefonu: NUMER_TELEFONU,
   },
-  () => [NUMER_TELEFONU_CHECK]
 );
 
 export const kowaleRelations = relations(kowale, ({ many }) => ({
@@ -248,7 +246,6 @@ export const weterynarze = hodowlakoni.table(
     imieINazwisko: varchar("imie_i_nazwisko").notNull(),
     numerTelefonu: NUMER_TELEFONU,
   },
-  () => [NUMER_TELEFONU_CHECK]
 );
 
 export const weterynarzeRelations = relations(weterynarze, ({ many }) => ({
