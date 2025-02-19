@@ -23,18 +23,7 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
-export const hodowcyKoni = pgTable(
-  "hodowcy_koni",
-  {
-    id: serial("id").primaryKey(),
-    nazwa: varchar("nazwa"),
-    numer_telefonu: NUMER_TELEFONU.notNull(),
-    email: varchar("email").notNull(),
-    schema: varchar("schema"),
-  }
-);
-
-export const hodowlakoni = pgSchema("hodowlakoni1");
+export const hodowlakoni = pgSchema("hodowlakoni");
 
 export const rodzajeKoni = hodowlakoni.enum("rodzaje_koni", [
   "Konie hodowlane",
@@ -55,6 +44,19 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
 
 export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
 
+export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
+  id: serial("id").primaryKey(),
+  nazwa: varchar("nazwa"),
+  numer_telefonu: NUMER_TELEFONU.notNull(),
+  email: varchar("email").notNull()
+});
+
+export const hodowcyKoniRelations = relations(hodowcyKoni, ({ many }) => ({
+  konie: many(konie),
+  kowale: many(kowale),
+  weterynarze: many(weterynarze)
+}));
+
 // TODO: drzewo genealogiczne?
 export const konie = hodowlakoni.table(
   "konie",
@@ -69,6 +71,7 @@ export const konie = hodowlakoni.table(
     ),
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
+    hodowla: integer("hodowla").references(()=>hodowcyKoni.id),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: plcie("plec"),
   },
@@ -80,13 +83,17 @@ export const konie = hodowlakoni.table(
   ]
 );
 
-export const konieRelations = relations(konie, ({ many }) => ({
+export const konieRelations = relations(konie, ({ many, one }) => ({
   zdjeciaKoni: many(zdjeciaKoni),
   choroby: many(choroby),
   rozrody: many(rozrody),
   leczenia: many(leczenia),
   zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
   podkucia: many(podkucia),
+  hodowla: one(hodowcyKoni, {
+    fields: [konie.hodowla],
+    references: [hodowcyKoni.id]
+  })
 }));
 
 // NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
@@ -137,17 +144,19 @@ export const podkuciaRelations = relations(podkucia, ({ one }) => ({
   }),
 }));
 
-export const kowale = hodowlakoni.table(
-  "kowale",
-  {
-    id: serial("id").primaryKey(),
-    imieINazwisko: varchar("imie_i_nazwisko").notNull(),
-    numerTelefonu: NUMER_TELEFONU,
-  },
-);
+export const kowale = hodowlakoni.table("kowale", {
+  id: serial("id").primaryKey(),
+  imieINazwisko: varchar("imie_i_nazwisko").notNull(),
+  numerTelefonu: NUMER_TELEFONU,
+  hodowla: integer("hodowla").references(()=>hodowcyKoni.id)
+});
 
-export const kowaleRelations = relations(kowale, ({ many }) => ({
+export const kowaleRelations = relations(kowale, ({ many, one }) => ({
   podkucia: many(podkucia),
+  hodowla: one(hodowcyKoni,{
+    fields: [kowale.hodowla],
+    references: [hodowcyKoni.id],
+  })
 }));
 
 export const choroby = hodowlakoni.table("choroby", {
@@ -239,17 +248,19 @@ export const zdarzeniaProfilaktyczneRelations = relations(
   })
 );
 
-export const weterynarze = hodowlakoni.table(
-  "weterynarze",
-  {
-    id: serial("id").primaryKey(),
-    imieINazwisko: varchar("imie_i_nazwisko").notNull(),
-    numerTelefonu: NUMER_TELEFONU,
-  },
-);
+export const weterynarze = hodowlakoni.table("weterynarze", {
+  id: serial("id").primaryKey(),
+  imieINazwisko: varchar("imie_i_nazwisko").notNull(),
+  numerTelefonu: NUMER_TELEFONU,
+  hodowla: integer("hodowla").references(()=>hodowcyKoni.id)
+});
 
-export const weterynarzeRelations = relations(weterynarze, ({ many }) => ({
+export const weterynarzeRelations = relations(weterynarze, ({ many, one }) => ({
   rozrody: many(rozrody),
   leczenia: many(leczenia),
   zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
+  hodowla: one(hodowcyKoni,{
+    fields: [weterynarze.hodowla],
+    references: [hodowcyKoni.id],
+  })
 }));
