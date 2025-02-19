@@ -23,16 +23,13 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
-export const hodowcyKoni = pgTable(
-  "hodowcy_koni",
-  {
-    id: serial("id").primaryKey(),
-    nazwa: varchar("nazwa"),
-    numer_telefonu: NUMER_TELEFONU.notNull(),
-    email: varchar("email").notNull(),
-    schema: varchar("schema"),
-  }
-);
+export const hodowcyKoni = pgTable("hodowcy_koni", {
+  id: serial("id").primaryKey(),
+  nazwa: varchar("nazwa"),
+  numer_telefonu: NUMER_TELEFONU.notNull(),
+  email: varchar("email").notNull(),
+  schema: varchar("schema"),
+});
 
 export const hodowlakoni = pgSchema("hodowlakoni1");
 
@@ -137,14 +134,11 @@ export const podkuciaRelations = relations(podkucia, ({ one }) => ({
   }),
 }));
 
-export const kowale = hodowlakoni.table(
-  "kowale",
-  {
-    id: serial("id").primaryKey(),
-    imieINazwisko: varchar("imie_i_nazwisko").notNull(),
-    numerTelefonu: NUMER_TELEFONU,
-  },
-);
+export const kowale = hodowlakoni.table("kowale", {
+  id: serial("id").primaryKey(),
+  imieINazwisko: varchar("imie_i_nazwisko").notNull(),
+  numerTelefonu: NUMER_TELEFONU,
+});
 
 export const kowaleRelations = relations(kowale, ({ many }) => ({
   podkucia: many(podkucia),
@@ -239,14 +233,11 @@ export const zdarzeniaProfilaktyczneRelations = relations(
   })
 );
 
-export const weterynarze = hodowlakoni.table(
-  "weterynarze",
-  {
-    id: serial("id").primaryKey(),
-    imieINazwisko: varchar("imie_i_nazwisko").notNull(),
-    numerTelefonu: NUMER_TELEFONU,
-  },
-);
+export const weterynarze = hodowlakoni.table("weterynarze", {
+  id: serial("id").primaryKey(),
+  imieINazwisko: varchar("imie_i_nazwisko").notNull(),
+  numerTelefonu: NUMER_TELEFONU,
+});
 
 export const weterynarzeRelations = relations(weterynarze, ({ many }) => ({
   rozrody: many(rozrody),
