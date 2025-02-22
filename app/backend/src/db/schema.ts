@@ -1,6 +1,5 @@
 import {
   pgSchema,
-  pgTable,
   check,
   integer,
   varchar,
@@ -10,6 +9,11 @@ import {
   customType,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
+import {
+  createSelectSchema,
+  createInsertSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK = check(
@@ -48,13 +52,17 @@ export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
   id: serial("id").primaryKey(),
   nazwa: varchar("nazwa"),
   numer_telefonu: NUMER_TELEFONU.notNull(),
-  email: varchar("email").notNull()
+  email: varchar("email").notNull(),
 });
+
+export const hodowcyKoniSelectSchema = createSelectSchema(hodowcyKoni);
+export const hodowcyKoniUpdateSchema = createUpdateSchema(hodowcyKoni);
+export const hodowcyKoniInsertSchema = createInsertSchema(hodowcyKoni);
 
 export const hodowcyKoniRelations = relations(hodowcyKoni, ({ many }) => ({
   konie: many(konie),
   kowale: many(kowale),
-  weterynarze: many(weterynarze)
+  weterynarze: many(weterynarze),
 }));
 
 // TODO: drzewo genealogiczne?
@@ -71,7 +79,7 @@ export const konie = hodowlakoni.table(
     ),
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
-    hodowla: integer("hodowla").references(()=>hodowcyKoni.id),
+    hodowla: integer("hodowla").references(() => hodowcyKoni.id),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: plcie("plec"),
   },
@@ -83,6 +91,10 @@ export const konie = hodowlakoni.table(
   ]
 );
 
+export const konieSelectSchema = createSelectSchema(konie);
+export const konieUpdateSchema = createUpdateSchema(konie);
+export const konieInsertSchema = createInsertSchema(konie);
+
 export const konieRelations = relations(konie, ({ many, one }) => ({
   zdjeciaKoni: many(zdjeciaKoni),
   choroby: many(choroby),
@@ -92,8 +104,8 @@ export const konieRelations = relations(konie, ({ many, one }) => ({
   podkucia: many(podkucia),
   hodowla: one(hodowcyKoni, {
     fields: [konie.hodowla],
-    references: [hodowcyKoni.id]
-  })
+    references: [hodowcyKoni.id],
+  }),
 }));
 
 // NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
@@ -106,6 +118,10 @@ export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   width: integer("width").notNull(),
   height: integer("height").notNull(),
 });
+
+export const zdjeciaKoniSelectSchema = createSelectSchema(zdjeciaKoni);
+export const zdjeciaKoniUpdateSchema = createUpdateSchema(zdjeciaKoni);
+export const zdjeciaKoniInsertSchema = createInsertSchema(zdjeciaKoni);
 
 export const zdjeciaKoniRelations = relations(zdjeciaKoni, ({ one }) => ({
   kon: one(konie, {
@@ -125,6 +141,14 @@ export const files = hodowlakoni.table("files", {
   data: bytea("data").notNull(),
 });
 
+export const filesSelectSchema = createSelectSchema(files);
+export const filesUpdateSchema = createUpdateSchema(files);
+export const filesInsertSchema = createInsertSchema(files);
+
+export const filesRelations = relations(files, ({ many }) => ({
+  zdjeciaKoni: many(zdjeciaKoni),
+}));
+
 export const podkucia = hodowlakoni.table("podkucia", {
   id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia"),
@@ -132,6 +156,10 @@ export const podkucia = hodowlakoni.table("podkucia", {
   kon: integer("kon").references(() => konie.id),
   kowal: integer("kowal").references(() => kowale.id),
 });
+
+export const podkuciaSelectSchema = createSelectSchema(podkucia);
+export const podkuciaUpdateSchema = createUpdateSchema(podkucia);
+export const podkuciaInsertSchema = createInsertSchema(podkucia);
 
 export const podkuciaRelations = relations(podkucia, ({ one }) => ({
   kowal: one(kowale, {
@@ -148,15 +176,19 @@ export const kowale = hodowlakoni.table("kowale", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla").references(()=>hodowcyKoni.id)
+  hodowla: integer("hodowla").references(() => hodowcyKoni.id),
 });
+
+export const kowaleSelectSchema = createSelectSchema(kowale);
+export const kowaleUpdateSchema = createUpdateSchema(kowale);
+export const kowaleInsertSchema = createInsertSchema(kowale);
 
 export const kowaleRelations = relations(kowale, ({ many, one }) => ({
   podkucia: many(podkucia),
-  hodowla: one(hodowcyKoni,{
+  hodowla: one(hodowcyKoni, {
     fields: [kowale.hodowla],
     references: [hodowcyKoni.id],
-  })
+  }),
 }));
 
 export const choroby = hodowlakoni.table("choroby", {
@@ -166,6 +198,10 @@ export const choroby = hodowlakoni.table("choroby", {
   dataZakonczenia: date("data_zakonczenia"),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
+
+export const chorobySelectSchema = createSelectSchema(choroby);
+export const chorobyUpdateSchema = createUpdateSchema(choroby);
+export const chorobyInsertSchema = createInsertSchema(choroby);
 
 export const chorobyRelations = relations(choroby, ({ one }) => ({
   kon: one(konie, {
@@ -183,6 +219,10 @@ export const leczenia = hodowlakoni.table("leczenia", {
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
+
+export const leczeniaSelectSchema = createSelectSchema(leczenia);
+export const leczeniaUpdateSchema = createUpdateSchema(leczenia);
+export const leczeniaInsertSchema = createInsertSchema(leczenia);
 
 export const leczeniaRelations = relations(leczenia, ({ one }) => ({
   kon: one(konie, {
@@ -206,6 +246,10 @@ export const rozrody = hodowlakoni.table("rozrody", {
   rodzajZdarzenia: rodzajeZdarzenRozrodczych("rodzaj_zdarzenia").notNull(),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
+
+export const rozrodySelectSchema = createSelectSchema(rozrody);
+export const rozrodyUpdateSchema = createUpdateSchema(rozrody);
+export const rozrodyInsertSchema = createInsertSchema(rozrody);
 
 export const rozrodyRelations = relations(rozrody, ({ one }) => ({
   kon: one(konie, {
@@ -234,6 +278,16 @@ export const zdarzeniaProfilaktyczne = hodowlakoni.table(
   }
 );
 
+export const zdarzeniaProfilaktyczneSelectSchema = createSelectSchema(
+  zdarzeniaProfilaktyczne
+);
+export const zdarzeniaProfilaktyczneUpdateSchema = createUpdateSchema(
+  zdarzeniaProfilaktyczne
+);
+export const zdarzeniaProfilaktyczneInsertSchema = createInsertSchema(
+  zdarzeniaProfilaktyczne
+);
+
 export const zdarzeniaProfilaktyczneRelations = relations(
   zdarzeniaProfilaktyczne,
   ({ one }) => ({
@@ -252,15 +306,19 @@ export const weterynarze = hodowlakoni.table("weterynarze", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla").references(()=>hodowcyKoni.id)
+  hodowla: integer("hodowla").references(() => hodowcyKoni.id),
 });
+
+export const weterynarzeSelectSchema = createSelectSchema(weterynarze);
+export const weterynarzeUpdateSchema = createUpdateSchema(weterynarze);
+export const weterynarzeInsertSchema = createInsertSchema(weterynarze);
 
 export const weterynarzeRelations = relations(weterynarze, ({ many, one }) => ({
   rozrody: many(rozrody),
   leczenia: many(leczenia),
   zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
-  hodowla: one(hodowcyKoni,{
+  hodowla: one(hodowcyKoni, {
     fields: [weterynarze.hodowla],
     references: [hodowcyKoni.id],
-  })
+  }),
 }));
