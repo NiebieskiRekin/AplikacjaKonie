@@ -1,25 +1,11 @@
-// src/index.ts
-import express, { Express, Request, Response } from "express";
-import { PORT } from "./env";
-import { db } from "./db";
-import { konie } from "./db/schema";
+import app from "./app";
+import { ProcessEnv } from "./env";
+import { serve } from "@hono/node-server";
 
-const app: Express = express();
-
-app.get("/", (req: Request, res: Response) => {
-  db.select()
-    .from(konie)
-    .then((value) => {
-      const r = JSON.stringify(value);
-      res.send("Express + TypeScript Server " + r);
-      console.log("Promise resolved with value: " + r);
-    })
-    .catch((error) => {
-      res.send("Express + TypeScript Server+  db error");
-      console.error("Promise rejected with error: " + error);
-    });
-});
-
-app.listen(PORT, () => {
-  console.log(`[server]: Server is running at http://localhost:${PORT}`);
+const server = serve({
+  port: ProcessEnv.PORT,
+  hostname: "0.0.0.0",
+  fetch: app.fetch,
+}, (info) => {
+  console.log(`Server is running on http://localhost:${info.port}`);
 });

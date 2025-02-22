@@ -1,4 +1,4 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { DATABASE_URL } from "../env";
+import { ProcessEnv } from "../env";
 
-export const db = drizzle(DATABASE_URL);
+export const db = drizzle(ProcessEnv.DATABASE_URL);

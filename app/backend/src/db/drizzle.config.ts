@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { DATABASE_URL } from "../env";
+import { ProcessEnv } from "../env";
 
 export default defineConfig({
   out: "./src/db/migrations",
@@ -7,7 +7,7 @@ export default defineConfig({
   dialect: "postgresql",
   schemaFilter: ["hodowlakoni"],
   dbCredentials: {
-    url: DATABASE_URL,
+    url: ProcessEnv.DATABASE_URL,
   },
   verbose: true,
   strict: true,
