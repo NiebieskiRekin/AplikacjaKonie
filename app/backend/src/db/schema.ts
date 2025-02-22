@@ -16,10 +16,11 @@ import {
 } from "drizzle-zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
-// const NUMER_TELEFONU_CHECK = check(
+// const NUMER_TELEFONU_CHECK_DRIZZLE = check(
 //   "numer_telefonu",
 //   sql`regexp_like(numer_telefonu,'[\s\d+-]*','gi')`
 // );
+// const NUMER_TELEFONU_CHECK_ZOD = z.string().max(15).regex(RegExp('[\s\d+-]*',"gi"),{message: "Należy podać poprawny numer telefonu"})
 
 export const bytea = customType<{ data: Buffer }>({
   dataType() {
@@ -50,9 +51,9 @@ export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
 
 export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
   id: serial("id").primaryKey(),
-  nazwa: varchar("nazwa"),
-  numer_telefonu: NUMER_TELEFONU.notNull(),
+  nazwa: varchar("nazwa").notNull(),
   email: varchar("email").notNull(),
+  numer_telefonu: NUMER_TELEFONU,
 });
 
 export const hodowcyKoniSelectSchema = createSelectSchema(hodowcyKoni);
