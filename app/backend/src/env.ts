@@ -13,5 +13,7 @@ const ServeEnv = z.object({
     .string()
     .url("Must be a valid URL string")
     .default("postgres://postgres:mysecretpassword@localhost:5432/postgres"),
+
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 export const ProcessEnv = ServeEnv.parse(process.env);
