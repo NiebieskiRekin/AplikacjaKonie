@@ -4,8 +4,9 @@ Tech stack:
 - Backend:
     - Typescript
     - Node.js
-    - Express
-    - ...
+    - Hono
+    - Drizzle ORM
+    - Zod
 - Frontend:
     - Typescript
     - React

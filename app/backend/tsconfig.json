@@ -21,7 +21,11 @@
     "resolveJsonModule": true,
 
     /* Type Checking */
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true, /* Skip type checking all .d.ts files. */
+
+    /* Fix drizzle schema types inference */
+    "strict": true,
+    "strictNullChecks": true
   },
   "include": ["src/**/*.ts"],
   "tsc-alias": {

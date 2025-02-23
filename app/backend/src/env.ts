@@ -1,5 +1,17 @@
+import { z } from "zod";
 import dotenv from "dotenv";
 dotenv.config();
 
-export const DATABASE_URL: string = process.env.DATABASE_URL;
-export const PORT = process.env.PORT || 3001;
+const ServeEnv = z.object({
+  PORT: z
+    .string()
+    .regex(/^\d+$/, "Port must be a numeric string")
+    .default("3001")
+    .transform(Number),
+
+  DATABASE_URL: z
+    .string()
+    .url("Must be a valid URL string")
+    .default("postgres://postgres:mysecretpassword@localhost:5432/postgres"),
+});
+export const ProcessEnv = ServeEnv.parse(process.env);
