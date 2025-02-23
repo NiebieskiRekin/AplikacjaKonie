@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { db } from "../db";
+import { db, eq } from "../db";
 import {
   hodowcyKoni,
   hodowcyKoniSelectSchema,
   hodowcyKoniInsertSchema,
   hodowcyKoniUpdateSchema,
 } from "../db/schema";
-import { eq } from "drizzle-orm";
+
 
 export const hodowcyKoniRoute = new Hono()
   .get("/", async (c) => {
@@ -15,7 +15,7 @@ export const hodowcyKoniRoute = new Hono()
     return c.json(hodowcyKoni_result);
   })
   .post("/", zValidator("json", hodowcyKoniInsertSchema), async (c) => {
-    const hodowca: any = c.req.valid("json"); // 'any' type is required, otherwise some errors are showing up
+    const hodowca = c.req.valid("json");
 
     const result = await db
       .insert(hodowcyKoni)
@@ -43,6 +43,7 @@ export const hodowcyKoniRoute = new Hono()
   })
   .delete("/:id{[0-9]+}", async (c) => {
     const id: any = Number.parseInt(c.req.param("id"));
+    // TODO: investigate why id cannot be of type number
 
     const hodowca = await db
       .delete(hodowcyKoni)
