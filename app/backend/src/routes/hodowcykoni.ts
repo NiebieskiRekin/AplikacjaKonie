@@ -27,12 +27,12 @@ export const hodowcyKoniRoute = new Hono()
     return c.json(result);
   })
   .get("/:id{[0-9]+}", async (c) => {
-    const id: any = Number.parseInt(c.req.param("id"));
+    const id = Number.parseInt(c.req.param("id"));
 
     const hodowca = await db
       .select()
       .from(hodowcyKoni)
-      .where(eq(id, hodowcyKoni.id))
+      .where(eq(hodowcyKoni.id, id))
       .then((res) => res[0]);
 
     if (!hodowca) {
@@ -42,12 +42,11 @@ export const hodowcyKoniRoute = new Hono()
     return c.json(hodowca);
   })
   .delete("/:id{[0-9]+}", async (c) => {
-    const id: any = Number.parseInt(c.req.param("id"));
-    // TODO: investigate why id cannot be of type number
+    const id = Number.parseInt(c.req.param("id"));
 
     const hodowca = await db
       .delete(hodowcyKoni)
-      .where(eq(id, hodowcyKoni.id))
+      .where(eq(hodowcyKoni.id, id)) // NOTE: order matters
       .returning()
       .then((res) => res[0]);
 
