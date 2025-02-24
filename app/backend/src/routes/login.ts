@@ -23,7 +23,7 @@ const login = new Hono().post("/", async (c) => {
       return c.json({ error: "Nieprawidłowe dane logowania." }, 401);
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, await bcrypt.hash(user.password,10));
     if (!isPasswordValid) {
       return c.json({ error: "Nieprawidłowe dane logowania." }, 401);
     }
@@ -36,10 +36,8 @@ const login = new Hono().post("/", async (c) => {
 
     return c.json({ token });
   } catch (error) {
-    console.error("Błąd podczas logowania:", error);
-    return c.json({ error: "Wewnętrzny błąd serwera" }, 500);
+    return c.json({ error: "Błąd podczas logowania" }, 500);
   }
 });
 
-// Uruchomienie serwera
 export default login;
