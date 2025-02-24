@@ -18,7 +18,7 @@ const ServeEnv = z.object({
 
   JWT_SECRET: z.string({message: "Brak ustawionego JWT_SECRET w zmiennych środowiskowych."}),
 
-  ADMIN_PASSWORD: z.string()
+  ADMIN_PASSWORD_BCRYPT: z.string()
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);

@@ -4,14 +4,16 @@ import { users, usersInsertSchema } from "../db/schema";
 import { ProcessEnv } from "../env";
 import { db } from "../db";
 import { basicAuth } from 'hono/basic-auth';
-import { every } from 'hono/combine'
 import { zValidator } from "@hono/zod-validator";
 
 const register = new Hono()
   .use("*",
     basicAuth({
-        username: 'adam',
-        password: ProcessEnv.ADMIN_PASSWORD,
+        verifyUser: async (username, password, c) => {
+            return (
+              username === 'adam' && await bcrypt.compare(ProcessEnv.ADMIN_PASSWORD_BCRYPT,await bcrypt.hash(password,10))
+            )
+          },
     }))
   .post("/", zValidator("json", usersInsertSchema),
   async (c) => {
