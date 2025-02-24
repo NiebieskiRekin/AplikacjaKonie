@@ -1,5 +1,5 @@
-import { useState } from "react";
-import PWABadge from "../components/PWABadge.tsx";
+// import { useState } from "react";
+import PWABadge from "./PWABadge.tsx";
 import "../index.css";
 
 function Home() {
