@@ -81,7 +81,9 @@ export const konie = hodowlakoni.table(
     ),
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
-    hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id),
+    hodowla: integer("hodowla")
+      .notNull()
+      .references(() => hodowcyKoni.id),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: plcie("plec"),
   },
@@ -113,7 +115,9 @@ export const konieRelations = relations(konie, ({ many, one }) => ({
 // NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   id: uuid("id").primaryKey(),
-  kon: integer("kon").notNull().references(() => konie.id),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
   file: uuid("file")
     .notNull()
     .references(() => files.id),
@@ -155,8 +159,12 @@ export const podkucia = hodowlakoni.table("podkucia", {
   id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia").defaultNow(),
   dataWaznosci: date("data_waznosci"),
-  kon: integer("kon").notNull().references(() => konie.id),
-  kowal: integer("kowal").notNull().references(() => kowale.id),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
+  kowal: integer("kowal")
+    .notNull()
+    .references(() => kowale.id),
 });
 
 export const podkuciaSelectSchema = createSelectSchema(podkucia);
@@ -178,7 +186,9 @@ export const kowale = hodowlakoni.table("kowale", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id),
+  hodowla: integer("hodowla")
+    .notNull()
+    .references(() => hodowcyKoni.id),
 });
 
 export const kowaleSelectSchema = createSelectSchema(kowale);
@@ -195,7 +205,9 @@ export const kowaleRelations = relations(kowale, ({ many, one }) => ({
 
 export const choroby = hodowlakoni.table("choroby", {
   id: serial("id").primaryKey(),
-  kon: integer("kon").notNull().references(() => konie.id),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
   dataRozpoczecia: date("data_rozpoczecia").notNull().defaultNow(),
   dataZakonczenia: date("data_zakonczenia"),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
@@ -216,8 +228,12 @@ export const chorobyRelations = relations(choroby, ({ one }) => ({
 // TODO: grupowanie zdarzeń?
 export const leczenia = hodowlakoni.table("leczenia", {
   id: serial("id").primaryKey(),
-  kon: integer("kon").notNull().references(() => konie.id),
-  weterynarz: integer("weterynarz").notNull().references(() => weterynarze.id),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
+  weterynarz: integer("weterynarz")
+    .notNull()
+    .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
 });
@@ -242,8 +258,12 @@ export const leczeniaRelations = relations(leczenia, ({ one }) => ({
 // TODO: uwzględnienie rodziców
 export const rozrody = hodowlakoni.table("rozrody", {
   id: serial("id").primaryKey(),
-  kon: integer("kon").notNull().references(() => konie.id),
-  weterynarz: integer("weterynarz").notNull().references(() => weterynarze.id),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
+  weterynarz: integer("weterynarz")
+    .notNull()
+    .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   rodzajZdarzenia: rodzajeZdarzenRozrodczych("rodzaj_zdarzenia").notNull(),
   opisZdarzenia: varchar("opis_zdarzenia").notNull(),
@@ -270,8 +290,12 @@ export const zdarzeniaProfilaktyczne = hodowlakoni.table(
   "zdarzenia_profilaktyczne",
   {
     id: serial("id").primaryKey(),
-    kon: integer("kon").notNull().references(() => konie.id),
-    weterynarz: integer("weterynarz").notNull().references(() => weterynarze.id),
+    kon: integer("kon")
+      .notNull()
+      .references(() => konie.id),
+    weterynarz: integer("weterynarz")
+      .notNull()
+      .references(() => weterynarze.id),
     dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
     dataWaznosci: date("data_waznosci"),
     rodzajZdarzenia:
@@ -308,7 +332,9 @@ export const weterynarze = hodowlakoni.table("weterynarze", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id),
+  hodowla: integer("hodowla")
+    .notNull()
+    .references(() => hodowcyKoni.id),
 });
 
 export const weterynarzeSelectSchema = createSelectSchema(weterynarze);

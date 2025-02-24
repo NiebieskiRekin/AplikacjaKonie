@@ -2,7 +2,7 @@ import app from "./app";
 import { ProcessEnv } from "./env";
 import { serve } from "@hono/node-server";
 
-const server = serve(
+export const server = serve(
   {
     port: ProcessEnv.PORT,
     hostname: "0.0.0.0",
