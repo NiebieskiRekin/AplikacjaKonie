@@ -23,7 +23,7 @@ const login = new Hono().post("/", async (c) => {
       return c.json({ error: "Nieprawidłowe dane logowania." }, 401);
     }
 
-    const isPasswordValid = await bcrypt.compare(password, await bcrypt.hash(user.password,10));
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return c.json({ error: "Nieprawidłowe dane logowania." }, 401);
     }
