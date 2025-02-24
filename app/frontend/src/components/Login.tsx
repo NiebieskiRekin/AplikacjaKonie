@@ -13,7 +13,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3002/api/login", { // tutaj port inaczej, pewnie tez .env na front trzeba byloby zrobic
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
