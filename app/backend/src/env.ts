@@ -17,3 +17,11 @@ const ServeEnv = z.object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 export const ProcessEnv = ServeEnv.parse(process.env);
+
+
+// JTW TOKEN from .env
+if (!process.env.JWT_SECRET) {
+    throw new Error("Brak ustawionego JWT_SECRET w zmiennych środowiskowych.");
+  }
+  
+  export const JWT_SECRET = process.env.JWT_SECRET;

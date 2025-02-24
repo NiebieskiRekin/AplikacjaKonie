@@ -12,3 +12,5 @@ const server = serve(
     console.log(`Server is running on http://localhost:${info.port}`);
   }
 );
+
+console.log(`Serwer działa na porcie ${ProcessEnv.PORT}`);
