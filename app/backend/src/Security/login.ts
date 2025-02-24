@@ -1,11 +1,9 @@
 import { Hono } from "hono";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { users } from "../db/schema";
-import { JWT_SECRET } from "../env";
+import { ProcessEnv } from "../env";
 import { db } from "../db";
 
 const login = new Hono().post("/", async (c) => {
@@ -32,7 +30,7 @@ const login = new Hono().post("/", async (c) => {
 
     const token = jwt.sign(
       { userId: user.id, email: user.email },
-      JWT_SECRET,
+      ProcessEnv.JWT_SECRET,
       { expiresIn: "1h" }
     );
 

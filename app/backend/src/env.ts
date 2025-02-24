@@ -14,14 +14,9 @@ const ServeEnv = z.object({
     .url("Must be a valid URL string")
     .default("postgres://postgres:mysecretpassword@localhost:5432/postgres"),
 
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+
+  JWT_SECRET: z.string({message: "Brak ustawionego JWT_SECRET w zmiennych środowiskowych."})
 });
+
 export const ProcessEnv = ServeEnv.parse(process.env);
-
-
-// JTW TOKEN from .env
-if (!process.env.JWT_SECRET) {
-    throw new Error("Brak ustawionego JWT_SECRET w zmiennych środowiskowych.");
-  }
-  
-  export const JWT_SECRET = process.env.JWT_SECRET;
