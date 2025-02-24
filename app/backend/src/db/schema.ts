@@ -324,3 +324,45 @@ export const weterynarzeRelations = relations(weterynarze, ({ many, one }) => ({
     references: [hodowcyKoni.id],
   }),
 }));
+
+
+// Role użytkowników (do zmiany pewnie zależne od Adama);
+export const userRolesEnum = hodowlakoni.enum("user_roles", [
+  "właściciel",
+  "członek",
+  "viewer",
+]);
+
+export const users = hodowlakoni.table("users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", {length: 255}).notNull().unique(),
+  password: varchar("password", {length: 255}).notNull(),
+  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id), // do konkretnego zioma (można podmimenić tamto wyżej i też jako tako będzie)
+  createdAt: date("created_at").defaultNow(),
+
+});
+
+export const usersSelectSchema = createSelectSchema(users);
+export const usersInsertSchema = createInsertSchema(users);
+export const usersUpdateSchema = createUpdateSchema(users);
+
+// Tabela łącząca użytkowników z uprawnieniami;
+export const user_permissions = hodowlakoni.table("user_permissions", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  role: userRolesEnum("role").notNull(),
+});
+
+export const userPermissionsSelectSchema = createSelectSchema(user_permissions);
+export const userPermissionsInsertSchema = createInsertSchema(user_permissions);
+export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
+
+// Realcja dla tabeli użytkowników
+export const usersRelations = relations(users, ({ many, one }) => ({
+  // Relacja do hodowli (hodowcyKoni)
+  hodowla: one(hodowcyKoni, {
+    fields: [users.hodowla],
+    references: [hodowcyKoni.id],
+  }),
+  // Relacja do uprawnień
+  permissions: one(user_permissions),
+}));
