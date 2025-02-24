@@ -1,13 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db, eq } from "../db";
-import {
-  hodowcyKoni,
-  hodowcyKoniSelectSchema,
-  hodowcyKoniInsertSchema,
-  hodowcyKoniUpdateSchema,
-} from "../db/schema";
-
+import { hodowcyKoni, hodowcyKoniInsertSchema } from "../db/schema";
 
 export const hodowcyKoniRoute = new Hono()
   .get("/", async (c) => {

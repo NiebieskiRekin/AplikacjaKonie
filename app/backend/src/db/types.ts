@@ -1,4 +1,16 @@
-import {hodowcyKoni, konie, zdjeciaKoni, files, podkucia, kowale, choroby, leczenia, rozrody, zdarzeniaProfilaktyczne, weterynarze} from "./schema"
+import {
+  hodowcyKoni,
+  konie,
+  zdjeciaKoni,
+  files,
+  podkucia,
+  kowale,
+  choroby,
+  leczenia,
+  rozrody,
+  zdarzeniaProfilaktyczne,
+  weterynarze,
+} from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
 // NOTE: in order to have nullability on select on nullable types as well as all fields with
@@ -25,7 +37,9 @@ export type SelectLeczenie = typeof leczenia.$inferSelect;
 export type InsertLeczenie = typeof leczenia.$inferInsert;
 export type SelectRozrod = typeof rozrody.$inferSelect;
 export type InsertRozrod = typeof rozrody.$inferInsert;
-export type SelectZdarzenieProfilaktyczne = typeof zdarzeniaProfilaktyczne.$inferSelect;
-export type InsertZdarzenieProfilaktyczne = typeof zdarzeniaProfilaktyczne.$inferInsert;
+export type SelectZdarzenieProfilaktyczne =
+  typeof zdarzeniaProfilaktyczne.$inferSelect;
+export type InsertZdarzenieProfilaktyczne =
+  typeof zdarzeniaProfilaktyczne.$inferInsert;
 export type SelectWeterynarz = typeof weterynarze.$inferSelect;
 export type InsertWeterynarz = typeof weterynarze.$inferInsert;

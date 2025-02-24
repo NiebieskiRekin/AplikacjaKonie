@@ -8,8 +8,8 @@ import register from "./routes/register";
 const app = new Hono();
 
 app.use("/api/*", cors());
-if (ProcessEnv.NODE_ENV != "production"){
-    app.use("*", logger()); // Only for testing and development
+if (ProcessEnv.NODE_ENV != "production") {
+  app.use("*", logger()); // Only for testing and development
 }
 
 
