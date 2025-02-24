@@ -10,7 +10,7 @@ export const db = drizzle({
     connectionString: ProcessEnv.DATABASE_URL,
   }),
   schema: { ...schema },
-  logger: ProcessEnv.NODE_ENV != "production" ? true : false
+  logger: ProcessEnv.NODE_ENV != "production" ? true : false,
 });
 
 export { eq } from "drizzle-orm";
