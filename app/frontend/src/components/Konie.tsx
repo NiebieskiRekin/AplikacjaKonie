@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Horse = {
   id: number;
@@ -12,6 +13,8 @@ function Konie() {
   const [search, setSearch] = useState("");
   const [filteredHorses, setFilteredHorses] = useState<Horse[]>([]);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHorses = async () => {
@@ -55,7 +58,7 @@ function Konie() {
           className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500"
         />
         <button
-          onClick={() => alert("Dodaj konia - tutaj otworzymy formularz!")}
+          onClick={() => navigate("/konie/add")}
           className="px-5 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
           ➕ Dodaj konia
