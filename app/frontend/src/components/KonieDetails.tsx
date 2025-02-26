@@ -14,10 +14,17 @@ type HorseDetails = {
   imageUrl?: string;
 };
 
+type Event = {
+  type: string;
+  date: string;
+  description: string;
+};
+
 function KonieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [horse, setHorse] = useState<HorseDetails | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -42,7 +49,28 @@ function KonieDetails() {
       }
     };
 
+    const fetchHorseEvents = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Brak tokena. Zaloguj się.");
+
+        // Pobieramy ostatnie 5 zdarzeń
+        const response = await fetch(`/api/konie/${id}/events`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+        console.log(data);
+        if (!response.ok) throw new Error(data.error || "Błąd pobierania zdarzeń");
+
+        setEvents(data);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    };
+
     fetchHorseDetails();
+    fetchHorseEvents();
   }, [id]);
 
   if (error) return <p className="text-red-600">{error}</p>;
@@ -52,7 +80,7 @@ function KonieDetails() {
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
       <h2 className="text-3xl font-bold text-white mb-6">{horse.nazwa}</h2>
 
-      <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row gap-6">
+      <div className="w-full max-w-7xl bg-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row gap-6">
         
         <div className="flex-1">
           <h3 className="text-xl font-bold text-green-900 mb-4">🐎 Informacje o koniu</h3>
@@ -84,6 +112,26 @@ function KonieDetails() {
             ➕ Dodaj zdjęcie
             <input type="file" className="hidden" />
           </label>
+        </div>
+
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-red-700 mb-4">📅 Ostatnie zdarzenia</h3>
+          <ul className="bg-gray-100 p-4 rounded-lg shadow-md">
+            {events.length > 0 ? (
+              events.map((event, index) => (
+                <li key={index} className="border-b py-2">
+                  <span className="text-sm font-bold text-gray-700">{event.date} - {event.type}</span>
+                  <p className="text-gray-600">
+                  {event.type === "podkucie" && event.description
+                    ? `Ważne do: `
+                    : ""}
+                    {event.description}</p>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-600">Brak zdarzeń</p>
+            )}
+          </ul>
         </div>
       </div>
 
