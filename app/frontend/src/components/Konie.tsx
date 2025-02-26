@@ -77,7 +77,8 @@ function Konie() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
-            <div key={horse.id} className="bg-white rounded-lg shadow-lg p-4">
+            <div key={horse.id} onClick={() => navigate(`/konie/${horse.id}`)}
+            className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:scale-105 transition transform duration-200">
                <img
                 src={horse.imageUrl}
                 alt={horse.nazwa}

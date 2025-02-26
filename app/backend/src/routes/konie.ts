@@ -85,4 +85,28 @@ horses.post("/", async (c) => {
     }
   });
 
+  horses.get("/:id", async (c) => {
+    const user = getUserFromContext(c);
+    if (!user) {
+      return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
+  
+    const horseId = Number(c.req.param("id"));
+    if (isNaN(horseId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+    }
+  
+    const horse = await db
+      .select()
+      .from(konie)
+      .where(eq(konie.id, horseId))
+      .then((res) => res[0]);
+  
+    if (!horse) {
+      return c.json({ error: "Koń nie znaleziony" }, 404);
+    }
+  
+    return c.json(horse);
+  });
+
 export default horses;
