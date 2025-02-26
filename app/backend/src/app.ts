@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import { ProcessEnv } from "./env";
 import login from "./routes/login"
 import register from "./routes/register";
+import konieRoute from "./routes/konie";
 const app = new Hono();
 
 app.use("/api/*", cors());
@@ -17,6 +18,7 @@ const apiRoutes = app.basePath("/api")
     .route("/hodowcykoni", hodowcyKoniRoute)
     .route("/login", login)
     .route("/register", register)
+    .route("/konie", konieRoute)
 
 
 export default app;

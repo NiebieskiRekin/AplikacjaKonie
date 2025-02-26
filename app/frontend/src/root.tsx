@@ -4,9 +4,13 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    BrowserRouter,
+    useLocation
   } from "react-router";
 
   import Home from "./components/Home";
+  import Navbar from "./components/Navbar";
+
   
   export function Layout({
     children,
@@ -39,6 +43,13 @@ import {
   }
 
   export default function Root() {
-    return <Outlet />;
+    const location = useLocation();
+  
+    return (
+      <>
+        {location.pathname !== "/login" && <Navbar />}
+        <Outlet />
+      </>
+    );
   }
   
