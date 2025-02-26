@@ -36,6 +36,12 @@ function Navbar() {
           </Link>
         </div>
 
+        <Link
+            to="/restart"
+            className="px-6 py-3 rounded-lg hover:text-brown-300 transition font-semibold"
+          >
+            Zmień hasło
+        </Link>
         <button
           onClick={() => {
             localStorage.removeItem("token");
