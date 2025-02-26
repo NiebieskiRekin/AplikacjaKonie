@@ -6,6 +6,7 @@ type Horse = {
   nazwa: string;
   numerPrzyzyciowy: string;
   rodzajKonia: string;
+  imageUrl?: string;
 };
 
 function Konie() {
@@ -29,8 +30,13 @@ function Konie() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");
 
-        setHorses(data);
-        setFilteredHorses(data);
+        const horeseWithImages = data.map((horse: Horse) => ({
+          ...horse,
+          imageUrl: `${import.meta.env.BASE_URL}horses/${horse.id}.jpg`,
+        }));
+
+        setHorses(horeseWithImages);
+        setFilteredHorses(horeseWithImages);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -72,9 +78,15 @@ function Konie() {
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
             <div key={horse.id} className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-bold text-green-900">{horse.nazwa}</h3>
-              <p className="text-gray-700">Numer: {horse.numerPrzyzyciowy}</p>
-              <p className="text-gray-600">Rodzaj: {horse.rodzajKonia}</p>
+               <img
+                src={horse.imageUrl}
+                alt={horse.nazwa}
+                onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
+                className="w-full h-48 object-cover rounded-t-lg"
+              />
+              <div className="p-3">
+                <h3 className="text-xl font-bold text-green-900">{horse.nazwa}</h3>
+              </div>
             </div>
           ))
         ) : (
