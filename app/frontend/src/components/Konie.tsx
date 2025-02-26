@@ -55,7 +55,7 @@ function Konie() {
           placeholder="Wyszukaj konia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500"
+          className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500 text-white"
         />
         <button
           onClick={() => navigate("/konie/add")}
@@ -65,7 +65,7 @@ function Konie() {
         </button>
       </div>
 
-      <h2 className="text-3xl font-bold text-white mb-6">Lista koni</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Konie na hodowli</h2>
       {error && <p className="text-red-600">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
