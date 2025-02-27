@@ -123,7 +123,7 @@ horses.post("/", async (c) => {
           db.select({ type: sql<string>`'leczenie'`, date: leczenia.dataZdarzenia, description: leczenia.opisZdarzenia }).from(leczenia).where(eq(leczenia.kon, horseId)).orderBy(desc(leczenia.dataZdarzenia)).limit(5),
           db.select({ type: sql<string>`'podkucie'`, date: podkucia.dataZdarzenia , description: sql<string>`coalesce(to_char(data_waznosci, 'DD-MM-YYYY'),'nie podano daty ważności')` }).from(podkucia).where(eq(podkucia.kon, horseId)).orderBy(desc(podkucia.dataZdarzenia)).limit(5),
           db.select({ type: sql<string>`'profilaktyka'`, date: zdarzeniaProfilaktyczne.dataZdarzenia, description: zdarzeniaProfilaktyczne.opisZdarzenia }).from(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.kon, horseId)).orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia)).limit(5)
-         );
+         ).orderBy(sql`2 desc`).limit(5);
     
           return c.json(after_union);
         } catch (error) {
