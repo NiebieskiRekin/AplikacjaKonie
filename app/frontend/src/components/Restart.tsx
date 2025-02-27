@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 function Restart() {
   const [oldPassword, setOldPassword] = useState("");
@@ -34,7 +34,7 @@ function Restart() {
       if (!response.ok) {
         if (data.error && data.error.issues) {
           const errorMessages = data.error.issues.
-          map((issue: any) => `❌ ${issue.message}`)
+          map((issue: {message: string}) => `❌ ${issue.message}`)
           .join("\n");
           throw new Error(errorMessages);
         }

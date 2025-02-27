@@ -1,9 +1,10 @@
 import { Hono } from "hono";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale } from "../db/schema";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
+import { union } from 'drizzle-orm/pg-core'
 
 const horses = new Hono<{ Variables: { user: UserPayload } }>();
 
@@ -115,26 +116,16 @@ horses.post("/", async (c) => {
       return c.json({ error: "Nieprawidłowy identyfikator konia." }, 400);
     }
   
-    try { // raczej w przyszłości to będzie do zmiany na np. union_all ale się z tym męczyłem i nie działało
-        const events = await Promise.all([
-        db.select().from(rozrody).where(eq(rozrody.kon, horseId)).orderBy(desc(rozrody.dataZdarzenia)).limit(5),
-        db.select().from(choroby).where(eq(choroby.kon, horseId)).orderBy(desc(choroby.dataRozpoczecia)).limit(5),
-        db.select().from(leczenia).where(eq(leczenia.kon, horseId)).orderBy(desc(leczenia.dataZdarzenia)).limit(5),
-        db.select().from(podkucia).where(eq(podkucia.kon, horseId)).orderBy(desc(podkucia.dataZdarzenia)).limit(5),
-        db.select().from(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.kon, horseId)).orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia)).limit(5),
-        ]);
-
-        const formattedEvents = [
-            ...events[0].map(e => ({ type: "rozród", date: e.dataZdarzenia, description: e.opisZdarzenia })),
-            ...events[1].map(e => ({ type: "choroba", date: e.dataRozpoczecia, description: e.opisZdarzenia })),
-            ...events[2].map(e => ({ type: "leczenie", date: e.dataZdarzenia, description: e.opisZdarzenia })),
-            ...events[3].map(e => ({ type: "podkucie", date: e.dataZdarzenia, description: e.dataWaznosci })),
-            ...events[4].map(e => ({ type: "profilaktyka", date: e.dataZdarzenia, description: e.opisZdarzenia })),
-        ]
-        .sort((a, b) => new Date(b.date ?? "0000-00-00").getTime() - new Date(a.date ?? "0000-00-00").getTime())
-        .slice(0, 5);
+    try { 
+        const after_union = await union(
+          db.select({ type: sql<string>`'rozród'`, date: rozrody.dataZdarzenia, description: rozrody.opisZdarzenia }).from(rozrody).where(eq(rozrody.kon, horseId)).orderBy(desc(rozrody.dataZdarzenia)).limit(5),
+          db.select({ type: sql<string>`'choroba'`, date: choroby.dataRozpoczecia, description: choroby.opisZdarzenia }).from(choroby).where(eq(choroby.kon, horseId)).orderBy(desc(choroby.dataRozpoczecia)).limit(5),
+          db.select({ type: sql<string>`'leczenie'`, date: leczenia.dataZdarzenia, description: leczenia.opisZdarzenia }).from(leczenia).where(eq(leczenia.kon, horseId)).orderBy(desc(leczenia.dataZdarzenia)).limit(5),
+          db.select({ type: sql<string>`'podkucie'`, date: podkucia.dataZdarzenia , description: sql<string>`coalesce(to_char(data_waznosci, 'DD-MM-YYYY'),'nie podano daty ważności')` }).from(podkucia).where(eq(podkucia.kon, horseId)).orderBy(desc(podkucia.dataZdarzenia)).limit(5),
+          db.select({ type: sql<string>`'profilaktyka'`, date: zdarzeniaProfilaktyczne.dataZdarzenia, description: zdarzeniaProfilaktyczne.opisZdarzenia }).from(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.kon, horseId)).orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia)).limit(5)
+         ).orderBy(sql`2 desc`).limit(5);
     
-        return c.json(formattedEvents);
+          return c.json(after_union);
         } catch (error) {
         console.error("Błąd pobierania zdarzeń konia:", error);
         return c.json({ error: "Błąd pobierania zdarzeń konia." }, 500);
