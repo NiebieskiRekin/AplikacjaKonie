@@ -157,7 +157,7 @@ export const filesRelations = relations(files, ({ many }) => ({
 
 export const podkucia = hodowlakoni.table("podkucia", {
   id: serial("id").primaryKey(),
-  dataZdarzenia: date("data_zdarzenia").defaultNow(),
+  dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   dataWaznosci: date("data_waznosci"),
   kon: integer("kon")
     .notNull()
