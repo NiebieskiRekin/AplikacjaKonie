@@ -121,3 +121,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* TODO aby pozbyć się scrolla */
+html, body, #root {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-container {
+    height: 100vh; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.navbar {
+    flex-shrink: 0; 
+}

@@ -7,6 +7,7 @@ import login from "./routes/login"
 import register from "./routes/register";
 import konieRoute from "./routes/konie";
 import restartRoutes from "./routes/restart";
+import wydarzeniaRoute from "./routes/wydarzenia";
 const app = new Hono();
 
 app.use("/api/*", cors());
@@ -21,6 +22,7 @@ const apiRoutes = app.basePath("/api")
     .route("/register", register)
     .route("/konie", konieRoute)
     .route("/restart", restartRoutes)
+    .route("/wydarzenia", wydarzeniaRoute)
 
 
 export default app;
