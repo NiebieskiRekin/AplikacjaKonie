@@ -6,6 +6,7 @@ type Horse = {
   nazwa: string;
   numerPrzyzyciowy: string;
   rodzajKonia: string;
+  imageUrl?: string;
 };
 
 function Konie() {
@@ -29,8 +30,13 @@ function Konie() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");
 
-        setHorses(data);
-        setFilteredHorses(data);
+        const horeseWithImages = data.map((horse: Horse) => ({
+          ...horse,
+          imageUrl: `${import.meta.env.BASE_URL}horses/${horse.id}.jpg`,
+        }));
+
+        setHorses(horeseWithImages);
+        setFilteredHorses(horeseWithImages);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -55,7 +61,7 @@ function Konie() {
           placeholder="Wyszukaj konia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500"
+          className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500 text-white"
         />
         <button
           onClick={() => navigate("/konie/add")}
@@ -65,16 +71,23 @@ function Konie() {
         </button>
       </div>
 
-      <h2 className="text-3xl font-bold text-white mb-6">Lista koni</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Konie na hodowli</h2>
       {error && <p className="text-red-600">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
-            <div key={horse.id} className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-xl font-bold text-green-900">{horse.nazwa}</h3>
-              <p className="text-gray-700">Numer: {horse.numerPrzyzyciowy}</p>
-              <p className="text-gray-600">Rodzaj: {horse.rodzajKonia}</p>
+            <div key={horse.id} onClick={() => navigate(`/konie/${horse.id}`)}
+            className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:scale-105 transition transform duration-200">
+               <img
+                src={horse.imageUrl}
+                alt={horse.nazwa}
+                onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
+                className="w-full h-48 object-cover rounded-t-lg"
+              />
+              <div className="p-3">
+                <h3 className="text-xl font-bold text-green-900">{horse.nazwa}</h3>
+              </div>
             </div>
           ))
         ) : (

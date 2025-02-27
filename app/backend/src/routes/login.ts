@@ -25,7 +25,7 @@ const login = new Hono().post("/", async (c) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return c.json({ error: "Nieprawidłowe dane logowania." }, 401);
+      return c.json({ error: "Nieprawidłowe hasło." }, 401);
     }
 
     const token = jwt.sign(

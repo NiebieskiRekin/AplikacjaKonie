@@ -46,10 +46,9 @@ import {
     const location = useLocation();
   
     return (
-      <>
+      <div className="page-container">
         {location.pathname !== "/login" && <Navbar />}
         <Outlet />
-      </>
+      </div>
     );
   }
-  
