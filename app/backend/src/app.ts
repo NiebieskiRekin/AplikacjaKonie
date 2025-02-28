@@ -8,6 +8,9 @@ import register from "./routes/register";
 import konieRoute from "./routes/konie";
 import restartRoutes from "./routes/restart";
 import wydarzeniaRoute from "./routes/wydarzenia";
+import kowaleRoute from "./routes/kowale";
+import weterynarzeRoute from "./routes/weterynarze";
+
 const app = new Hono();
 
 app.use("/api/*", cors());
@@ -23,7 +26,8 @@ const apiRoutes = app.basePath("/api")
     .route("/konie", konieRoute)
     .route("/restart", restartRoutes)
     .route("/wydarzenia", wydarzeniaRoute)
-
+    .route("/kowale", kowaleRoute)
+    .route("/weterynarze", weterynarzeRoute)
 
 export default app;
 export type ApiRoutes = typeof apiRoutes;

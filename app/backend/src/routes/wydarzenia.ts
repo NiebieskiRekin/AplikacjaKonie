@@ -3,6 +3,8 @@ import { eq, or } from "drizzle-orm";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zdarzeniaProfilaktyczne, podkucia, users, konie, kowale, weterynarze } from "../db/schema";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 
 const wydarzeniaRoute = new Hono<{ Variables: { user: UserPayload } }>();
 
@@ -81,5 +83,80 @@ wydarzeniaRoute.get("/", async (c) => {
 
     return c.json(events);
 });
+
+
+const podkucieSchema = z.object({
+    konie: z.array(z.number().positive()),
+    kowal: z.number().positive(), 
+    dataZdarzenia: z.string().date(),
+    dataWaznosci: z.string().date().optional(),
+  });
+
+  const zdarzenieProfilaktyczneSchema = z.object({
+    konie: z.array(z.number().positive()),
+    weterynarz: z.number().positive(), 
+    dataZdarzenia: z.string().date(),
+    dataWaznosci: z.string().date().optional(),
+    rodzajZdarzenia: z.enum(["Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"]),
+    opisZdarzenia: z.string().min(5),
+  });
+  
+  wydarzeniaRoute.post(
+    "/podkucie",
+    zValidator("json", podkucieSchema),
+    async (c) => {
+  
+      try {
+        const user = getUserFromContext(c);
+        if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+  
+        const { konie, kowal, dataZdarzenia, dataWaznosci } = c.req.valid("json");
+  
+        await db.insert(podkucia).values(
+          konie.map((konId) => ({
+            kon: konId,
+            kowal,
+            dataZdarzenia,
+            dataWaznosci: dataWaznosci || null,
+          }))
+        );
+  
+        return c.json({ message: "Podkucie dodane pomyślnie!" });
+      } catch (error) {
+        console.error("Błąd podczas dodawania podkucia:", error);
+        return c.json({ error: "Błąd serwera podczas dodawania podkucia" }, 500);
+      }
+    }
+  );
+  
+  wydarzeniaRoute.post(
+    "/zdarzenie-profilaktyczne",
+    zValidator("json", zdarzenieProfilaktyczneSchema),
+    async (c) => {
+  
+      try {
+        const user = getUserFromContext(c);
+        if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+  
+        const { konie, weterynarz, dataZdarzenia, dataWaznosci, rodzajZdarzenia, opisZdarzenia } = c.req.valid("json");
+  
+        await db.insert(zdarzeniaProfilaktyczne).values(
+          konie.map((konId) => ({
+            kon: konId,
+            weterynarz,
+            dataZdarzenia,
+            dataWaznosci: dataWaznosci || null,
+            rodzajZdarzenia,
+            opisZdarzenia,
+          }))
+        );
+  
+        return c.json({ message: "Zdarzenie profilaktyczne dodane pomyślnie!" });
+      } catch (error) {
+        console.error("Błąd podczas dodawania zdarzenia profilaktycznego:", error);
+        return c.json({ error: "Błąd serwera podczas dodawania zdarzenia" }, 500);
+      }
+    }
+  );
 
 export default wydarzeniaRoute;
