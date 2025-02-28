@@ -5,13 +5,22 @@ import { eq } from "drizzle-orm";
 import { users } from "../db/schema";
 import { ProcessEnv } from "../env";
 import { db } from "../db";
+import { z } from "zod";
+import { zValidator } from '@hono/zod-validator'
 
-const login = new Hono().post("/", async (c) => {
+
+const login = new Hono().post("/", zValidator(
+  'json',
+  z.object({
+    email: z.string({"message":"Email jest wymagany"}).email({"message":"Niepoprawny format adresu email"}),
+    password: z.string({"message":"Hasło jest wymagane"})
+  })
+  ), async (c) => {
   try {
     const { email, password } = await c.req.json();
 
     if (!email || !password) {
-      return c.json({ error: "Email i password są wymagane." }, 400);
+      return c.json({ error: "Email i hasło są wymagane." }, 400);
     }
 
     const [user] = await db
