@@ -33,6 +33,12 @@ function AddEvent() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (type === "szczepienia") {
+      setDescription("grypa-tężec");
+    }
+  }, [type]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
