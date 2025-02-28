@@ -43,6 +43,13 @@
       "when": 1740422021098,
       "tag": "0005_youthful_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1740699158859,
+      "tag": "0006_good_thundra",
+      "breakpoints": true
     }
   ]
 }

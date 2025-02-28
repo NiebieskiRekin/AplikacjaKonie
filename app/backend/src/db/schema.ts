@@ -90,8 +90,16 @@ export const konie = hodowlakoni.table(
   () => [
     check(
       "odejscie_pozniej_niz_przybycie",
-      sql`(data_odejscia_ze_stajni is null and data_przybycia_do_stajni is null) or data_przybycia_do_stajni < data_odejscia_ze_stajni`
+      sql`(data_odejscia_ze_stajni is null or data_przybycia_do_stajni is null) or data_przybycia_do_stajni < data_odejscia_ze_stajni`
     ),
+    check(
+      "przybycie_nie_wczesniej_niz_rocznik_urodzenia",
+      sql`(data_odejscia_ze_stajni is null or data_przybycia_do_stajni is null) or extract(year from data_przybycia_do_stajni) >= rocznik_urodzenia `
+    ),
+    check(
+      "data_przybycia_wymagana_przy_dacie_odejscia",
+      sql`not (data_odejscia_ze_stajni is not null and data_przybycia_do_stajni is null)`
+    )
   ]
 );
 
@@ -373,6 +381,7 @@ export const usersInsertSchema = createInsertSchema(users);
 export const usersUpdateSchema = createUpdateSchema(users);
 
 // Tabela łącząca użytkowników z uprawnieniami;
+// TODO: chyba warto będzie to uprościć do jednej tabeli Users
 export const user_permissions = hodowlakoni.table("user_permissions", {
   userId: integer("user_id").notNull().references(() => users.id),
   role: userRolesEnum("role").notNull(),
@@ -383,7 +392,7 @@ export const userPermissionsInsertSchema = createInsertSchema(user_permissions);
 export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
 
 // Realcja dla tabeli użytkowników
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ one }) => ({
   // Relacja do hodowli (hodowcyKoni)
   hodowla: one(hodowcyKoni, {
     fields: [users.hodowla],
