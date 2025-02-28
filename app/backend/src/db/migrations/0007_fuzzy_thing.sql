@@ -1,0 +1,1 @@
+ALTER TABLE "hodowlakoni"."zdjecia_koni" ADD COLUMN "default" boolean NOT NULL;

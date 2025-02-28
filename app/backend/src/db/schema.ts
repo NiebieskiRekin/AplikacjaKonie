@@ -7,6 +7,7 @@ import {
   serial,
   uuid,
   customType,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -132,6 +133,7 @@ export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
     .references(() => files.id),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
+  default: boolean("default").notNull(),
 });
 
 export const zdjeciaKoniSelectSchema = createSelectSchema(zdjeciaKoni);
