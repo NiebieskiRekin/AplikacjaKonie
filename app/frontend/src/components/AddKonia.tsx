@@ -1,3 +1,4 @@
+import { getToken } from "@/lib/auth";
 import { useState } from "react";
 
 function AddKonia() {
@@ -41,7 +42,7 @@ function AddKonia() {
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const response = await fetch("/api/konie", {
         method: "POST",
         headers: {

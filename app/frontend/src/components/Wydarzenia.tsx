@@ -1,3 +1,4 @@
+import { getToken } from "@/lib/auth";
 import { useEffect, useState } from "react";
 
 type Event = {
@@ -21,8 +22,7 @@ function StajniaEvents() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
+        const token = getToken();
 
         const response = await fetch("/api/wydarzenia", {
           headers: { Authorization: `Bearer ${token}` },

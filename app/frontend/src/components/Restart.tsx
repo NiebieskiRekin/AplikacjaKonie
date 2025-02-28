@@ -1,3 +1,4 @@
+import { getToken } from "@/lib/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -18,8 +19,7 @@ function Restart() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Brak autoryzacji");
+      const token = getToken();
 
       const response = await fetch("/api/restart", {
         method: "POST",

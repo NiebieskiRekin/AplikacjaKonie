@@ -1,3 +1,4 @@
+import { getToken } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -20,8 +21,7 @@ function Konie() {
   useEffect(() => {
     const fetchHorses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
+        const token = getToken();
 
         const response = await fetch("/api/konie", {
           headers: { Authorization: `Bearer ${token}` },
