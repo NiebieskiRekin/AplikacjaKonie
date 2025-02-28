@@ -86,14 +86,14 @@ wydarzeniaRoute.get("/", async (c) => {
 
 
 const podkucieSchema = z.object({
-    konie: z.array(z.number().positive()),
+    konieId: z.array(z.number().positive()),
     kowal: z.number().positive(), 
     dataZdarzenia: z.string().date(),
     dataWaznosci: z.string().date().optional(),
   });
 
   const zdarzenieProfilaktyczneSchema = z.object({
-    konie: z.array(z.number().positive()),
+    konieId: z.array(z.number().positive()),
     weterynarz: z.number().positive(), 
     dataZdarzenia: z.string().date(),
     dataWaznosci: z.string().date().optional(),
@@ -110,16 +110,32 @@ const podkucieSchema = z.object({
         const user = getUserFromContext(c);
         if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
   
-        const { konie, kowal, dataZdarzenia, dataWaznosci } = c.req.valid("json");
+        const { konieId, kowal, dataZdarzenia } = c.req.valid("json");
   
-        await db.insert(podkucia).values(
-          konie.map((konId) => ({
-            kon: konId,
+        const konieInfo = await db
+          .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
+          .from(konie)
+          .where(or(...konieId.map((konieId) => eq(konie.id, konieId))));
+  
+        // Obliczamy datę ważności na podstawie rodzaju konia
+        const valuesToInsert = konieInfo.map((kon) => {
+          const baseDate = new Date(dataZdarzenia);
+  
+          if (kon.rodzajKonia === "Konie sportowe" || kon.rodzajKonia === "Konie rekreacyjne") {
+            baseDate.setDate(baseDate.getDate() + 42); // +6 tygodni
+          } else {
+            baseDate.setDate(baseDate.getDate() + 84); // +12 tygodni
+          }
+  
+          return {
+            kon: kon.id,
             kowal,
             dataZdarzenia,
-            dataWaznosci: dataWaznosci || null,
-          }))
-        );
+            dataWaznosci: baseDate.toISOString().split("T")[0], // YYYY-MM-DD
+          };
+        });
+  
+        await db.insert(podkucia).values(valuesToInsert);
   
         return c.json({ message: "Podkucie dodane pomyślnie!" });
       } catch (error) {
@@ -138,18 +154,39 @@ const podkucieSchema = z.object({
         const user = getUserFromContext(c);
         if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
   
-        const { konie, weterynarz, dataZdarzenia, dataWaznosci, rodzajZdarzenia, opisZdarzenia } = c.req.valid("json");
+        const { konieId, weterynarz, dataZdarzenia, rodzajZdarzenia, opisZdarzenia } = c.req.valid("json");
   
-        await db.insert(zdarzeniaProfilaktyczne).values(
-          konie.map((konId) => ({
-            kon: konId,
+        const konieInfo = await db
+          .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
+          .from(konie)
+          .where(or(...konieId.map((konieId) => eq(konie.id, konieId))));
+  
+        const valuesToInsert = konieInfo.map((kon) => {
+          const baseDate = new Date(dataZdarzenia);
+  
+          let monthsToAdd = 0;
+  
+          if (rodzajZdarzenia === "Szczepienie") {
+            monthsToAdd = kon.rodzajKonia === "Konie sportowe" ? 6 : 12;
+          } else if (rodzajZdarzenia === "Dentysta") {
+            monthsToAdd = ["Konie sportowe", "Konie rekreacyjne"].includes(kon.rodzajKonia) ? 6 : 12;
+          } else if (["Podanie witamin", "Odrobaczanie"].includes(rodzajZdarzenia)) {
+            monthsToAdd = 6;
+          }
+  
+          baseDate.setMonth(baseDate.getMonth() + monthsToAdd);
+  
+          return {
+            kon: kon.id,
             weterynarz,
             dataZdarzenia,
-            dataWaznosci: dataWaznosci || null,
+            dataWaznosci: baseDate.toISOString().split("T")[0], // YYYY-MM-DD
             rodzajZdarzenia,
             opisZdarzenia,
-          }))
-        );
+          };
+        });
+  
+        await db.insert(zdarzeniaProfilaktyczne).values(valuesToInsert);
   
         return c.json({ message: "Zdarzenie profilaktyczne dodane pomyślnie!" });
       } catch (error) {
@@ -157,6 +194,6 @@ const podkucieSchema = z.object({
         return c.json({ error: "Błąd serwera podczas dodawania zdarzenia" }, 500);
       }
     }
-  );
+  );  
 
 export default wydarzeniaRoute;

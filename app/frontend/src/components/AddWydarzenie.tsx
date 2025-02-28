@@ -16,6 +16,14 @@ const singularHorseTypes: Record<string, string> = {
     "Konie sportowe": "Koń sportowy",
   };
 
+const validityInfo: Record<string, string> = {
+    szczepienia: "Sportowe: co 6 miesięcy | Reszta: co 12 miesięcy",
+    dentysta: "Sportowe i Rekreacyjne: co 6 miesięcy | Hodowlane i Źrebaki: co 12 miesięcy",
+    "podanie-witamin": "Wszystkie konie: co 6 miesięcy",
+    odrobaczanie: "Wszystkie konie: co 6 miesięcy",
+    podkucie: "Sportowe i Rekreacyjne: co 6 tygodni | Hodowlane i Źrebaki: co 12 tygodni",
+  };
+
 type Horse = { id: number; nazwa: string; rodzajKonia: string };
 type Person = { id: number; imieINazwisko: string };
 
@@ -28,9 +36,10 @@ function AddEvent() {
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedPerson, setSelectedPerson] = useState("");
   const [date, setDate] = useState("");
-  const [validUntil, setValidUntil] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [validityText, setValidityText] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (type === "szczepienia") {
@@ -68,6 +77,22 @@ function AddEvent() {
     fetchData();
   }, [type]);
 
+  useEffect(() => {
+    let calculatedValidity = "";
+  
+    if (type === "szczepienia") {
+      calculatedValidity = "6 miesięcy - Sportowe\n12 miesięcy - Pozostałe";
+    } else if (type === "dentysta") {
+      calculatedValidity = "6 miesięcy - Sportowe i Rekreacyjne\n12 miesięcy - Źrebaki i Hodowlane";
+    } else if (type === "podanie-witamin" || type === "odrobaczanie") {
+      calculatedValidity = "6 miesięcy";
+    } else if (type === "podkucie") {
+      calculatedValidity = "6 tygodni - Sportowe i Rekreacyjne\n12 tygodni - Hodowlane i Źrebaki";
+    }
+  
+    setValidityText(calculatedValidity);
+  }, [type]);
+
   const handleSelectAllHorses = () => {
     if (selectedHorses.length === horses.length) {
       setSelectedHorses([]);
@@ -97,7 +122,6 @@ function AddEvent() {
       const payload = {
         konie: selectedHorses,
         dataZdarzenia: date,
-        dataWaznosci: validUntil || null,
         ...(type === "podkucie"
           ? { kowal: Number(selectedPerson) }
           : {
@@ -232,17 +256,15 @@ function AddEvent() {
                 }
             }
 
-            setValidUntil(calculatedDate.toISOString().split("T")[0]); // Format YYYY-MM-DD
         }}
         />
 
-        <label className="block text-gray-700">⏳ Ważne do:</label>
-        <input
-        type="date"
-        className="w-full p-2 border rounded mb-3"
-        value={validUntil}
-        onChange={(e) => setValidUntil(e.target.value)}
-        />
+        <label className="block text-gray-700">⏳ Ważne przez:</label>
+        <p className="text-gray-700 font-semibold">
+            {(validityText ?? "").split("\n").map((line, index) => (
+                <span key={index} className="block">{line}</span>
+            ))}
+        </p>
 
         {type !== "podkucie" && (
           <>
