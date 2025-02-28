@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { eq, desc, sql } from "drizzle-orm";
-import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale, rodzajeKoni} from "../db/schema";
+import { eq, desc, sql, and } from "drizzle-orm";
+import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale, zdjeciaKoni} from "../db/schema";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
@@ -15,17 +15,43 @@ horses.get("/",
   async (c) => {
   const userId = getUserFromContext(c);
 
-  const hodowla = db.select().from(users)
-    .where(eq(users.id, userId)).as("user_hodowla");
+  try{
+    const user = db.select().from(users)
+      .where(eq(users.id, userId)).as("user_hodowla");
 
-  // Pobieramy konie tylko tej samej hodowli
-  const horsesList = await db
-    .select()
-    .from(hodowla).innerJoin(konie,eq(konie.hodowla, hodowla.hodowla));
+    // Pobieramy konie tylko tej samej hodowli
+    
+    const horsesList = await db
+    .select({
+      id: konie.id,
+      nazwa: konie.nazwa,
+      numerPrzyzyciowy: konie.numerPrzyzyciowy,
+      // numerChipa: konie.numerChipa,
+      // rocznikUrodzenia: konie.rocznikUrodzenia,
+      // dataPrzybyciaDoStajni:konie.dataPrzybyciaDoStajni,
+      // dataOdejsciaZeStajni: konie.dataOdejsciaZeStajni,
+      // hodowla:konie.hodowla,
+      rodzajKonia: konie.rodzajKonia,
+      // plec: konie.plec,
+      imageUrl: zdjeciaKoni.file
+    })
+    .from(user)
+    .innerJoin(konie,eq(user.hodowla,konie.hodowla))
+    .leftJoin(zdjeciaKoni,
+        and(
+          eq(konie.id,zdjeciaKoni.kon),
+          eq(zdjeciaKoni.default, true)
+        )
+    );
 
-  console.log("🐴 Lista koni:", horsesList);
+    console.log("🐴 Lista koni:", horsesList);
+    return c.json(horsesList);
+    
+   } catch (error){
+    return c.json({error: "Błąd zapytania"})
+   }
 
-  return c.json(horsesList);
+  
 });
 
 // add new koń
