@@ -191,10 +191,52 @@ function AddEvent() {
         </select>
 
         <label className="block text-gray-700">📅 Data zdarzenia:</label>
-        <input type="date" className="w-full p-2 border rounded mb-3" value={date} onChange={(e) => setDate(e.target.value)} />
+        <input
+        type="date"
+        className="w-full p-2 border rounded mb-3"
+        value={date}
+        onChange={(e) => {
+            const newDate = e.target.value;
+            setDate(newDate);
+
+            const calculatedDate = new Date(newDate);
+
+            const selectedHorseTypes = horses
+            .filter((horse) => selectedHorses.includes(horse.id))
+            .map((horse) => horse.rodzajKonia);
+
+            const allSportHorses = selectedHorseTypes.length > 0 && selectedHorseTypes.every((t) => t === "Konie sportowe");
+            const hasRecreationalOrSportHorses = selectedHorseTypes.some((t) => t === "Konie rekreacyjne" || t === "Konie sportowe");
+
+            if (type === "podanie-witamin" || type === "odrobaczanie") {
+                calculatedDate.setMonth(calculatedDate.getMonth() + 6); // +6 miesięcy
+            } else if (type === "dentysta") {
+                calculatedDate.setFullYear(calculatedDate.getFullYear() + 1); // +1 rok
+            } else if (type === "szczepienia") {
+                if (allSportHorses) {
+                    calculatedDate.setMonth(calculatedDate.getMonth() + 6); // +6 miesięcy dla koni sportowych
+                } else {
+                    calculatedDate.setFullYear(calculatedDate.getFullYear() + 1); // +1 rok dla innych koni
+                }
+            } else if (type === "podkucie") {
+                if (hasRecreationalOrSportHorses) {
+                    calculatedDate.setDate(calculatedDate.getDate() + 42); // +6 tygodni dla koni rekreacyjnych i sportowych
+                } else {
+                    calculatedDate.setDate(calculatedDate.getDate() + 84); // +12 tygodni dla pozostałych koni
+                }
+            }
+
+            setValidUntil(calculatedDate.toISOString().split("T")[0]); // Format YYYY-MM-DD
+        }}
+        />
 
         <label className="block text-gray-700">⏳ Ważne do:</label>
-        <input type="date" className="w-full p-2 border rounded mb-3" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
+        <input
+        type="date"
+        className="w-full p-2 border rounded mb-3"
+        value={validUntil}
+        onChange={(e) => setValidUntil(e.target.value)}
+        />
 
         {type !== "podkucie" && (
           <>
