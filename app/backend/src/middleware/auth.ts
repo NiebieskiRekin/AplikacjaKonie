@@ -23,11 +23,10 @@ export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = asy
   const token = authHeader.split(" ")[1];
 
   try {
-    // const token = 
-    const decoded = await verify(token,ProcessEnv.JWT_SECRET)
+    const decoded = await verify(token,ProcessEnv.JWT_SECRET);
     // const decoded = jwt.verify(token, ProcessEnv.JWT_SECRET) as UserPayload;
     console.log("Zweryfikowany użytkownik:", decoded); // 🔍 Sprawdzenie dekodowania
-    c.set("userId", decoded.userId as number);
+    c.set("jwtPayload", decoded);
     await next();
   } catch (error) {
     console.error("Błąd weryfikacji tokena:", error); // 🔍 Sprawdzenie błędu
@@ -36,7 +35,7 @@ export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = asy
 };
 
 export function getUserFromContext(c: Context<{ Variables: UserPayload; }>)  {
-  const user = c.get("userId");
+  const user: number = c.get("jwtPayload").payload!.userId;
   return user;
 }
 
