@@ -1,11 +1,14 @@
 import { Hono } from "hono";
-import { eq, desc, sql, and } from "drizzle-orm";
-import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale, zdjeciaKoni} from "../db/schema";
+import { eq, desc, sql, and, count} from "drizzle-orm";
+import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale, zdjeciaKoni, zdjeciaKoniInsertSchema} from "../db/schema";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { union } from 'drizzle-orm/pg-core'
-import { InsertKon, RodzajKonia } from "src/db/types";
+import { z } from "zod";
+import { randomUUID } from "node:crypto";
+import { imageSize } from 'image-size';
+
 
 const horses = new Hono<{ Variables: UserPayload }>();
 
@@ -54,66 +57,78 @@ horses.get("/",
   
 });
 
+const MAX_FILE_SIZE = 1024*1024*5; // 5 MB
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
+
 // add new koń
-horses.post("/", zValidator("form", konieInsertSchema), async (c) => {
+horses.post("/", zValidator("form", konieInsertSchema.extend({
+  hodowla: z.optional(z.number()),
+  rocznikUrodzenia: z.number({ coerce: true }),
+  file:  z.custom<File | undefined>()
+  .refine(file => (!file || file?.size <= MAX_FILE_SIZE)!,
+    {message: "Maksymalny rozmiar pliku wynosi 5MB."})
+  .refine(file => (!file || ACCEPTED_IMAGE_TYPES.includes(file?.type))!,
+    "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp")
+}).strict()), async (c) => {
     try {
       const userId = getUserFromContext(c);
-      // if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-  
+
       const hodowla = db.$with("user_hodowla").as(
         db.select({ hodowla: users.hodowla })
         .from(users)
         .where(eq(users.id, userId)));
   
-      // if (!hodowla) {
-      //   return c.json({ error: "Nie znaleziono hodowli użytkownika" }, 403);
-      // }
+      const formData = c.req.valid("form");
   
-      const formData = await c.req.valid("form");
-      
-      // const body: InsertKon = {
-      //   nazwa: formData.get("nazwa") as string,
-      //   numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
-      //   numerChipa: formData.get("numerChipa") as string,
-      //   rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-      //   dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
-      //     ? (formData.get("dataPrzybycia") as string)
-      //     : null,
-      //   dataOdejsciaZeStajni: formData.has("dataOdejscia")
-      //     ? (formData.get("dataOdejscia") as string)
-      //     : null,
-      //   hodowla: 0,
-      //   rodzajKonia: formData.get("rodzajKonia") as RodzajKonia,
-      //   plec: formData.get("plec") as "samiec" | "samica",
-      // };
+      const validationResult = konieInsertSchema.extend({
+        hodowla: z.optional(z.number()),
+        dataPrzybyciaDoStajni: z.optional(z.string()),
+        dataOdejsciaZeStajni: z.optional(z.string())
+      }).safeParse(formData);
+      if (!validationResult.success) {
+        console.error("Błąd walidacji danych konia:", validationResult.error);
+        return c.json({ success: false, error: validationResult.error.flatten() }, 400);
+      }
+  
+      const convert_empty_to_null = (date: string | null | undefined ) => {
+        if (date === null || date === undefined || date?.length == 0){
+          return null;
+        }
+        else {
+          return date;
+        }
+      }
 
-      // const body = {
-      //   nazwa: formData.get("nazwa") as string,
-      //   numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
-      //   numerChipa: formData.get("numerChipa") as string,
-      //   rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-      //   dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
-      //     ? (formData.get("dataPrzybycia" as string))
-      //     : null,
-      //   dataOdejsciaZeStajni: formData.has("dataOdejscia")
-      //     ? (formData.get("dataOdejscia") as string)
-      //     : null,
-      //   rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
-      //   plec: formData.get("plec") as "samiec" | "samica",
-      //   hodowla: hodowla,
-      // };
-  
-      // console.log("🐴 Otrzymane dane konia:", body);
-  
-      // const validationResult = konieInsertSchema.safeParse(body);
-      // if (!validationResult.success) {
-      //   console.error("Błąd walidacji:", validationResult.error);
-      //   return c.json({ success: false, error: validationResult.error }, 400);
-      // }
-  
+      const kon_to_insert = {
+        ...validationResult.data,
+        dataPrzybyciaDoStajni: convert_empty_to_null(validationResult.data.dataPrzybyciaDoStajni),
+        dataOdejsciaZeStajni: convert_empty_to_null(validationResult.data.dataOdejsciaZeStajni),
+        hodowla: sql`(select * from user_hodowla)`
+      };
+
       //Wstawienie danych do bazy
-      const newHorse = await db.with(hodowla).insert(konie).values({...formData, hodowla: sql`(select * from user_hodowla)`}).returning();
-  
+      // TODO: transakcyjność?
+      // TODO: upload file to object storage
+      const newHorse = (await db.with(hodowla).insert(konie).values(kon_to_insert).returning()).at(0)!;
+
+      const dimensions = imageSize( await formData.file!.bytes())
+      
+      const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
+        id: randomUUID(),
+        kon: newHorse.id,
+        width: dimensions.width,
+        height: dimensions.height,
+        file: formData.file?.name!,
+        default: true 
+      })
+
+      if (!photoValidationResult.success) {
+        console.error("Błąd walidacji formatu zdjecia:", photoValidationResult.error);
+        return c.json({ success: false, error: photoValidationResult.error.flatten() }, 400);
+      }
+
+      await db.with(hodowla).insert(zdjeciaKoni).values(photoValidationResult.data).returning({id: zdjeciaKoni.id});
+
       return c.json({ message: "Koń został dodany!", horse: newHorse });
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);

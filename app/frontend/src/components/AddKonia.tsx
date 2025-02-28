@@ -35,8 +35,8 @@ function AddKonia() {
     formData.append("numerPrzyzyciowy", numerPrzyzyciowy);
     formData.append("numerChipa", numerChipa);
     formData.append("rocznikUrodzenia", rocznikUrodzenia);
-    formData.append("dataPrzybycia", dataPrzybycia);
-    formData.append("dataOdejscia", dataOdejscia);
+    formData.append("dataPrzybyciaDoStajni", dataPrzybycia);
+    formData.append("dataOdejsciaZeStajni", dataOdejscia);
     formData.append("rodzajKonia", rodzajKonia);
     formData.append("plec", plec);
     formData.append("file", file);
