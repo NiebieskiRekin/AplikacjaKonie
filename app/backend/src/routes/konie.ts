@@ -57,11 +57,11 @@ horses.post("/", async (c) => {
         numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
         numerChipa: formData.get("numerChipa") as string,
         rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-        dataPrzybyciaDoStajni: formData.get("dataPrzybyciaDoStajni")
-          ? (formData.get("dataPrzybyciaDoStajni") as string)
+        dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
+          ? (formData.get("dataPrzybycia" as string))
           : null,
-        dataOdejsciaZeStajni: formData.get("dataOdejsciaZeStajni")
-          ? (formData.get("dataOdejsciaZeStajni") as string)
+        dataOdejsciaZeStajni: formData.has("dataOdejscia")
+          ? (formData.get("dataOdejscia") as string)
           : null,
         rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
         plec: formData.get("plec") as "samiec" | "samica",
@@ -77,7 +77,7 @@ horses.post("/", async (c) => {
       }
   
       //Wstawienie danych do bazy
-      const newHorse = await db.insert(konie).values(body).returning();
+      const newHorse = await db.insert(konie).values(validationResult.data).returning();
   
       return c.json({ message: "Koń został dodany!", horse: newHorse });
     } catch (error) {
