@@ -1,34 +1,27 @@
 import { Hono } from "hono";
 import { eq, desc, sql } from "drizzle-orm";
-import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale } from "../db/schema";
+import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale, rodzajeKoni} from "../db/schema";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { union } from 'drizzle-orm/pg-core'
+import { InsertKon, RodzajKonia } from "src/db/types";
 
-const horses = new Hono<{ Variables: { user: UserPayload } }>();
+const horses = new Hono<{ Variables: UserPayload }>();
 
 horses.use(authMiddleware);
 
-horses.get("/", async (c) => {
-  const user = getUserFromContext(c);
+horses.get("/",
+  async (c) => {
+  const userId = getUserFromContext(c);
 
-  if (!user) {
-    return c.json({ error: "Błąd autoryzacji" }, 401);
-  }
+  const hodowla = db.select().from(users)
+    .where(eq(users.id, userId)).as("user_hodowla");
 
-  console.log(`🔍 Pobieranie koni dla użytkownika: ${user.email}`);
-
-  const hodowla = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, user.userId))
-    .then((res) => res[0]);
   // Pobieramy konie tylko tej samej hodowli
   const horsesList = await db
     .select()
-    .from(konie)
-    .where(eq(konie.hodowla, hodowla.hodowla));
+    .from(hodowla).innerJoin(konie,eq(konie.hodowla, hodowla.hodowla));
 
   console.log("🐴 Lista koni:", horsesList);
 
@@ -36,48 +29,64 @@ horses.get("/", async (c) => {
 });
 
 // add new koń
-horses.post("/", async (c) => {
+horses.post("/", zValidator("form", konieInsertSchema), async (c) => {
     try {
-      const user = getUserFromContext(c);
-      if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const userId = getUserFromContext(c);
+      // if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
   
-      const hodowla = await db
-        .select({ hodowla: users.hodowla })
+      const hodowla = db.$with("user_hodowla").as(
+        db.select({ hodowla: users.hodowla })
         .from(users)
-        .where(eq(users.id, user.userId))
-        .then((res) => res[0]?.hodowla);
+        .where(eq(users.id, userId)));
   
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli użytkownika" }, 403);
-      }
+      // if (!hodowla) {
+      //   return c.json({ error: "Nie znaleziono hodowli użytkownika" }, 403);
+      // }
   
-      const formData = await c.req.formData();
-      const body = {
-        nazwa: formData.get("nazwa") as string,
-        numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
-        numerChipa: formData.get("numerChipa") as string,
-        rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-        dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
-          ? (formData.get("dataPrzybycia" as string))
-          : null,
-        dataOdejsciaZeStajni: formData.has("dataOdejscia")
-          ? (formData.get("dataOdejscia") as string)
-          : null,
-        rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
-        plec: formData.get("plec") as "samiec" | "samica",
-        hodowla: hodowla,
-      };
+      const formData = await c.req.valid("form");
+      
+      // const body: InsertKon = {
+      //   nazwa: formData.get("nazwa") as string,
+      //   numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
+      //   numerChipa: formData.get("numerChipa") as string,
+      //   rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
+      //   dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
+      //     ? (formData.get("dataPrzybycia") as string)
+      //     : null,
+      //   dataOdejsciaZeStajni: formData.has("dataOdejscia")
+      //     ? (formData.get("dataOdejscia") as string)
+      //     : null,
+      //   hodowla: 0,
+      //   rodzajKonia: formData.get("rodzajKonia") as RodzajKonia,
+      //   plec: formData.get("plec") as "samiec" | "samica",
+      // };
+
+      // const body = {
+      //   nazwa: formData.get("nazwa") as string,
+      //   numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
+      //   numerChipa: formData.get("numerChipa") as string,
+      //   rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
+      //   dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
+      //     ? (formData.get("dataPrzybycia" as string))
+      //     : null,
+      //   dataOdejsciaZeStajni: formData.has("dataOdejscia")
+      //     ? (formData.get("dataOdejscia") as string)
+      //     : null,
+      //   rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
+      //   plec: formData.get("plec") as "samiec" | "samica",
+      //   hodowla: hodowla,
+      // };
   
-      console.log("🐴 Otrzymane dane konia:", body);
+      // console.log("🐴 Otrzymane dane konia:", body);
   
-      const validationResult = konieInsertSchema.safeParse(body);
-      if (!validationResult.success) {
-        console.error("Błąd walidacji:", validationResult.error);
-        return c.json({ success: false, error: validationResult.error }, 400);
-      }
+      // const validationResult = konieInsertSchema.safeParse(body);
+      // if (!validationResult.success) {
+      //   console.error("Błąd walidacji:", validationResult.error);
+      //   return c.json({ success: false, error: validationResult.error }, 400);
+      // }
   
       //Wstawienie danych do bazy
-      const newHorse = await db.insert(konie).values(validationResult.data).returning();
+      const newHorse = await db.with(hodowla).insert(konie).values({...formData, hodowla: sql`(select * from user_hodowla)`}).returning();
   
       return c.json({ message: "Koń został dodany!", horse: newHorse });
     } catch (error) {

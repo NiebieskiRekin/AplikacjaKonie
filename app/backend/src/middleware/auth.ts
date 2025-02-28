@@ -1,13 +1,17 @@
 import { MiddlewareHandler, Context } from "hono";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 import { ProcessEnv } from "../env";
+
+import { decode, sign, verify, jwt, JwtVariables } from 'hono/jwt'
+import { JWTPayload } from "hono/utils/jwt/types";
 
 export type UserPayload = {
   userId: number;
-  email: string;
+  // email: string;
 };
 
-export const authMiddleware: MiddlewareHandler<{ Variables: { user: UserPayload } }> = async (c, next) => {
+export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = async (c, next) => {
+  
   const authHeader = c.req.header("Authorization");
 
   console.log("Nagłówek autoryzacji:", authHeader); // 🔍 Sprawdzenie, czy nagłówek dociera
@@ -19,9 +23,11 @@ export const authMiddleware: MiddlewareHandler<{ Variables: { user: UserPayload 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, ProcessEnv.JWT_SECRET) as UserPayload;
+    // const token = 
+    const decoded = await verify(token,ProcessEnv.JWT_SECRET)
+    // const decoded = jwt.verify(token, ProcessEnv.JWT_SECRET) as UserPayload;
     console.log("Zweryfikowany użytkownik:", decoded); // 🔍 Sprawdzenie dekodowania
-    c.set("user", decoded);
+    c.set("userId", decoded.userId as number);
     await next();
   } catch (error) {
     console.error("Błąd weryfikacji tokena:", error); // 🔍 Sprawdzenie błędu
@@ -29,7 +35,11 @@ export const authMiddleware: MiddlewareHandler<{ Variables: { user: UserPayload 
   }
 };
 
-export const getUserFromContext = (c: Context<{ Variables: { user: UserPayload } }>): UserPayload | null => {
-    const user = c.get("user");
-    return user ? user : null;
-  };
+export function getUserFromContext(c: Context<{ Variables: UserPayload; }>)  {
+  const user = c.get("userId");
+  return user;
+}
+
+// export const getUserFromContext = (c: Context<{ Variables: UserPayload; }>): UserPayload | null => {
+//     
+// };

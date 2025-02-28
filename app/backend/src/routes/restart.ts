@@ -16,7 +16,7 @@ const passwordResetSchema = z.object({
   path: ["confirmNewPassword"],
 });
 
-const restartRoutes = new Hono<{ Variables: { user: UserPayload } }>();
+const restartRoutes = new Hono<{ Variables: UserPayload }>();
 
 restartRoutes.use(authMiddleware);
 
@@ -35,7 +35,7 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
     const dbUser = await db
       .select()
       .from(users)
-      .where(eq(users.id, user.userId))
+      .where(eq(users.id, user))
       .then(res => res[0]);
 
     if (!dbUser) {
@@ -53,7 +53,7 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
 
     await db.update(users)
       .set({ password: hashedPassword })
-      .where(eq(users.id, user.userId));
+      .where(eq(users.id, user));
 
     console.log("Hasło zostało zmienione!");
     return c.json({ message: "Hasło zostało zmienione!" });

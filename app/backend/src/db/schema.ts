@@ -14,6 +14,7 @@ import {
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
+import z from "zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -105,7 +106,7 @@ export const konie = hodowlakoni.table(
 
 export const konieSelectSchema = createSelectSchema(konie);
 export const konieUpdateSchema = createUpdateSchema(konie);
-export const konieInsertSchema = createInsertSchema(konie);
+export const konieInsertSchema = createInsertSchema(konie, {hodowla: z.number().optional()});
 
 export const konieRelations = relations(konie, ({ many, one }) => ({
   zdjeciaKoni: many(zdjeciaKoni),

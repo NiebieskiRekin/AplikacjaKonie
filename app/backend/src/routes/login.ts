@@ -1,12 +1,14 @@
 import { Hono } from "hono";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
+import { sign } from "hono/jwt";
 import { eq } from "drizzle-orm";
 import { users } from "../db/schema";
 import { ProcessEnv } from "../env";
 import { db } from "../db";
 import { z } from "zod";
 import { zValidator } from '@hono/zod-validator'
+import { UserPayload } from "../middleware/auth";
 
 
 const login = new Hono().post("/", zValidator(
@@ -37,14 +39,22 @@ const login = new Hono().post("/", zValidator(
       return c.json({ error: "Nieprawidłowe hasło." }, 401);
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
+    const payload: UserPayload = {
+       userId: user.id
+    }
+
+    const fifteen_minutes = Math.floor(Date.now() / 1000) + 60 * 15;
+
+    const token = await sign(
+      {payload, exp: fifteen_minutes},
       ProcessEnv.JWT_SECRET,
-      { expiresIn: "1h" }
     );
 
-    return c.json({ token });
+    console.log(token);
+
+    return c.json({ token: token });
   } catch (error) {
+    console.log(error);
     return c.json({ error: "Błąd podczas logowania" }, 500);
   }
 });
