@@ -57,6 +57,13 @@
       "when": 1740759917999,
       "tag": "0007_fuzzy_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1740774206121,
+      "tag": "0008_familiar_ender_wiggin",
+      "breakpoints": true
     }
   ]
 }

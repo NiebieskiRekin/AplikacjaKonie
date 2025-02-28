@@ -2,7 +2,6 @@ import {
   hodowcyKoni,
   konie,
   zdjeciaKoni,
-  files,
   podkucia,
   kowale,
   choroby,
@@ -34,8 +33,6 @@ export type SelectKon = typeof konie.$inferSelect;
 export type InsertKon = typeof konie.$inferInsert;
 export type SelectZdjecieKonia = typeof zdjeciaKoni.$inferSelect;
 export type InsertZdjecieKonia = typeof zdjeciaKoni.$inferInsert;
-export type SelectFile = typeof files.$inferSelect;
-export type InsertFile = typeof files.$inferInsert;
 export type SelectPodkucie = typeof podkucia.$inferSelect;
 export type InsertPodkucie = typeof podkucia.$inferInsert;
 export type SelectKowal = typeof kowale.$inferSelect;

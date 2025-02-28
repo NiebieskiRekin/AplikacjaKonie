@@ -92,7 +92,7 @@ export const konie = hodowlakoni.table(
   () => [
     check(
       "odejscie_pozniej_niz_przybycie",
-      sql`(data_odejscia_ze_stajni is null or data_przybycia_do_stajni is null) or data_przybycia_do_stajni < data_odejscia_ze_stajni`
+      sql`(data_odejscia_ze_stajni is null or data_przybycia_do_stajni is null) or data_przybycia_do_stajni <= data_odejscia_ze_stajni`
     ),
     check(
       "przybycie_nie_wczesniej_niz_rocznik_urodzenia",
@@ -107,7 +107,7 @@ export const konie = hodowlakoni.table(
 
 export const konieSelectSchema = createSelectSchema(konie);
 export const konieUpdateSchema = createUpdateSchema(konie);
-export const konieInsertSchema = createInsertSchema(konie, {hodowla: z.number().optional()});
+export const konieInsertSchema = createInsertSchema(konie);
 
 export const konieRelations = relations(konie, ({ many, one }) => ({
   zdjeciaKoni: many(zdjeciaKoni),
@@ -122,15 +122,12 @@ export const konieRelations = relations(konie, ({ many, one }) => ({
   }),
 }));
 
-// NOTE: UUID jako primary key, aby ułatwić caching i ewentualną migrację do S3
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   id: uuid("id").primaryKey(),
   kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  file: uuid("file")
-    .notNull()
-    .references(() => files.id),
+  file: varchar("file").notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   default: boolean("default").notNull(),
@@ -144,26 +141,7 @@ export const zdjeciaKoniRelations = relations(zdjeciaKoni, ({ one }) => ({
   kon: one(konie, {
     fields: [zdjeciaKoni.kon],
     references: [konie.id],
-  }),
-  file: one(files, {
-    fields: [zdjeciaKoni.file],
-    references: [files.id],
-  }),
-}));
-
-export const files = hodowlakoni.table("files", {
-  id: uuid("id").primaryKey(),
-  filename: varchar("filename").notNull(),
-  mimetype: varchar("mimetype").notNull(),
-  data: bytea("data").notNull(),
-});
-
-export const filesSelectSchema = createSelectSchema(files);
-export const filesUpdateSchema = createUpdateSchema(files);
-export const filesInsertSchema = createInsertSchema(files);
-
-export const filesRelations = relations(files, ({ many }) => ({
-  zdjeciaKoni: many(zdjeciaKoni),
+  })
 }));
 
 export const podkucia = hodowlakoni.table("podkucia", {
