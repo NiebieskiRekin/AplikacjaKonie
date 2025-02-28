@@ -16,14 +16,6 @@ const singularHorseTypes: Record<string, string> = {
     "Konie sportowe": "Koń sportowy",
   };
 
-const validityInfo: Record<string, string> = {
-    szczepienia: "Sportowe: co 6 miesięcy | Reszta: co 12 miesięcy",
-    dentysta: "Sportowe i Rekreacyjne: co 6 miesięcy | Hodowlane i Źrebaki: co 12 miesięcy",
-    "podanie-witamin": "Wszystkie konie: co 6 miesięcy",
-    odrobaczanie: "Wszystkie konie: co 6 miesięcy",
-    podkucie: "Sportowe i Rekreacyjne: co 6 tygodni | Hodowlane i Źrebaki: co 12 tygodni",
-  };
-
 type Horse = { id: number; nazwa: string; rodzajKonia: string };
 type Person = { id: number; imieINazwisko: string };
 
