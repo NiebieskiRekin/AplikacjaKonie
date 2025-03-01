@@ -64,6 +64,20 @@
       "when": 1740774206121,
       "tag": "0008_familiar_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1740832401909,
+      "tag": "0009_serious_northstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1740832769944,
+      "tag": "0010_perpetual_katie_power",
+      "breakpoints": true
     }
   ]
 }

@@ -15,7 +15,7 @@ import {
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import z from "zod";
+// import z from "zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -123,7 +123,7 @@ export const konieRelations = relations(konie, ({ many, one }) => ({
 }));
 
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   kon: integer("kon")
     .notNull()
     .references(() => konie.id),
@@ -199,7 +199,7 @@ export const choroby = hodowlakoni.table("choroby", {
     .references(() => konie.id),
   dataRozpoczecia: date("data_rozpoczecia").notNull().defaultNow(),
   dataZakonczenia: date("data_zakonczenia"),
-  opisZdarzenia: varchar("opis_zdarzenia").notNull(),
+  opisZdarzenia: varchar("opis_zdarzenia"),
 });
 
 export const chorobySelectSchema = createSelectSchema(choroby);
@@ -224,7 +224,8 @@ export const leczenia = hodowlakoni.table("leczenia", {
     .notNull()
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
-  opisZdarzenia: varchar("opis_zdarzenia").notNull(),
+  opisZdarzenia: varchar("opis_zdarzenia"),
+  choroba: integer("choroba").references(()=>choroby.id)
 });
 
 export const leczeniaSelectSchema = createSelectSchema(leczenia);
@@ -255,7 +256,7 @@ export const rozrody = hodowlakoni.table("rozrody", {
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   rodzajZdarzenia: rodzajeZdarzenRozrodczych("rodzaj_zdarzenia").notNull(),
-  opisZdarzenia: varchar("opis_zdarzenia").notNull(),
+  opisZdarzenia: varchar("opis_zdarzenia"),
 });
 
 export const rozrodySelectSchema = createSelectSchema(rozrody);
@@ -289,7 +290,7 @@ export const zdarzeniaProfilaktyczne = hodowlakoni.table(
     dataWaznosci: date("data_waznosci"),
     rodzajZdarzenia:
       rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia").notNull(),
-    opisZdarzenia: varchar("opis_zdarzenia").notNull(),
+    opisZdarzenia: varchar("opis_zdarzenia"),
   }
 );
 
@@ -352,9 +353,8 @@ export const users = hodowlakoni.table("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", {length: 255}).notNull().unique(),
   password: varchar("password", {length: 255}).notNull(),
-  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id), // do konkretnego zioma (można podmimenić tamto wyżej i też jako tako będzie)
-  createdAt: date("created_at").defaultNow(),
-
+  createdAt: date("created_at").notNull().defaultNow(),
+  refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
 });
 
 export const usersSelectSchema = createSelectSchema(users);
@@ -362,23 +362,33 @@ export const usersInsertSchema = createInsertSchema(users);
 export const usersUpdateSchema = createUpdateSchema(users);
 
 // Tabela łącząca użytkowników z uprawnieniami;
-// TODO: chyba warto będzie to uprościć do jednej tabeli Users
 export const user_permissions = hodowlakoni.table("user_permissions", {
+  id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   role: userRolesEnum("role").notNull(),
+  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id)
 });
 
 export const userPermissionsSelectSchema = createSelectSchema(user_permissions);
 export const userPermissionsInsertSchema = createInsertSchema(user_permissions);
 export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
 
-// Realcja dla tabeli użytkowników
-export const usersRelations = relations(users, ({ one }) => ({
+// Relacja dla tabeli użytkowników
+export const usersRelations = relations(users, ({ many }) => ({
+  // Relacja do uprawnień
+  permissions: many(user_permissions),
+}));
+
+export const userPermissionsRelations = relations(user_permissions, ({ one }) => ({
   // Relacja do hodowli (hodowcyKoni)
   hodowla: one(hodowcyKoni, {
-    fields: [users.hodowla],
+    fields: [user_permissions.hodowla],
     references: [hodowcyKoni.id],
   }),
-  // Relacja do uprawnień
-  permissions: one(user_permissions),
-}));
+
+  // Relacja do użytkownika (users)
+  user: one(users, {
+    fields: [user_permissions.userId],
+    references: [users.id],
+  }),
+}))
