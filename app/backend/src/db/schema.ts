@@ -132,9 +132,7 @@ export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
     .references(() => files.id),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
-  mian: boolean("main").notNull().default(false), // cos takiego bym dodał, żeby było wiadomo, 
-                                                  // które zdjęcie danego konia jest głównym, żeby je wyświetlać w tym widoku 
-                                                  // gdzie są wszystkie konie;
+  default: boolean("default").notNull(),
 });
 
 export const zdjeciaKoniSelectSchema = createSelectSchema(zdjeciaKoni);
