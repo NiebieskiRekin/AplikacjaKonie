@@ -1,4 +1,3 @@
-import { getToken } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 
@@ -31,11 +30,7 @@ function KonieDetails() {
   useEffect(() => {
     const fetchHorseDetails = async () => {
       try {
-        const token = getToken();
-
-        const response = await fetch(`/api/konie/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(`/api/konie/${id}`);
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania danych konia");
@@ -51,13 +46,8 @@ function KonieDetails() {
 
     const fetchHorseEvents = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
         // Pobieramy ostatnie 5 zdarzeń
-        const response = await fetch(`/api/konie/${id}/events`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(`/api/konie/${id}/events`);
 
         const data = await response.json();
         console.log(data);

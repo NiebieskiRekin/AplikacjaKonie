@@ -1,4 +1,3 @@
-import { getToken } from "@/lib/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -19,13 +18,10 @@ function Restart() {
     }
 
     try {
-      const token = getToken();
-
       const response = await fetch("/api/restart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ oldPassword, newPassword, confirmNewPassword }),
       });
@@ -42,7 +38,6 @@ function Restart() {
       }
       setSuccess("Hasło zostało zmienione! Zaloguj się ponownie.");
       setError("");
-      localStorage.removeItem("token"); // Wylogowanie użytkownika
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError((err as Error).message);

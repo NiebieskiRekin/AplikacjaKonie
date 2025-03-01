@@ -1,4 +1,3 @@
-import { getToken } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -21,11 +20,7 @@ function Konie() {
   useEffect(() => {
     const fetchHorses = async () => {
       try {
-        const token = getToken();
-
-        const response = await fetch("/api/konie", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch("/api/konie");
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");

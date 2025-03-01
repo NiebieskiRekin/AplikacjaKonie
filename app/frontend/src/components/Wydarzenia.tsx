@@ -1,4 +1,3 @@
-import { getToken } from "@/lib/auth";
 import { useEffect, useState } from "react";
 
 type Event = {
@@ -22,11 +21,7 @@ function StajniaEvents() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const token = getToken();
-
-        const response = await fetch("/api/wydarzenia", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch("/api/wydarzenia");
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania wydarzeń");
