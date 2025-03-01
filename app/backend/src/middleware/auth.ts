@@ -1,5 +1,4 @@
 import { MiddlewareHandler, Context } from "hono";
-// import jwt from "jsonwebtoken";
 import { __prod__, ProcessEnv } from "../env";
 
 import { sign, verify } from 'hono/jwt'
@@ -76,17 +75,6 @@ export const refresh_cookie_opts = {
 } as const;
 
 
-// export const sendAuthCookies = async (res: Response, user: SelectUser) => {
-//   const { accessToken, refreshToken } = await createAuthTokens(user);
-//   res.cookie("id", accessToken, cookieOpts);
-//   res.cookie("rid", refreshToken, cookieOpts);
-// };
-
-// export const clearAuthCookies = (res: Response) => {
-//   res.clearCookie("id", cookieOpts);
-//   res.clearCookie("rid", cookieOpts);
-// };
-
 export async function checkTokens(tokens: {accessToken:string,refreshToken:string}){
   try {
     const decoded = <UserPayload>(await verify(tokens.accessToken,ProcessEnv.JWT_SECRET));
@@ -135,7 +123,3 @@ export function getUserFromContext(c: Context<{ Variables: UserPayload; }>)  {
   const user: number = c.get("jwtPayload").userId;
   return user;
 }
-
-// export const getUserFromContext = (c: Context<{ Variables: UserPayload; }>): UserPayload | null => {
-//     
-// };
