@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { db } from "../db";
-import { kowale } from "../db/schema";
+import { db, eq } from "../db";
+import { kowale, users } from "../db/schema";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 
 const kowaleRoute = new Hono<{ Variables: { user: UserPayload } }>();

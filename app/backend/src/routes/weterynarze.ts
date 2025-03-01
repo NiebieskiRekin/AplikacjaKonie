@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { db } from "../db";
-import { weterynarze } from "../db/schema";
+import { db, eq } from "../db";
+import { weterynarze, users } from "../db/schema";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 
 const weterynarzeRoute = new Hono<{ Variables: { user: UserPayload } }>();
@@ -12,7 +12,7 @@ weterynarzeRoute.get("/", async (c) => {
     const user = getUserFromContext(c);
     if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-    const allWeterynarze = await db.select().from(weterynarze);
+    const allWeterynarze = await db.select().from(weterynarze).where(eq(weterynarze.hodowla,db.select({h:users.hodowla}).from(users).where(eq(users.id, user.userId))));
     return c.json(allWeterynarze);
   } catch (error) {
     return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
