@@ -70,7 +70,7 @@ export const refresh_cookie_opts = {
   httpOnly: true,
   secure: __prod__,
   sameSite: "lax",
-  path: "/refresh",
+  path: "/refresh;/api/refresh",
   domain: __prod__ ? `.${ProcessEnv.DOMAIN}` : "",
   maxAge: thirty_days
 } as const;
@@ -111,7 +111,7 @@ export async function checkTokens(tokens: {accessToken:string,refreshToken:strin
 
 
 export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = async (c, next) => {
-  const accessToken = getCookie(c,'ACCCESS_TOKEN');
+  const accessToken = getCookie(c,ACCESS_TOKEN);
 
   if (!accessToken) {
     return c.json({ error: "Brak autoryzacji" }, 401);
@@ -132,7 +132,7 @@ export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = asy
 };
 
 export function getUserFromContext(c: Context<{ Variables: UserPayload; }>)  {
-  const user: number = c.get("jwtPayload").payload!.userId;
+  const user: number = c.get("jwtPayload").userId;
   return user;
 }
 

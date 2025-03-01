@@ -31,3 +31,5 @@ const refresh = new Hono().get('/', async (c) => {
         return c.json({"error": "Należy zalogować się ponownie"},403);
     }
 });
+
+export default refresh;

@@ -8,6 +8,7 @@ import konieRoute from "./routes/konie";
 import restartRoutes from "./routes/restart";
 import wydarzeniaRoute from "./routes/wydarzenia";
 import { hodowcyKoniRoute } from "./routes/hodowcykoni";
+import refresh from "./routes/refresh";
 const app = new Hono();
 
 app.use("/api/*", cors());
@@ -17,12 +18,13 @@ if (ProcessEnv.NODE_ENV != "production") {
 
 
 const apiRoutes = app.basePath("/api")
-    .route("/hodowcykoni", hodowcyKoniRoute)
+    .route("/refresh",refresh)
     .route("/login", login)
     .route("/register", register)
     .route("/konie", konieRoute)
     .route("/restart", restartRoutes)
     .route("/wydarzenia", wydarzeniaRoute)
+    .route("/hodowcykoni", hodowcyKoniRoute)
 
 
 export default app;
