@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
+import { GoArrowRight, GoArrowLeft  } from "react-icons/go";
+
 
 type HorseDetails = {
   id: number;
@@ -11,7 +13,7 @@ type HorseDetails = {
   plec: string;
   dataPrzybyciaDoStajni: string | null;
   dataOdejsciaZeStajni: string | null;
-  imageUrl?: string;
+  imageUrls?: string[];
 };
 
 type Event = {
@@ -26,6 +28,7 @@ function KonieDetails() {
   const [horse, setHorse] = useState<HorseDetails | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchHorseDetails = async () => {
@@ -40,9 +43,10 @@ function KonieDetails() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania danych konia");
 
+        // tutaj będziesz trzeba pobierać wszystkie zdjęcia dla danego konia z db
         setHorse({
           ...data,
-          imageUrl: `/horses/${data.id}.jpg`,
+          imageUrls: [`/horses/${data.id}-1.jpg`, `/horses/${data.id}-2.jpg`],
         });
       } catch (err) {
         setError((err as Error).message);
@@ -76,6 +80,18 @@ function KonieDetails() {
   if (error) return <p className="text-red-600">{error}</p>;
   if (!horse) return <p className="text-white text-lg">Ładowanie...</p>;
 
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      horse.imageUrls && prevIndex === horse.imageUrls.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      horse.imageUrls && prevIndex === 0 ? horse.imageUrls.length - 1 : prevIndex - 1
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
       <h2 className="text-3xl font-bold text-white mb-6">{horse.nazwa}</h2>
@@ -101,9 +117,25 @@ function KonieDetails() {
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex-1 flex flex-col items-center relative">
+            {horse.imageUrls && horse.imageUrls.length > 1 && (
+              <>
+                <button
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-green-700 bg-opacity-50 text-white px-2 py-1 rounded-full text-3xl font-bold hover:bg-opacity-75 transition"
+                  onClick={prevImage}
+                >
+                  <GoArrowLeft />
+                </button>
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-700 bg-opacity-50 text-white px-2 py-1 rounded-full text-3xl font-bold hover:bg-opacity-75 transition"
+                  onClick={nextImage}
+                >
+                  <GoArrowRight />
+                </button>
+              </>
+            )}
           <img
-            src={horse.imageUrl}
+            src={horse.imageUrls?.[currentImageIndex]}
             alt={horse.nazwa}
             onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
             className="w-64 h-64 object-contain rounded-lg shadow-lg mb-4"
