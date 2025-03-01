@@ -9,7 +9,9 @@ import {
   rozrody,
   zdarzeniaProfilaktyczne,
   weterynarze,
-  rodzajeKoni, rodzajeZdarzenProfilaktycznych, rodzajeZdarzenRozrodczych
+  rodzajeKoni, rodzajeZdarzenProfilaktycznych, rodzajeZdarzenRozrodczych,
+  users,
+  user_permissions
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -49,3 +51,7 @@ export type InsertZdarzenieProfilaktyczne =
   typeof zdarzeniaProfilaktyczne.$inferInsert;
 export type SelectWeterynarz = typeof weterynarze.$inferSelect;
 export type InsertWeterynarz = typeof weterynarze.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUserPermissions = typeof user_permissions.$inferSelect;
+export type InsertUserPermissions = typeof user_permissions.$inferInsert;

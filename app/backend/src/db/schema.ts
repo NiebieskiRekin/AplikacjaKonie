@@ -355,6 +355,7 @@ export const users = hodowlakoni.table("users", {
   password: varchar("password", {length: 255}).notNull(),
   createdAt: date("created_at").notNull().defaultNow(),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
+  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id)
 });
 
 export const usersSelectSchema = createSelectSchema(users);
@@ -366,7 +367,7 @@ export const user_permissions = hodowlakoni.table("user_permissions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   role: userRolesEnum("role").notNull(),
-  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id)
+
 });
 
 export const userPermissionsSelectSchema = createSelectSchema(user_permissions);
@@ -374,17 +375,19 @@ export const userPermissionsInsertSchema = createInsertSchema(user_permissions);
 export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
 
 // Relacja dla tabeli użytkowników
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   // Relacja do uprawnień
   permissions: many(user_permissions),
+    
+  // Relacja do hodowli (hodowcyKoni)
+  hodowla: one(hodowcyKoni, {
+    fields: [users.hodowla],
+    references: [hodowcyKoni.id],
+  }),
 }));
 
 export const userPermissionsRelations = relations(user_permissions, ({ one }) => ({
-  // Relacja do hodowli (hodowcyKoni)
-  hodowla: one(hodowcyKoni, {
-    fields: [user_permissions.hodowla],
-    references: [hodowcyKoni.id],
-  }),
+
 
   // Relacja do użytkownika (users)
   user: one(users, {

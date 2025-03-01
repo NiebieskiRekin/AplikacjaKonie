@@ -8,7 +8,8 @@ import { ProcessEnv } from "../env";
 import { db } from "../db";
 import { z } from "zod";
 import { zValidator } from '@hono/zod-validator'
-import { UserPayload } from "../middleware/auth";
+import { access_cookie_opts, ACCESS_TOKEN, createAuthTokens, refresh_cookie_opts, REFRESH_TOKEN, UserPayload } from "../middleware/auth";
+import { setCookie } from "hono/cookie";
 
 
 const login = new Hono().post("/", zValidator(
@@ -39,20 +40,12 @@ const login = new Hono().post("/", zValidator(
       return c.json({ error: "Nieprawidłowe hasło." }, 401);
     }
 
-    const payload: UserPayload = {
-       userId: user.id
-    }
+    const tokens = await createAuthTokens(user);
 
-    const fifteen_minutes = Math.floor(Date.now() / 1000) + 60 * 15;
+    setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
+    setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
 
-    const token = await sign(
-      {payload, exp: fifteen_minutes},
-      ProcessEnv.JWT_SECRET,
-    );
-
-    console.log(token);
-
-    return c.json({ token: token });
+    return c.json({ status: "Logowanie poprawne" });
   } catch (error) {
     console.log(error);
     return c.json({ error: "Błąd podczas logowania" }, 500);
