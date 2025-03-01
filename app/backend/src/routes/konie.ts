@@ -36,7 +36,7 @@ horses.get("/", async (c) => {
 });
 
 // get kon per type
-horses.get("/:type", async (c) => {
+horses.get("/typ/:type", async (c) => {
     const user = getUserFromContext(c);
     if (!user) {
       return c.json({ error: "Błąd autoryzacji" }, 401);
