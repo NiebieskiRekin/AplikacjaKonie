@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { IoMdCloseCircle } from "react-icons/io";
 
 type Horse = {
   id: number;
@@ -14,6 +15,7 @@ function Konie() {
   const [search, setSearch] = useState("");
   const [filteredHorses, setFilteredHorses] = useState<Horse[]>([]);
   const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -77,16 +79,31 @@ function Konie() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
-            <div key={horse.id} onClick={() => navigate(`/konie/${horse.id}`)}
-            className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:scale-105 transition transform duration-200">
+            <div
+              key={horse.id}
+              className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:scale-105 transition-transform duration-200"
+              onClick={() => navigate(`/konie/${horse.id}`)}
+            >
                <img
                 src={horse.imageUrl}
                 alt={horse.nazwa}
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  setSelectedImage(horse.imageUrl!);
+                }}
                 onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
-                className="w-full h-48 object-cover rounded-t-lg"
+                className="w-full h-48 object-cover rounded-t-lg cursor-pointer hover:scale-110 transition-transform duration-200"
               />
               <div className="p-3">
-                <h3 className="text-xl font-bold text-green-900">{horse.nazwa}</h3>
+              <h3
+                  className="text-xl font-bold text-green-900 cursor-pointer hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Zatrzymuje propagację eventu, aby nie przechodziło podwójnie
+                    navigate(`/konie/${horse.id}`);
+                  }}
+                >
+                  {horse.nazwa}
+                </h3>
               </div>
             </div>
           ))
@@ -94,6 +111,26 @@ function Konie() {
           <p className="text-white text-lg">Brak wyników.</p>
         )}
       </div>
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-3xl w-full">
+            <button
+              className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full text-2xl"
+              onClick={() => setSelectedImage(null)}
+            >
+              <IoMdCloseCircle />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Powiększone zdjęcie"
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
