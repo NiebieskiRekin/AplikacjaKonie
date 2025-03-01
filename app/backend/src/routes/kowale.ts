@@ -12,7 +12,7 @@ kowaleRoute.get("/", async (c) => {
     const user = getUserFromContext(c);
     if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-    const allKowale = await db.select().from(kowale);
+    const allKowale = await db.select().from(kowale).where(eq(kowale.hodowla,db.select({h:users.hodowla}).from(users).where(eq(users.id, user.userId))));
     return c.json(allKowale);
   } catch (error) {
     return c.json({ error: "Błąd pobierania kowali" }, 500);
