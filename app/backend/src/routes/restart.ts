@@ -6,7 +6,7 @@ import { access_cookie_opts, ACCESS_TOKEN, authMiddleware, createAuthTokens, get
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { setCookie } from "hono/cookie";
+import { deleteCookie, setCookie } from "hono/cookie";
 
 const passwordResetSchema = z.object({
   oldPassword: z.string().min(2, "Stare hasło jest wymagane"),
@@ -55,6 +55,9 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
     const version = await db.update(users)
       .set({ password: hashedPassword, refreshTokenVersion: sql`refresh_token_version+1`})
       .where(eq(users.id, user)).returning({refreshTokenVersion: users.refreshTokenVersion});
+
+    deleteCookie(c,ACCESS_TOKEN);
+    deleteCookie(c,REFRESH_TOKEN);
 
     // const tokens = await createAuthTokens({...dbUser, refreshTokenVersion: version.at(0)?.refreshTokenVersion!})
     // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
