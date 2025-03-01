@@ -12,6 +12,7 @@ import {
     route("/restart", "./components/Restart.tsx"),
     route("konie/:id", "./components/KonieDetails.tsx"),
     route("wydarzenia", "./components/Wydarzenia.tsx"),
+    route("/wydarzenia/add/:type", "./components/AddWydarzenie.tsx")
     // * matches all URLs, the ? makes it optional so it will match / as well
     // route("*?", "catchall.tsx"),
   ] satisfies RouteConfig;

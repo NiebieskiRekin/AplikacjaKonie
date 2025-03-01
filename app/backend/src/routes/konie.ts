@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { konie, users, konieInsertSchema, choroby, leczenia, podkucia, rozrody, zdarzeniaProfilaktyczne, kowale } from "../db/schema";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
@@ -34,6 +34,31 @@ horses.get("/", async (c) => {
 
   return c.json(horsesList);
 });
+
+// get kon per type
+horses.get("/:type", async (c) => {
+    const user = getUserFromContext(c);
+    if (!user) {
+      return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
+  
+    const type = c.req.param("type") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe";
+    
+    const hodowla = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, user.userId))
+      .then((res) => res[0]);
+  
+    if (!hodowla) return c.json({ error: "Nie znaleziono hodowli" }, 403);
+  
+    const horsesList = await db
+      .select()
+      .from(konie)
+      .where(and(eq(konie.hodowla, hodowla.hodowla), eq(konie.rodzajKonia, type)));
+    
+    return c.json(horsesList);
+  });
 
 // add new koń
 horses.post("/", async (c) => {

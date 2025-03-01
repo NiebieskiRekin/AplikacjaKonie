@@ -127,31 +127,31 @@ function StajniaEvents() {
 
       <div className="mt-6 flex flex-wrap justify-center gap-4">
         <button
-            onClick={() => (window.location.href = "/zdarzenia/add")}
+            onClick={() => (window.location.href = "/wydarzenia/add/podkucie")}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
             ➕ Podkucia
         </button>
         <button
-            onClick={() => (window.location.href = "/zdarzenia/add")}
+            onClick={() => (window.location.href = "/wydarzenia/add/dentysta")}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
             ➕ Dentysta
         </button>
         <button
-            onClick={() => (window.location.href = "/zdarzenia/add")}
+            onClick={() => (window.location.href = "/wydarzenia/add/podanie-witamin")}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
             ➕ Podanie Witamin
         </button>
         <button
-            onClick={() => (window.location.href = "/zdarzenia/add")}
+            onClick={() => (window.location.href = "/wydarzenia/add/szczepienia")}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
             ➕ Szczepienia
         </button>
         <button
-            onClick={() => (window.location.href = "/zdarzenia/add")}
+            onClick={() => (window.location.href = "/wydarzenia/add/odrobaczanie")}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
             ➕ Odrobaczanie
