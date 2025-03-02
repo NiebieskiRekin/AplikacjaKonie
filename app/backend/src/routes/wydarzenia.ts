@@ -6,18 +6,18 @@ import { zdarzeniaProfilaktyczne, podkucia, users, konie, kowale, weterynarze } 
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
-const wydarzeniaRoute = new Hono<{ Variables: { user: UserPayload } }>();
+const wydarzeniaRoute = new Hono<{ Variables: UserPayload }>();
 
 wydarzeniaRoute.use(authMiddleware);
 
 wydarzeniaRoute.get("/", async (c) => {
     const user = getUserFromContext(c);
-    if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+    // if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const hodowla = await db
       .select({ hodowla: users.hodowla })
       .from(users)
-      .where(eq(users.id, user.userId))
+      .where(eq(users.id, user))
       .then((res) => res[0]?.hodowla);
 
     if (!hodowla) {

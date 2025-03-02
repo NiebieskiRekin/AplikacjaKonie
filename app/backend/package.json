@@ -20,9 +20,8 @@
     "url": "https://github.com/NiebieskiRekin/AplikacjaKonie/"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^20.11.17",
     "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20.11.17",
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.30.4",
     "typescript": "^5.7.3"
@@ -35,7 +34,7 @@
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.2",
-    "jsonwebtoken": "^9.0.2",
+    "image-size": "^2.0.0",
     "pg": "^8.13.3",
     "zod": "^3.24.2"
   }

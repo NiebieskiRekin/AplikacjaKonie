@@ -44,7 +44,6 @@ function Navbar() {
         </Link>
         <button
           onClick={() => {
-            localStorage.removeItem("token");
             window.location.href = "/login";
           }}
           className="hover:text-brown-300 transition font-semibold"

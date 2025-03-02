@@ -4,7 +4,6 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
-    BrowserRouter,
     useLocation
   } from "react-router";
 

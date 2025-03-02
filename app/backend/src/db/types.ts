@@ -2,7 +2,6 @@ import {
   hodowcyKoni,
   konie,
   zdjeciaKoni,
-  files,
   podkucia,
   kowale,
   choroby,
@@ -10,6 +9,9 @@ import {
   rozrody,
   zdarzeniaProfilaktyczne,
   weterynarze,
+  rodzajeKoni, rodzajeZdarzenProfilaktycznych, rodzajeZdarzenRozrodczych,
+  users,
+  user_permissions
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -19,14 +21,20 @@ import {
 //       "strictNullChecks": true
 // see for more details: https://github.com/drizzle-team/drizzle-orm/issues/2636
 
+export const rodzaje_koni =  rodzajeKoni.enumValues; 
+export const rodzaje_zdarzen_profilaktycznych = rodzajeZdarzenProfilaktycznych.enumValues;
+export const rodzaje_zdarzen_rozrodczych = rodzajeZdarzenRozrodczych.enumValues;
+
+export type RodzajKonia = typeof rodzaje_koni;
+export type RodzajZdarzeniaProfilaktycznego = typeof rodzaje_zdarzen_profilaktycznych;
+export type RodzajZdarzeniaRozrodczego = typeof rodzaje_zdarzen_rozrodczych;
+
 export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;
 export type InsertHodowcaKoni = typeof hodowcyKoni.$inferInsert;
 export type SelectKon = typeof konie.$inferSelect;
 export type InsertKon = typeof konie.$inferInsert;
 export type SelectZdjecieKonia = typeof zdjeciaKoni.$inferSelect;
 export type InsertZdjecieKonia = typeof zdjeciaKoni.$inferInsert;
-export type SelectFile = typeof files.$inferSelect;
-export type InsertFile = typeof files.$inferInsert;
 export type SelectPodkucie = typeof podkucia.$inferSelect;
 export type InsertPodkucie = typeof podkucia.$inferInsert;
 export type SelectKowal = typeof kowale.$inferSelect;
@@ -43,3 +51,7 @@ export type InsertZdarzenieProfilaktyczne =
   typeof zdarzeniaProfilaktyczne.$inferInsert;
 export type SelectWeterynarz = typeof weterynarze.$inferSelect;
 export type InsertWeterynarz = typeof weterynarze.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUserPermissions = typeof user_permissions.$inferSelect;
+export type InsertUserPermissions = typeof user_permissions.$inferInsert;

@@ -2,8 +2,12 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db, eq } from "../db";
 import { hodowcyKoni, hodowcyKoniInsertSchema } from "../db/schema";
+import { authMiddleware, UserPayload } from "../middleware/auth";
 
-export const hodowcyKoniRoute = new Hono()
+export const hodowcyKoniRoute =new Hono<{Variables: UserPayload }>();
+hodowcyKoniRoute.use(authMiddleware);
+
+hodowcyKoniRoute
   .get("/", async (c) => {
     const hodowcyKoni_result = await db.select().from(hodowcyKoni);
     return c.json(hodowcyKoni_result);

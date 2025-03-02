@@ -1,11 +1,12 @@
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { users } from "../db/schema";
 import { db } from "../db";
-import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
+import { ACCESS_TOKEN, authMiddleware, getUserFromContext, REFRESH_TOKEN, UserPayload } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import { deleteCookie, setCookie } from "hono/cookie";
 
 const passwordResetSchema = z.object({
   oldPassword: z.string().min(2, "Stare hasło jest wymagane"),
@@ -16,7 +17,7 @@ const passwordResetSchema = z.object({
   path: ["confirmNewPassword"],
 });
 
-const restartRoutes = new Hono<{ Variables: { user: UserPayload } }>();
+const restartRoutes = new Hono<{ Variables: UserPayload }>();
 
 restartRoutes.use(authMiddleware);
 
@@ -35,7 +36,7 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
     const dbUser = await db
       .select()
       .from(users)
-      .where(eq(users.id, user.userId))
+      .where(eq(users.id, user))
       .then(res => res[0]);
 
     if (!dbUser) {
@@ -51,11 +52,18 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await db.update(users)
-      .set({ password: hashedPassword })
-      .where(eq(users.id, user.userId));
+    const version = await db.update(users)
+      .set({ password: hashedPassword, refreshTokenVersion: sql`refresh_token_version+1`})
+      .where(eq(users.id, user)).returning({refreshTokenVersion: users.refreshTokenVersion});
 
-    console.log("Hasło zostało zmienione!");
+    deleteCookie(c,ACCESS_TOKEN);
+    deleteCookie(c,REFRESH_TOKEN);
+
+    // const tokens = await createAuthTokens({...dbUser, refreshTokenVersion: version.at(0)?.refreshTokenVersion!})
+    // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
+    // setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
+
+    // console.log("Hasło zostało zmienione!");
     return c.json({ message: "Hasło zostało zmienione!" });
   } catch (error) {
     console.error("Błąd podczas zmiany hasła:", error);

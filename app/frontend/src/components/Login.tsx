@@ -28,8 +28,7 @@ function Login() {
       if (!response.ok) {
         throw new Error(data.error || "Błąd logowania");
       }
-
-      localStorage.setItem("token", data.token);
+      
       navigate("/konie");
     } catch (err) {
       setError((err as Error).message);

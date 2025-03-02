@@ -20,12 +20,7 @@ function Konie() {
   useEffect(() => {
     const fetchHorses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
-        const response = await fetch("/api/konie", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch("/api/konie");
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");
