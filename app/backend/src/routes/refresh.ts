@@ -15,7 +15,6 @@ const refresh = new Hono().get('/', async (c) => {
     // Refresh token is not present
     if (!refreshToken) {
         //   console.log('Refresh token not found, sending them to login page');
-        // TODO: implement logic to call refresh route with the refresh token to get a new access token
         return c.json({"error": "Należy zalogować się ponownie"},403);
     }
 
