@@ -320,20 +320,20 @@ function KonieDetails() {
       )}
 
 
-      <div className="mt-6 flex gap-4">
-        <button className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition">
+      <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-4">
+        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition w-full sm:w-auto">
           🐎 Rozrody
         </button>
-        <button className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition">
+        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition w-full sm:w-auto">
           🤕 Choroby
         </button>
-        <button className="px-6 py-3 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition">
+        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition w-full sm:w-auto">
           💉 Leczenia
         </button>
-        <button className="px-6 py-3 bg-fuchsia-600 text-white rounded-lg shadow-md hover:bg-fuchsia-700 transition">
+        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-fuchsia-600 text-white rounded-lg shadow-md hover:bg-fuchsia-700 transition w-full sm:w-auto">
           🏥 Zdarzenia profilaktyczne
         </button>
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
+        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition w-full sm:w-auto">
           🧲 Podkucia
         </button>
       </div>
