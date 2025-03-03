@@ -8,11 +8,13 @@ import { users } from "../db/schema";
 import {
   getCookie,
   deleteCookie,
+  setCookie,
 } from 'hono/cookie'
 
 
 export const ACCESS_TOKEN = 'ACCESS_TOKEN';
 export const REFRESH_TOKEN = 'REFRESH_TOKEN';
+export const ON_SUCCESS_REDIRECT_TO = 'ON_SUCCESS_REDIRECT_TO';
 
 export type RefreshTokenData = {
   userId: number;
@@ -69,7 +71,7 @@ export const refresh_cookie_opts = {
   httpOnly: true,
   secure: __prod__,
   sameSite: "lax",
-  path: "/refresh;/api/refresh",
+  path: "/api/refresh",
   domain: __prod__ ? `.${ProcessEnv.DOMAIN}` : "",
   maxAge: thirty_days
 } as const;
@@ -101,21 +103,14 @@ export async function checkTokens(tokens: {accessToken:string,refreshToken:strin
 export const authMiddleware: MiddlewareHandler<{ Variables: UserPayload }> = async (c, next) => {
   const accessToken = getCookie(c,ACCESS_TOKEN);
 
-  if (!accessToken) {
-    return c.json({ error: "Brak autoryzacji" }, 401);
-  }
-
   try {
-    const decoded = await verify(accessToken,ProcessEnv.JWT_SECRET);
-    // const decoded = jwt.verify(token, ProcessEnv.JWT_SECRET) as UserPayload;
-    // console.log("Zweryfikowany użytkownik:", decoded); // 🔍 Sprawdzenie dekodowania
+    const decoded = await verify(accessToken!,ProcessEnv.JWT_SECRET);
     c.set("jwtPayload", decoded);
     await next();
   } catch (error) {
-    console.error("Błąd weryfikacji tokena:", error); // 🔍 Sprawdzenie błędu
-    deleteCookie(c,'ACCESS_TOKEN');
-    // TODO: implement logic to call refresh route with the refresh token to get a new access token
-    return c.json({ error: "Nieprawidłowy token" }, 403);
+    deleteCookie(c,ACCESS_TOKEN);
+    setCookie(c,ON_SUCCESS_REDIRECT_TO,c.req.path,refresh_cookie_opts);
+    return c.redirect("/api/refresh");
   }
 };
 

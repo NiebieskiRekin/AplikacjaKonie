@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { access_cookie_opts, ACCESS_TOKEN, createAuthTokens, refresh_cookie_opts, REFRESH_TOKEN, RefreshTokenData } from "../middleware/auth"
+import { access_cookie_opts, ACCESS_TOKEN, createAuthTokens, ON_SUCCESS_REDIRECT_TO, refresh_cookie_opts, REFRESH_TOKEN, RefreshTokenData } from "../middleware/auth"
 import { ProcessEnv } from "../env";
 import { verify } from "hono/jwt";
 
@@ -10,26 +10,30 @@ import { verify } from "hono/jwt";
  * has expired.
  */
 const refresh = new Hono().get('/', async (c) => {
-    // console.log('Obtaining new access token with the refresh token');
     // Get the refresh token, will only be present on /refresh call
     const refreshToken = getCookie(c,REFRESH_TOKEN);
 
     // Refresh token is not present
     if (!refreshToken) {
-        //   console.log('Refresh token not found, sending them to login page');
         return c.json({"error": "Należy zalogować się ponownie"},403);
     }
 
     // Create a new access and refresh token pair and set it on the cookie
     try {
         const user = <RefreshTokenData>(await verify(refreshToken, ProcessEnv.REFRESH_JWT_SECRET));
-        // const access_token = await createAccessToken(user_id.userId);
         const tokens = await createAuthTokens({userId: user.userId, refreshTokenVersion: user.refreshTokenVersion!});
         setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
         setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
-        return c.json({"status":"Odświeżono sesję"},200);
+        const where_to = getCookie(c,ON_SUCCESS_REDIRECT_TO);
+        if (where_to === undefined){
+            return c.json({"status":"Odświeżono sesję"},200);
+        } else {
+            deleteCookie(c,ON_SUCCESS_REDIRECT_TO);
+            return c.redirect(where_to);
+        }
     // Invalid refreshToken, clear cookie and send to login
     } catch (err) {
+        console.log('Refresh token invalid');
         deleteCookie(c,REFRESH_TOKEN);
         return c.json({"error": "Należy zalogować się ponownie"},403);
     }
