@@ -41,6 +41,7 @@ function KonieDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
 
   useEffect(() => {
@@ -85,6 +86,7 @@ function KonieDetails() {
         setError((err as Error).message);
       }
     };
+
     const fetchActiveEvents = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -127,6 +129,23 @@ function KonieDetails() {
 
   if (error) return <p className="text-red-600">{error}</p>;
   if (!horse) return <p className="text-white text-lg">Ładowanie...</p>;
+
+  const handleDeleteHorse = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/konie/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Nie udało się usunąć konia");
+
+      setIsDeletePopupOpen(false);
+      navigate("/konie");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -187,6 +206,13 @@ function KonieDetails() {
             onClick={() => setIsModalOpen(true)}
           >
             📅 Ostatnie zdarzenia
+          </button>
+
+          <button
+            className="mt-4 px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition block w-full"
+            onClick={() => setIsDeletePopupOpen(true)}
+          >
+            🗑️ Usuń konia
           </button>
         </div>
 
@@ -275,6 +301,30 @@ function KonieDetails() {
             >
               Zamknij
             </button>
+          </div>
+        </div>
+      )}
+
+      {isDeletePopupOpen && (
+        <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm flex justify-center items-center">
+        <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <p className="text-red-600 text-lg font-bold mb-4">Czy na pewno chcesz usunąć konia?</p>
+            <p className="text-gray-700">Ta operacja jest nieodwracalna.</p>
+
+            <div className="flex gap-4 mt-6">
+              <button
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+                onClick={() => setIsDeletePopupOpen(false)}
+              >
+                Anuluj
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                onClick={handleDeleteHorse}
+              >
+                Usuń
+              </button>
+            </div>
           </div>
         </div>
       )}

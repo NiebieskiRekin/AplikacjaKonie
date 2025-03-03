@@ -154,6 +154,33 @@ horses.post("/", async (c) => {
     }
   });
 
+  horses.delete("/:id", async (c) => {
+    try {
+      const user = getUserFromContext(c);
+      if (!user) {
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+      }
+  
+      const horseId = Number(c.req.param("id"));
+      if (isNaN(horseId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+      }
+  
+      const horse = await db.select().from(konie).where(eq(konie.id, horseId)).then((res) => res[0]);
+      if (!horse) {
+        return c.json({ error: "Koń nie istnieje" }, 404);
+      }
+  
+      // Usuwamy konia
+      await db.delete(konie).where(eq(konie.id, horseId));
+  
+      return c.json({ success: "Koń został usunięty" });
+    } catch (error) {
+      console.error("Błąd podczas usuwania konia:", error);
+      return c.json({ error: "Błąd podczas usuwania konia" }, 500);
+    }
+  });
+
 
   horses.get("/:id", async (c) => {
     const user = getUserFromContext(c);
