@@ -88,6 +88,7 @@ export const konie = hodowlakoni.table(
       .references(() => hodowcyKoni.id),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: plcie("plec"),
+    active: boolean("active").notNull().default(true),
   },
   () => [
     check(

@@ -39,13 +39,14 @@ horses.get("/",
       imageUrl: zdjeciaKoni.file
     })
     .from(user)
-    .innerJoin(konie,eq(user.hodowla,konie.hodowla))
+    .innerJoin(konie,and(eq(user.hodowla,konie.hodowla), eq(konie.active, true)))
     .leftJoin(zdjeciaKoni,
         and(
           eq(konie.id,zdjeciaKoni.kon),
           eq(zdjeciaKoni.default, true)
         )
-    );
+    )
+    .orderBy(sql`LOWER(${konie.nazwa})`);;
 
     return c.json(horsesList);
     
@@ -58,80 +59,6 @@ const MAX_FILE_SIZE = 1024*1024*5; // 5 MB
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"]
 
 // add new koń
-horses.post("/", zValidator("form", konieInsertSchema.extend({
-  hodowla: z.optional(z.number()),
-  rocznikUrodzenia: z.number({ coerce: true }),
-  file:  z.custom<File | undefined>()
-  .refine(file => (!file || file?.size <= MAX_FILE_SIZE)!,
-    {message: "Maksymalny rozmiar pliku wynosi 5MB."})
-  .refine(file => (!file || ACCEPTED_IMAGE_TYPES.includes(file?.type))!,
-    "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp")
-}).strict()), async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-
-    const hodowla = db.$with("user_hodowla").as(
-      db.select({ hodowla: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId)));
-
-    const formData = c.req.valid("form");
-
-    const validationResult = konieInsertSchema.extend({
-      hodowla: z.optional(z.number()),
-      dataPrzybyciaDoStajni: z.optional(z.string()),
-      dataOdejsciaZeStajni: z.optional(z.string())
-    }).safeParse(formData);
-    if (!validationResult.success) {
-      console.error("Błąd walidacji danych konia:", validationResult.error);
-      return c.json({ success: false, error: validationResult.error.flatten() }, 400);
-    }
-
-    const convert_empty_to_null = (date: string | null | undefined ) => {
-      if (date === null || date === undefined || date?.length == 0){
-        return null;
-      }
-      else {
-        return date;
-      }
-    }
-
-    const kon_to_insert = {
-      ...validationResult.data,
-      dataPrzybyciaDoStajni: convert_empty_to_null(validationResult.data.dataPrzybyciaDoStajni),
-      dataOdejsciaZeStajni: convert_empty_to_null(validationResult.data.dataOdejsciaZeStajni),
-      hodowla: sql`(select * from user_hodowla)`
-    };
-
-    //Wstawienie danych do bazy
-    // TODO: transakcyjność?
-    // TODO: upload file to object storage
-    const newHorse = (await db.with(hodowla).insert(konie).values(kon_to_insert).returning()).at(0)!;
-
-    const dimensions = imageSize( await formData.file!.bytes())
-    
-    const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
-      id: randomUUID(),
-      kon: newHorse.id,
-      width: dimensions.width,
-      height: dimensions.height,
-      file: formData.file?.name!,
-      default: true 
-    })
-
-    if (!photoValidationResult.success) {
-      console.error("Błąd walidacji formatu zdjecia:", photoValidationResult.error);
-      return c.json({ success: false, error: photoValidationResult.error.flatten() }, 400);
-    }
-
-    await db.with(hodowla).insert(zdjeciaKoni).values(photoValidationResult.data).returning({id: zdjeciaKoni.id});
-
-    return c.json({ message: "Koń został dodany!", horse: newHorse });
-  } catch (error) {
-    console.error("Błąd podczas dodawania konia:", error);
-    return c.json({ error: "Błąd podczas dodawania konia" }, 500);
-  }
-});
 horses.post("/", zValidator("form", konieInsertSchema.extend({
   hodowla: z.optional(z.number()),
   rocznikUrodzenia: z.number({ coerce: true }),
@@ -251,9 +178,12 @@ horses.post("/", zValidator("form", konieInsertSchema.extend({
   });
 
   // TODO
-  horses.delete("/:id", async (c) => {
+  horses.delete("/:id{[0-9]+}", async (c) => {
     try {
       const userId = getUserFromContext(c);
+      if (!userId) {
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+      }
   
       const horseId = Number(c.req.param("id"));
       if (isNaN(horseId)) {
@@ -266,7 +196,7 @@ horses.post("/", zValidator("form", konieInsertSchema.extend({
       }
   
       // Usuwamy konia
-      await db.delete(konie).where(eq(konie.id, horseId));
+      await db.update(konie).set({ active: false }).where(eq(konie.id, horseId));
   
       return c.json({ success: "Koń został usunięty" });
     } catch (error) {
@@ -277,8 +207,8 @@ horses.post("/", zValidator("form", konieInsertSchema.extend({
 
 
   horses.get("/:id{[0-9]+}", async (c) => {
-    const user = getUserFromContext(c);
-    if (!user) {
+    const userId = getUserFromContext(c);
+    if (!userId) {
       return c.json({ error: "Błąd autoryzacji" }, 401);
     }
   
@@ -290,7 +220,7 @@ horses.post("/", zValidator("form", konieInsertSchema.extend({
     const horse = await db
       .select()
       .from(konie)
-      .where(eq(konie.id, horseId))
+      .where(and(eq(konie.id, horseId), eq(konie.active, true)))
       .then((res) => res[0]);
   
     if (!horse) {

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and } from "drizzle-orm";
 import { db } from "../db";
 import { authMiddleware, getUserFromContext, UserPayload } from "../middleware/auth";
 import { zdarzeniaProfilaktyczne, podkucia, users, konie, kowale, weterynarze } from "../db/schema";
@@ -27,7 +27,7 @@ wydarzeniaRoute.get("/", async (c) => {
     const konieUzytkownika = await db
       .select({ id: konie.id, nazwa: konie.nazwa })
       .from(konie)
-      .where(eq(konie.hodowla, hodowla));
+      .where(and(eq(konie.hodowla, hodowla), eq(konie.active, true)));
 
     const konieMap = Object.fromEntries(konieUzytkownika.map(kon => [kon.id, kon.nazwa]));
 
