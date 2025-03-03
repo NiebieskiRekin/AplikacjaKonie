@@ -53,9 +53,42 @@ function StajniaEvents() {
   const currentEvents = filteredEvents.slice(startIndex, endIndex);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">📅 Wydarzenia w stajni</h2>
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-4 md:p-6">
+      <h2 className="text-3xl font-bold text-white mb-6 text-center">📅 Wydarzenia w stajni</h2>
       {error && <p className="text-red-600">{error}</p>}
+
+      <div className="mb-4 flex flex-wrap justify-center gap-2 sm:gap-4 w-full max-w-5xl">
+        <button
+          onClick={() => (window.location.href = "/wydarzenia/add/podkucie")}
+          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 transition w-full sm:w-auto"
+        >
+          ➕ Podkucia
+        </button>
+        <button
+          onClick={() => (window.location.href = "/wydarzenia/add/dentysta")}
+          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition w-full sm:w-auto"
+        >
+          ➕ Dentysta
+        </button>
+        <button
+          onClick={() => (window.location.href = "/wydarzenia/add/podanie-witamin")}
+          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 transition w-full sm:w-auto"
+        >
+          ➕ Podanie Witamin
+        </button>
+        <button
+          onClick={() => (window.location.href = "/wydarzenia/add/szczepienia")}
+          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 transition w-full sm:w-auto"
+        >
+          ➕ Szczepienia
+        </button>
+        <button
+          onClick={() => (window.location.href = "/wydarzenia/add/odrobaczanie")}
+          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 transition w-full sm:w-auto"
+        >
+          ➕ Odrobaczanie
+        </button>
+      </div>
 
       <div className="w-full max-w-4xl mb-4">
         <input
@@ -67,28 +100,28 @@ function StajniaEvents() {
         />
       </div>
 
-      <div className="w-full max-w-5xl bg-white p-6 rounded-lg shadow-lg">
-        <table className="w-full border-collapse border border-gray-300">
+      <div className="w-full max-w-5xl bg-white p-4 md:p-6 rounded-lg shadow-lg overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-300 min-w-[700px]">
           <thead>
             <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2">📅 Data</th>
-              <th className="border border-gray-300 px-4 py-2">🐎 Koń</th>
-              <th className="border border-gray-300 px-4 py-2">🔍 Rodzaj zdarzenia</th>
-              <th className="border border-gray-300 px-4 py-2">⏳ Ważne do</th>
-              <th className="border border-gray-300 px-4 py-2">👤 Weterynarz / Kowal</th>
-              <th className="border border-gray-300 px-4 py-2">📝 Opis</th>
+                <th className="border border-gray-300 px-2 md:px-4 py-2">📅 Data</th>
+              <th className="border border-gray-300 px-2 md:px-4 py-2">🐎 Koń</th>
+              <th className="border border-gray-300 px-2 md:px-4 py-2">🔍 Rodzaj zdarzenia</th>
+              <th className="border border-gray-300 px-2 md:px-4 py-2">⏳ Ważne do</th>
+              <th className="border border-gray-300 px-2 md:px-4 py-2">👤 Weterynarz / Kowal</th>
+              <th className="border border-gray-300 px-2 md:px-4 py-2">📝 Opis</th>
             </tr>
           </thead>
           <tbody>
             {currentEvents.length > 0 ? (
               currentEvents.map((event, index) => (
                 <tr key={index} className="text-center hover:bg-gray-100 transition">
-                  <td className="border border-gray-300 px-4 py-2">{event.date}</td>
-                  <td className="border border-gray-300 px-4 py-2">{event.horse}</td>
-                  <td className="border border-gray-300 px-4 py-2">{event.rodzajZdarzenia}</td>
-                  <td className="border border-gray-300 px-4 py-2">{event.dataWaznosci}</td>
-                  <td className="border border-gray-300 px-4 py-2">{event.osobaImieNazwisko}</td>
-                  <td className="border border-gray-300 px-4 py-2">{event.opisZdarzenia}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.date}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.horse}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.rodzajZdarzenia}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.dataWaznosci}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.osobaImieNazwisko}</td>
+                  <td className="border border-gray-300 px-2 md:px-4 py-2">{event.opisZdarzenia}</td>
                 </tr>
               ))
             ) : (
@@ -119,40 +152,6 @@ function StajniaEvents() {
           Następna ➡
         </button>
       </div>
-
-      <div className="mt-6 flex flex-wrap justify-center gap-4">
-        <button
-            onClick={() => (window.location.href = "/wydarzenia/add/podkucie")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-        >
-            ➕ Podkucia
-        </button>
-        <button
-            onClick={() => (window.location.href = "/wydarzenia/add/dentysta")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-        >
-            ➕ Dentysta
-        </button>
-        <button
-            onClick={() => (window.location.href = "/wydarzenia/add/podanie-witamin")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-        >
-            ➕ Podanie Witamin
-        </button>
-        <button
-            onClick={() => (window.location.href = "/wydarzenia/add/szczepienia")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-        >
-            ➕ Szczepienia
-        </button>
-        <button
-            onClick={() => (window.location.href = "/wydarzenia/add/odrobaczanie")}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-        >
-            ➕ Odrobaczanie
-        </button>
-    </div>
-
     </div>
   );
 }
