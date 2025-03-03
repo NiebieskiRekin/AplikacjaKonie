@@ -28,7 +28,8 @@ horses.get("/", async (c) => {
   const horsesList = await db
     .select()
     .from(konie)
-    .where(eq(konie.hodowla, hodowla.hodowla));
+    .where(eq(konie.hodowla, hodowla.hodowla))
+    .orderBy(sql`LOWER(${konie.nazwa})`);
 
   console.log("🐴 Lista koni:", horsesList);
 
@@ -82,10 +83,10 @@ horses.post("/", async (c) => {
         numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
         numerChipa: formData.get("numerChipa") as string,
         rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-        dataPrzybyciaDoStajni: formData.has("dataPrzybycia")
+        dataPrzybyciaDoStajni: formData.has("dataPrzybycia") // do zmiany
           ? (formData.get("dataPrzybycia" as string))
           : null,
-        dataOdejsciaZeStajni: formData.has("dataOdejscia")
+        dataOdejsciaZeStajni: formData.has("dataOdejscia") // do zmiany
           ? (formData.get("dataOdejscia") as string)
           : null,
         rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
@@ -110,6 +111,53 @@ horses.post("/", async (c) => {
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
     }
   });
+
+  // edit kon
+  horses.put("/:id", async (c) => {
+    const user = getUserFromContext(c);
+    if (!user) {
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
+
+    const horseId = Number(c.req.param("id"));
+    if (isNaN(horseId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+    }
+
+    try {
+        const { nazwa, numerPrzyzyciowy, numerChipa, rocznikUrodzenia, dataPrzybycia, dataOdejscia, rodzajKonia, plec } = await c.req.json();
+
+        if (!nazwa || !numerPrzyzyciowy || !numerChipa || !rocznikUrodzenia || !rodzajKonia || !plec) {
+            return c.json({ error: "Wszystkie pola są wymagane" }, 400);
+        }
+
+        const updatedHorse = await db
+            .update(konie)
+            .set({
+                nazwa,
+                numerPrzyzyciowy,
+                numerChipa,
+                rocznikUrodzenia,
+                dataPrzybyciaDoStajni: dataPrzybycia || null,
+                dataOdejsciaZeStajni: dataOdejscia || null,
+                rodzajKonia,
+                plec,
+            })
+            .where(eq(konie.id, horseId))
+            .returning();
+
+            
+        if (!updatedHorse) {
+            return c.json({ error: "Nie udało się zaktualizować danych konia" }, 500);
+        }
+
+        return c.json({ success: "Dane konia zostały zaktualizowane", horse: updatedHorse });
+    } catch (error) {
+        console.error("Błąd aktualizacji konia:", error);
+        return c.json({ error: "Błąd aktualizacji konia" }, 500);
+    }
+  });
+
 
   horses.get("/:id", async (c) => {
     const user = getUserFromContext(c);

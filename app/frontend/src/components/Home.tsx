@@ -5,7 +5,8 @@ import "../index.css";
 function Home() {
   return (
     <>
-      <h1 className="text-3xl font-bold underline"> Hello world! </h1>
+          <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
+        </div>
       <PWABadge />
     </>
   );
