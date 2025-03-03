@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router";
 
-function AddKonia() {
+function EditKonia() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [nazwa, setNazwa] = useState("");
@@ -12,58 +13,78 @@ function AddKonia() {
   const [dataOdejscia, setDataOdejscia] = useState("");
   const [rodzajKonia, setRodzajKonia] = useState("");
   const [plec, setPlec] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setFile(event.target.files[0]);
-    }
-  };
+  useEffect(() => {
+    const fetchHorseDetails = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Brak tokena. Zaloguj się.");
+
+        const response = await fetch(`/api/konie/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Błąd pobierania danych konia");
+
+        setNazwa(data.nazwa);
+        setNumerPrzyzyciowy(data.numerPrzyzyciowy);
+        setNumerChipa(data.numerChipa);
+        setRocznikUrodzenia(data.rocznikUrodzenia);
+        setDataPrzybycia(data.dataPrzybyciaDoStajni || "");
+        setDataOdejscia(data.dataOdejsciaZeStajni || "");
+        setRodzajKonia(data.rodzajKonia);
+        setPlec(data.plec);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    };
+
+    fetchHorseDetails();
+  }, [id]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
     setSuccess("");
 
-    if (!nazwa || !numerPrzyzyciowy || !numerChipa || !rocznikUrodzenia || !rodzajKonia || !plec || !file) {
+    if (!nazwa || !numerPrzyzyciowy || !numerChipa || !rocznikUrodzenia || !rodzajKonia || !plec) {
       setError("Wszystkie pola są wymagane.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("nazwa", nazwa);
-    formData.append("numerPrzyzyciowy", numerPrzyzyciowy);
-    formData.append("numerChipa", numerChipa);
-    formData.append("rocznikUrodzenia", rocznikUrodzenia);
-    formData.append("dataPrzybyciaDoStajni", dataPrzybycia);
-    formData.append("dataOdejsciaZeStajni", dataOdejscia);
-    formData.append("rodzajKonia", rodzajKonia);
-    formData.append("plec", plec);
-    formData.append("file", file);
+    const requestData = JSON.stringify({
+        nazwa,
+        numerPrzyzyciowy,
+        numerChipa,
+        rocznikUrodzenia,
+        dataPrzybycia,
+        dataOdejscia,
+        rodzajKonia,
+        plec,
+      });
+      
 
     try {
-      const response = await fetch("/api/konie", {
-        method: "POST",
-        body: formData,
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/konie/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: requestData, 
       });
+      
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Błąd dodawania konia");
+      if (!response.ok) throw new Error(data.error || "Błąd aktualizacji konia");
 
-      setSuccess("Koń został dodany!");
+      setSuccess("Dane konia zostały zaktualizowane!");
       setShowPopup(true);
-      setNazwa("");
-      setNumerPrzyzyciowy("");
-      setNumerChipa("");
-      setRocznikUrodzenia("");
-      setDataPrzybycia("");
-      setDataOdejscia("");
-      setRodzajKonia("");
-      setPlec("");
-      setFile(null);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -76,7 +97,7 @@ function AddKonia() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">Dodaj nowego konia</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Edytuj dane konia</h2>
 
       {error && <p className="text-red-600">{error}</p>}
       {success && <p className="text-green-400">{success}</p>}
@@ -142,52 +163,22 @@ function AddKonia() {
           />
         </label>
 
-        <label className="block mb-2">
-          Rodzaj konia:
-          <select
-            value={rodzajKonia}
-            onChange={(e) => setRodzajKonia(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          >
-            <option value="">Wybierz...</option>
-            <option value="Konie hodowlane">Konie hodowlane</option>
-            <option value="Konie rekreacyjne">Konie rekreacyjne</option>
-            <option value="Źrebaki">Źrebaki</option>
-            <option value="Konie sportowe">Konie sportowe</option>
-          </select>
-        </label>
-
-        <label className="block mb-2">
-          Płeć:
-          <select
-            value={plec}
-            onChange={(e) => setPlec(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          >
-            <option value="">Wybierz...</option>
-            <option value="samiec">Samiec</option>
-            <option value="samica">Samica</option>
-          </select>
-        </label>
-
-        <label className="block mb-4">
-          Zdjęcie konia:
-          <input type="file" onChange={handleFileChange} className="w-full p-2" />
-        </label>
-
         <button
           type="submit"
           className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
         >
-          Dodaj konia
+          Zapisz zmiany
         </button>
       </form>
 
       {showPopup && (
-          <div className="fixed inset-0 bg-gradient-to-br from-green-800 to-brown-600 flex justify-center items-center">
+        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-lg flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="text-green-600 text-lg font-bold mb-4">Koń został dodany!</p>
-            <button onClick={handleClosePopup} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+            <p className="text-green-600 text-lg font-bold mb-4">Dane konia zostały zaktualizowane!</p>
+            <button
+              onClick={handleClosePopup}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+            >
               OK
             </button>
           </div>
@@ -198,4 +189,4 @@ function AddKonia() {
   );
 }
 
-export default AddKonia;
+export default EditKonia;
