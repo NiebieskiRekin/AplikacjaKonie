@@ -16,7 +16,7 @@ export const REFRESH_TOKEN = 'REFRESH_TOKEN';
 
 export type RefreshTokenData = {
   userId: number;
-  refreshTokenVersion?: number;
+  refreshTokenVersion: number;
 };
 
 // TODO: extend type with cached info about hodowla and user type to be stored in Window: sessionStorage (single tab only) 
@@ -38,17 +38,17 @@ export async function createAccessToken(user_id: number){
 }
 
 export async function createAuthTokens(
-  user: {id: number, refreshTokenVersion: number}
+  user: {userId: number, refreshTokenVersion: number}
 )  {
   const now = Math.floor(Date.now() / 1000);
 
   const refreshToken = sign(
-    { userId: user.id, refreshTokenVersion: user.refreshTokenVersion, exp: now+thirty_days},
+    { userId: user.userId, refreshTokenVersion: user.refreshTokenVersion, exp: now+thirty_days},
     ProcessEnv.REFRESH_JWT_SECRET,
   );
 
   const accessToken = sign(
-    { userId: user.id, exp: now + fifteen_minutes},
+    { userId: user.userId, exp: now + fifteen_minutes},
     ProcessEnv.JWT_SECRET,
   );
 
@@ -90,7 +90,7 @@ export async function checkTokens(tokens: {accessToken:string,refreshToken:strin
       return null; // unauthorized
     }
     return {
-      userId: data.userId,
+      userId: data.userId, refreshTokenVersion: data.refreshTokenVersion
     };
   } catch {
     return null; // unauthorized
