@@ -83,12 +83,8 @@ horses.post("/", async (c) => {
         numerPrzyzyciowy: formData.get("numerPrzyzyciowy") as string,
         numerChipa: formData.get("numerChipa") as string,
         rocznikUrodzenia: parseInt(formData.get("rocznikUrodzenia") as string, 10),
-        dataPrzybyciaDoStajni: formData.has("dataPrzybycia") // do zmiany
-          ? (formData.get("dataPrzybycia" as string))
-          : null,
-        dataOdejsciaZeStajni: formData.has("dataOdejscia") // do zmiany
-          ? (formData.get("dataOdejscia") as string)
-          : null,
+        dataPrzybyciaDoStajni: formData.get("dataPrzybycia")?.toString().trim() ? formData.get("dataPrzybycia") : null,
+        dataOdejsciaZeStajni: formData.get("dataOdejscia")?.toString().trim() ? formData.get("dataOdejscia") : null,
         rodzajKonia: formData.get("rodzajKonia") as "Konie hodowlane" | "Konie rekreacyjne" | "Źrebaki" | "Konie sportowe",
         plec: formData.get("plec") as "samiec" | "samica",
         hodowla: hodowla,
