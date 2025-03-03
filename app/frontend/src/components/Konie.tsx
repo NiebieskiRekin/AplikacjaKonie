@@ -50,25 +50,25 @@ function Konie() {
   }, [search, horses]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-4 md:p-6">
 
-      <div className="w-full max-w-2xl flex justify-between items-center mb-6">
+      <div className="w-full max-w-2xl flex flex-col md:flex-row gap-4 items-center mb-6">
         <input
           type="text"
           placeholder="Wyszukaj konia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500 text-white"
+          className="w-full md:w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500 text-white"
         />
         <button
           onClick={() => navigate("/konie/add")}
-          className="px-5 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+          className="w-full md:w-auto px-5 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
         >
           ➕ Dodaj konia
         </button>
       </div>
 
-      <h2 className="text-3xl font-bold text-white mb-6">Konie na hodowli</h2>
+      <h2 className="text-3xl font-bold text-white mb-6 text-center">Konie na hodowli</h2>
       {error && <p className="text-red-600">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -103,7 +103,7 @@ function Konie() {
             </div>
           ))
         ) : (
-          <p className="text-white text-lg">Brak wyników.</p>
+          <p className="text-white text-lg text-center">Brak wyników.</p>
         )}
       </div>
       {selectedImage && (
