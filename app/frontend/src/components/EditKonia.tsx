@@ -92,7 +92,7 @@ function EditKonia() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate("/konie"); 
+    navigate(`/konie/${id}`); 
   };
 
   return (

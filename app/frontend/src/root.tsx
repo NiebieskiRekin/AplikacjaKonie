@@ -8,8 +8,6 @@ import {
   } from "react-router";
 
   import Home from "./components/Home";
-  import Navbar from "./components/Navbar";
-
   
   export function Layout({
     children,
@@ -42,11 +40,8 @@ import {
   }
 
   export default function Root() {
-    const location = useLocation();
-  
     return (
       <div className="page-container">
-        {location.pathname !== "/login" && <Navbar />}
         <Outlet />
       </div>
     );
