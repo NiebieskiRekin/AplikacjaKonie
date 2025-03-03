@@ -154,6 +154,22 @@ function AddEvent() {
         }
     };
 
+    const getButtonColor = (rodzaj: string): [string, string] => {
+        switch (rodzaj) {
+          case "Konie hodowlane":
+            return ["#ff8c00", "#ff4500"];
+          case "Konie rekreacyjne":
+            return ["#1e90ff", "#0066cc"];
+          case "Źrebaki":
+            return ["#32cd32", "#008000"];
+          case "Konie sportowe":
+            return ["#ff1493", "#c71585"];
+          default:
+            return ["#808080", "#505050"];
+        }
+      };
+      
+
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
@@ -164,15 +180,18 @@ function AddEvent() {
 
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
                 <label className="block text-gray-700 mb-2">🐴 Wybierz konie:</label>
-                <div className="flex gap-2 mb-4">
-                    <button type="button" className="bg-blue-600 text-white px-3 py-1 rounded" onClick={handleSelectAllHorses}>
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-4">
+                    <button type="button" className="px-4 py-2 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition w-full sm:w-auto" onClick={handleSelectAllHorses}>
                         Wszystkie konie
                     </button>
                     {Array.from(new Set(horses.map((h) => h.rodzajKonia))).map((rodzaj) => (
                         <button
                             key={rodzaj}
                             type="button"
-                            className="bg-purple-600 text-white px-3 py-1 rounded"
+                            className="px-4 py-2 text-white font-semibold rounded-lg shadow-md w-full sm:w-auto transition"
+                            style={{
+                                background: `linear-gradient(90deg, ${getButtonColor(rodzaj)[0]}, ${getButtonColor(rodzaj)[1]})`,
+                              }}
                             onClick={() => handleSelectByType(rodzaj)}
                         >
                             {rodzaj}
