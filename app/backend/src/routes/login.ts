@@ -37,7 +37,7 @@ const login = new Hono().post("/", zValidator(
       return c.json({ error: "Nieprawidłowe hasło." }, 401);
     }
 
-    const tokens = await createAuthTokens(user);
+    const tokens = await createAuthTokens({userId: user.id, refreshTokenVersion: user.refreshTokenVersion});
 
     setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
     setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
