@@ -29,7 +29,7 @@ type ActiveEvent = {
   dataWaznosci?: string;
 };
 
-const EVENT_TYPES = ["Podkucie", "Odrobaczanie", "Podanie suplementów", "Szczepienia", "Dentysta"];
+const EVENT_TYPES = ["Podkucie", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta"];
 
 function KonieDetails() {
   const { id } = useParams();
