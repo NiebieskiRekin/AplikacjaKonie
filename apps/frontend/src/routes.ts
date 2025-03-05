@@ -1,13 +1,15 @@
 import {
     type RouteConfig,
+    index,
+    layout,
     route,
   } from "@react-router/dev/routes";
   
   export default [
-    route("","./components/Home.tsx"),
+    index("./components/Home.tsx"),
     route("/login","./components/Login.tsx"),
     route("/register","./components/Register.tsx"),
-    route("", "./components/Layout.tsx", {}, [
+    layout("./components/Layout.tsx", [
       route("/konie","./components/Konie.tsx"),
       route("/konie/add", "./components/AddKonia.tsx"),
       route("/restart", "./components/Restart.tsx"),

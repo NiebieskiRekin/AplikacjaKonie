@@ -3,8 +3,7 @@ import {
     Meta,
     Outlet,
     Scripts,
-    ScrollRestoration,
-    useLocation
+    ScrollRestoration
   } from "react-router";
 
   import Home from "./components/Home";
