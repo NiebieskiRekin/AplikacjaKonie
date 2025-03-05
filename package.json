@@ -8,8 +8,8 @@
   ],
   "version": "0.1.0",
   "scripts": {
-    "dev": "concurrently -p \"[{name}]\" -n \"b,f\" -c \"bgGray.bold,bgCyan.bold\" \"npm --prefix apps/backend run dev\" \"npm --prefix apps/frontend run dev\"",
-    "build": "concurrently -p \"[{name}]\" -n \"b,f\" -c \"bgGray.bold,bgCyan.bold\" \"npm --prefix apps/backend run build\" \"npm --prefix apps/frontend run build\"",
+    "dev": "concurrently -p \"[{name}]\" -n \"b,f,a\" -c \"bgGray.bold,bgCyan.bold,bgMagenta.bold\" \"npm --prefix apps/backend run dev\" \"npm --prefix apps/frontend run dev\" \"npm --prefix packages/api-client run dev\"",
+    "build": "npm --prefix apps/backend run build && npm --prefix packages/api-client run build && npm --prefix apps/frontend run build",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
     "format": "npx prettier . -w"
