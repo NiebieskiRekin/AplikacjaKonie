@@ -1,5 +1,5 @@
 {
-    "filepath": "{client,server}/**/.{js,jsx,ts,tsx,md,json}",
+    "filepath": "**/.{mjs,ts,tsx,md,json,yml,yaml}",
     "trailingComma": "es5",
     "tabWidth": 2,
     "printWidth": 80,
