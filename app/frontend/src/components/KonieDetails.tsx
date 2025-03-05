@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { GoArrowRight, GoArrowLeft } from "react-icons/go";
 import { IoMdCloseCircle } from "react-icons/io";
 
@@ -321,21 +321,36 @@ function KonieDetails() {
 
 
       <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-4">
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition w-full sm:w-auto">
-          🐎 Rozrody
-        </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition w-full sm:w-auto">
-          🤕 Choroby
-        </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition w-full sm:w-auto">
-          💉 Leczenia
-        </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-fuchsia-600 text-white rounded-lg shadow-md hover:bg-fuchsia-700 transition w-full sm:w-auto">
-          🏥 Zdarzenia profilaktyczne
-        </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition w-full sm:w-auto">
-          🧲 Podkucia
-        </button>
+      <Link
+        to={`/wydarzenia/${id}/rozrody`}
+        className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 transition w-full sm:w-auto"
+      >
+        🐎 Rozrody
+      </Link>
+      <Link
+        to={`/wydarzenia/${id}/choroby`}
+        className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 transition w-full sm:w-auto"
+      >
+        🤕 Choroby
+      </Link>
+      <Link
+        to={`/wydarzenia/${id}/leczenia`}
+        className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 transition w-full sm:w-auto"
+      >
+        💉 Leczenia
+      </Link>
+      <Link
+        to={`/wydarzenia/${id}/profilaktyczne`}
+        className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-600 hover:to-fuchsia-800 transition w-full sm:w-auto"
+      >
+        🏥 Zdarzenia profilaktyczne
+      </Link>
+      <Link
+        to={`/wydarzenia/${id}/podkucia`}
+        className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition w-full sm:w-auto"
+      >
+        🧲 Podkucia
+      </Link>
       </div>
     </div>
   );
