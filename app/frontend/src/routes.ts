@@ -15,6 +15,11 @@ import {
       route("wydarzenia", "./components/Wydarzenia.tsx"),
       route("/wydarzenia/add/:type", "./components/AddWydarzenie.tsx"),
       route("/konie/:id/edit", "./components/EditKonia.tsx"),
+      route("/wydarzenia/:id/rozrody", "./components/events/Rozrody.tsx"),
+      route("/wydarzenia/:id/choroby", "./components/events/Choroby.tsx"),
+      route("/wydarzenia/:id/leczenia", "./components/events/Leczenia.tsx"),
+      route("/wydarzenia/:id/profilaktyczne", "./components/events/Profilaktyczne.tsx"),
+      route("/wydarzenia/:id/podkucia", "./components/events/Podkucia.tsx"),
     ]),
     // * matches all URLs, the ? makes it optional so it will match / as well
     // route("*?", "catchall.tsx"),
