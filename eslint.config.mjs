@@ -8,7 +8,7 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 
 export default tseslint.config(
-  { ignores: ["**/dist"] },
+  { ignores: ["./infra", "**/node_modules", "**/dist", "**/public", "**/.react-router", "**/build", "**/migrations"] },
   {
     extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked, eslintConfigPrettier],
     files: ["**/*.{ts,tsx}"],
