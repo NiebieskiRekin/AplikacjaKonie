@@ -136,7 +136,8 @@ horses.post("/", zValidator("form", konieInsertSchema.extend({
 
   // edit kon
   horses.put("/:id{[0-9]+}", async (c) => {
-    const userId = getUserFromContext(c);
+    // TODO: check if object can be edited by this user
+    // const userId = getUserFromContext(c);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {

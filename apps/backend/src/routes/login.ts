@@ -5,7 +5,7 @@ import { users } from "../db/schema";
 import { db } from "../db";
 import { z } from "zod";
 import { zValidator } from '@hono/zod-validator'
-import { access_cookie_opts, ACCESS_TOKEN, createAuthTokens, refresh_cookie_opts, REFRESH_TOKEN, UserPayload } from "../middleware/auth";
+import { access_cookie_opts, ACCESS_TOKEN, createAuthTokens, refresh_cookie_opts, REFRESH_TOKEN } from "../middleware/auth";
 import { setCookie } from "hono/cookie";
 
 

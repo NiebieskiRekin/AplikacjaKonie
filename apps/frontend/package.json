@@ -1,8 +1,8 @@
 {
-  "name": "aplikacja-konie-frontend",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@aplikacja-konie/frontend",
   "type": "module",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
@@ -22,7 +22,10 @@
     "react-router": "^7.2.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.8",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@aplikacja-konie/backend": "^0.1.0",
+    "@aplikacja-konie/api-client": "^0.1.0",
+    "@aplikacja-konie/eslint-config": "^0.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

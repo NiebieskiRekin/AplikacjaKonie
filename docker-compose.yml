@@ -39,21 +39,24 @@ services:
         restart: true
     networks:
       - backend-postgres
-      - backend-frontend
+      - proxy
 
   frontend:
     build:
       context: ./frontend
     ports:
-      - 8080:80
+      - 5173:5733
     depends_on:
       backend:
-        condition: service_started # TODO: service_healthy
+        condition: service_started
         restart: true
+    networks:
+      - backend-postgres
+      - proxy
 
 networks:
   backend-postgres:
-  backend-frontend:
+  proxy:
 
 volumes:
   pg_data_aplikacja_konie:

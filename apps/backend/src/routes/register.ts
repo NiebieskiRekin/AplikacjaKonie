@@ -9,7 +9,7 @@ import { zValidator } from "@hono/zod-validator";
 const register = new Hono()
   .use("*",
     basicAuth({
-        verifyUser: async (username, password, c) => {
+        verifyUser: async (username, password, _) => {
             return (
               username === 'adam' && await bcrypt.compare(ProcessEnv.ADMIN_PASSWORD_BCRYPT,await bcrypt.hash(password,10))
             )
