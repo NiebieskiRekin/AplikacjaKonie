@@ -26,3 +26,4 @@ build
 .dockerignore
 Dockerfile
 README.md
+.tsbuildinfo

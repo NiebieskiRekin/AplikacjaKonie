@@ -11,8 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aplikacja-konie/backend": "^0.1.0",
-    "@aplikacja-konie/eslint-config": "^0.1.0",
+    "@aplikacja-konie/backend": "*",
     "@types/node": "^22.10.2",
     "hono": "^4.6.13"
   },
