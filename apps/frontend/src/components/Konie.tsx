@@ -50,48 +50,49 @@ function Konie() {
   }, [search, horses]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-4 md:p-6">
-
-      <div className="w-full max-w-2xl flex flex-col md:flex-row gap-4 items-center mb-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
+      <div className="mb-6 flex w-full max-w-2xl flex-col items-center gap-4 md:flex-row">
         <input
           type="text"
           placeholder="Wyszukaj konia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-2/3 p-3 rounded-lg shadow-md border border-gray-300 focus:ring focus:ring-green-500 text-white"
+          className="w-full rounded-lg border border-gray-300 p-3 text-white shadow-md focus:ring focus:ring-green-500 md:w-2/3"
         />
         <button
           onClick={() => navigate("/konie/add")}
-          className="w-full md:w-auto px-5 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+          className="w-full rounded-lg bg-green-600 px-5 py-3 text-white shadow-md transition hover:bg-green-700 md:w-auto"
         >
           ➕ Dodaj konia
         </button>
       </div>
 
-      <h2 className="text-3xl font-bold text-white mb-6 text-center">Konie na hodowli</h2>
+      <h2 className="mb-6 text-center text-3xl font-bold text-white">
+        Konie na hodowli
+      </h2>
       {error && <p className="text-red-600">{error}</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
             <div
               key={horse.id}
-              className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:scale-105 transition-transform duration-200"
+              className="cursor-pointer rounded-lg bg-white p-4 shadow-lg transition-transform duration-200 hover:scale-105"
               onClick={() => navigate(`/konie/${horse.id}`)}
             >
-               <img
+              <img
                 src={horse.imageUrl}
                 alt={horse.nazwa}
                 onClick={(e) => {
-                  e.stopPropagation(); 
+                  e.stopPropagation();
                   setSelectedImage(horse.imageUrl!);
                 }}
                 onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
-                className="w-full h-48 object-cover rounded-t-lg cursor-pointer hover:scale-110 transition-transform duration-200"
+                className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
               />
               <div className="p-3">
-              <h3
-                  className="text-xl font-bold text-green-900 cursor-pointer hover:underline"
+                <h3
+                  className="cursor-pointer text-xl font-bold text-green-900 hover:underline"
                   onClick={(e) => {
                     e.stopPropagation(); // Zatrzymuje propagację eventu, aby nie przechodziło podwójnie
                     navigate(`/konie/${horse.id}`);
@@ -103,17 +104,17 @@ function Konie() {
             </div>
           ))
         ) : (
-          <p className="text-white text-lg text-center">Brak wyników.</p>
+          <p className="text-center text-lg text-white">Brak wyników.</p>
         )}
       </div>
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+          className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-3xl w-full">
+          <div className="relative w-full max-w-3xl">
             <button
-              className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full text-2xl"
+              className="absolute top-4 right-4 rounded-full bg-red-500 px-4 py-2 text-2xl text-white"
               onClick={() => setSelectedImage(null)}
             >
               <IoMdCloseCircle />
@@ -121,7 +122,7 @@ function Konie() {
             <img
               src={selectedImage}
               alt="Powiększone zdjęcie"
-              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+              className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
             />
           </div>
         </div>

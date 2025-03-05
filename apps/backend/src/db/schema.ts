@@ -102,7 +102,7 @@ export const konie = hodowlakoni.table(
     check(
       "data_przybycia_wymagana_przy_dacie_odejscia",
       sql`not (data_odejscia_ze_stajni is not null and data_przybycia_do_stajni is null)`
-    )
+    ),
   ]
 );
 
@@ -124,7 +124,9 @@ export const konieRelations = relations(konie, ({ many, one }) => ({
 }));
 
 export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   kon: integer("kon")
     .notNull()
     .references(() => konie.id),
@@ -142,7 +144,7 @@ export const zdjeciaKoniRelations = relations(zdjeciaKoni, ({ one }) => ({
   kon: one(konie, {
     fields: [zdjeciaKoni.kon],
     references: [konie.id],
-  })
+  }),
 }));
 
 export const podkucia = hodowlakoni.table("podkucia", {
@@ -226,7 +228,7 @@ export const leczenia = hodowlakoni.table("leczenia", {
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   opisZdarzenia: varchar("opis_zdarzenia"),
-  choroba: integer("choroba").references(()=>choroby.id)
+  choroba: integer("choroba").references(() => choroby.id),
 });
 
 export const leczeniaSelectSchema = createSelectSchema(leczenia);
@@ -342,7 +344,6 @@ export const weterynarzeRelations = relations(weterynarze, ({ many, one }) => ({
   }),
 }));
 
-
 // Role użytkowników (do zmiany pewnie zależne od Adama);
 export const userRolesEnum = hodowlakoni.enum("user_roles", [
   "właściciel",
@@ -352,11 +353,13 @@ export const userRolesEnum = hodowlakoni.enum("user_roles", [
 
 export const users = hodowlakoni.table("users", {
   id: serial("id").primaryKey(),
-  email: varchar("email", {length: 255}).notNull().unique(),
-  password: varchar("password", {length: 255}).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
   createdAt: date("created_at").notNull().defaultNow(),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
-  hodowla: integer("hodowla").notNull().references(() => hodowcyKoni.id)
+  hodowla: integer("hodowla")
+    .notNull()
+    .references(() => hodowcyKoni.id),
 });
 
 export const usersSelectSchema = createSelectSchema(users);
@@ -366,9 +369,10 @@ export const usersUpdateSchema = createUpdateSchema(users);
 // Tabela łącząca użytkowników z uprawnieniami;
 export const user_permissions = hodowlakoni.table("user_permissions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
   role: userRolesEnum("role").notNull(),
-
 });
 
 export const userPermissionsSelectSchema = createSelectSchema(user_permissions);
@@ -379,7 +383,7 @@ export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
 export const usersRelations = relations(users, ({ many, one }) => ({
   // Relacja do uprawnień
   permissions: many(user_permissions),
-    
+
   // Relacja do hodowli (hodowcyKoni)
   hodowla: one(hodowcyKoni, {
     fields: [users.hodowla],
@@ -387,12 +391,13 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   }),
 }));
 
-export const userPermissionsRelations = relations(user_permissions, ({ one }) => ({
-
-
-  // Relacja do użytkownika (users)
-  user: one(users, {
-    fields: [user_permissions.userId],
-    references: [users.id],
-  }),
-}))
+export const userPermissionsRelations = relations(
+  user_permissions,
+  ({ one }) => ({
+    // Relacja do użytkownika (users)
+    user: one(users, {
+      fields: [user_permissions.userId],
+      references: [users.id],
+    }),
+  })
+);

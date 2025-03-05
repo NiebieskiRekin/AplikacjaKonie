@@ -28,7 +28,7 @@ function Login() {
       if (!response.ok) {
         throw new Error(data.error || "Błąd logowania");
       }
-      
+
       navigate("/konie");
     } catch (err) {
       setError((err as Error).message);
@@ -38,34 +38,40 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-800 to-brown-600">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-center text-green-900">Logowanie</h2>
-        {error && <p className="text-red-600 text-center mt-2">{error}</p>}
+    <div className="to-brown-600 flex min-h-screen items-center justify-center bg-gradient-to-br from-green-800">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+        <h2 className="text-center text-2xl font-bold text-green-900">
+          Logowanie
+        </h2>
+        {error && <p className="mt-2 text-center text-red-600">{error}</p>}
         <form className="mt-6" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Email</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Email
+            </label>
             <input
               type="email"
-              className="w-full px-4 py-2 mt-2 border rounded-lg focus:outline-none focus:ring focus:ring-green-500"
+              className="mt-2 w-full rounded-lg border px-4 py-2 focus:ring focus:ring-green-500 focus:outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          <div className="mt-4 relative">
-            <label className="block text-sm font-semibold text-gray-700">Hasło</label>
+          <div className="relative mt-4">
+            <label className="block text-sm font-semibold text-gray-700">
+              Hasło
+            </label>
             <input
               type={showPassword ? "text" : "password"} // 👁 Dynamiczna zmiana typu
-              className="w-full px-4 py-2 mt-2 border rounded-lg focus:outline-none focus:ring focus:ring-green-500"
+              className="mt-2 w-full rounded-lg border px-4 py-2 focus:ring focus:ring-green-500 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 top-8 text-gray-600"
+              className="absolute inset-y-0 top-8 right-3 text-gray-600"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -74,7 +80,7 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full mt-6 px-4 py-2 text-white bg-green-700 rounded-lg hover:bg-green-800 transition"
+            className="mt-6 w-full rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800"
             disabled={loading}
           >
             {loading ? "Logowanie..." : "Zaloguj się"}

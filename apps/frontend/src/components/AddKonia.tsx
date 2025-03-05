@@ -28,7 +28,15 @@ function AddKonia() {
     setError("");
     setSuccess("");
 
-    if (!nazwa || !numerPrzyzyciowy || !numerChipa || !rocznikUrodzenia || !rodzajKonia || !plec || !file) {
+    if (
+      !nazwa ||
+      !numerPrzyzyciowy ||
+      !numerChipa ||
+      !rocznikUrodzenia ||
+      !rodzajKonia ||
+      !plec ||
+      !file
+    ) {
       setError("Wszystkie pola są wymagane.");
       return;
     }
@@ -71,83 +79,86 @@ function AddKonia() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate("/konie"); 
+    navigate("/konie");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">Dodaj nowego konia</h2>
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+      <h2 className="mb-6 text-3xl font-bold text-white">Dodaj nowego konia</h2>
 
       {error && <p className="text-red-600">{error}</p>}
       {success && <p className="text-green-400">{success}</p>}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96">
-        <label className="block mb-2">
+      <form
+        onSubmit={handleSubmit}
+        className="w-96 rounded-lg bg-white p-6 shadow-md"
+      >
+        <label className="mb-2 block">
           Nazwa konia:
           <input
             type="text"
             value={nazwa}
             onChange={(e) => setNazwa(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Numer przyżyciowy:
           <input
             type="text"
             value={numerPrzyzyciowy}
             onChange={(e) => setNumerPrzyzyciowy(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Numer chipa:
           <input
             type="text"
             value={numerChipa}
             onChange={(e) => setNumerChipa(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Rocznik urodzenia:
           <input
             type="number"
             value={rocznikUrodzenia}
             onChange={(e) => setRocznikUrodzenia(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Data przybycia do stajni:
           <input
             type="date"
             value={dataPrzybycia}
             onChange={(e) => setDataPrzybycia(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Data odejścia ze stajni:
           <input
             type="date"
             value={dataOdejscia}
             onChange={(e) => setDataOdejscia(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           />
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Rodzaj konia:
           <select
             value={rodzajKonia}
             onChange={(e) => setRodzajKonia(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
             <option value="Konie hodowlane">Konie hodowlane</option>
@@ -157,12 +168,12 @@ function AddKonia() {
           </select>
         </label>
 
-        <label className="block mb-2">
+        <label className="mb-2 block">
           Płeć:
           <select
             value={plec}
             onChange={(e) => setPlec(e.target.value)}
-            className="w-full p-2 border rounded-lg"
+            className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
             <option value="samiec">Samiec</option>
@@ -170,30 +181,38 @@ function AddKonia() {
           </select>
         </label>
 
-        <label className="block mb-4">
+        <label className="mb-4 block">
           Zdjęcie konia:
-          <input type="file" onChange={handleFileChange} className="w-full p-2" />
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="w-full p-2"
+          />
         </label>
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+          className="w-full rounded-lg bg-green-600 py-2 text-white transition hover:bg-green-700"
         >
           Dodaj konia
         </button>
       </form>
 
       {showPopup && (
-          <div className="fixed inset-0 bg-gradient-to-br from-green-800 to-brown-600 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="text-green-600 text-lg font-bold mb-4">Koń został dodany!</p>
-            <button onClick={handleClosePopup} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+        <div className="to-brown-600 fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-800">
+          <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+            <p className="mb-4 text-lg font-bold text-green-600">
+              Koń został dodany!
+            </p>
+            <button
+              onClick={handleClosePopup}
+              className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
+            >
               OK
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }

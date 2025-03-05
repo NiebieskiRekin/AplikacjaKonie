@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { GoArrowRight, GoArrowLeft } from "react-icons/go";
 import { IoMdCloseCircle } from "react-icons/io";
 
-
 type HorseDetails = {
   id: number;
   nazwa: string;
@@ -29,7 +28,13 @@ type ActiveEvent = {
   dataWaznosci?: string;
 };
 
-const EVENT_TYPES = ["Podkucie", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta"];
+const EVENT_TYPES = [
+  "Podkucie",
+  "Odrobaczanie",
+  "Podanie suplementów",
+  "Szczepienie",
+  "Dentysta",
+];
 
 function KonieDetails() {
   const { id } = useParams();
@@ -43,14 +48,14 @@ function KonieDetails() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
-
   useEffect(() => {
     const fetchHorseDetails = async () => {
       try {
         const response = await fetch(`/api/konie/${id}`);
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania danych konia");
+        if (!response.ok)
+          throw new Error(data.error || "Błąd pobierania danych konia");
 
         // tutaj będziesz trzeba pobierać wszystkie zdjęcia dla danego konia z db
         setHorse({
@@ -69,7 +74,8 @@ function KonieDetails() {
 
         const data = await response.json();
         console.log(data);
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania zdarzeń");
+        if (!response.ok)
+          throw new Error(data.error || "Błąd pobierania zdarzeń");
 
         setEvents(data);
       } catch (err) {
@@ -87,7 +93,8 @@ function KonieDetails() {
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania aktywnych zdarzeń");
+        if (!response.ok)
+          throw new Error(data.error || "Błąd pobierania aktywnych zdarzeń");
 
         const formattedEvents: ActiveEvent[] = EVENT_TYPES.map((type) => {
           if (type === "Podkucie") {
@@ -97,7 +104,9 @@ function KonieDetails() {
               dataWaznosci: data.podkucie?.dataWaznosci || "-",
             };
           } else {
-            const profilaktyczneEvent = data.profilaktyczne.find((e: any) => e.rodzajZdarzenia === type);
+            const profilaktyczneEvent = data.profilaktyczne.find(
+              (e: any) => e.rodzajZdarzenia === type
+            );
             return {
               type,
               dataZdarzenia: profilaktyczneEvent?.dataZdarzenia || "Brak",
@@ -118,7 +127,7 @@ function KonieDetails() {
   }, [id]);
 
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!horse) return <p className="text-white text-lg">Ładowanie...</p>;
+  if (!horse) return <p className="text-lg text-white">Ładowanie...</p>;
 
   const handleDeleteHorse = async () => {
     try {
@@ -139,13 +148,17 @@ function KonieDetails() {
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      horse.imageUrls && prevIndex === horse.imageUrls.length - 1 ? 0 : prevIndex + 1
+      horse.imageUrls && prevIndex === horse.imageUrls.length - 1
+        ? 0
+        : prevIndex + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      horse.imageUrls && prevIndex === 0 ? horse.imageUrls.length - 1 : prevIndex - 1
+      horse.imageUrls && prevIndex === 0
+        ? horse.imageUrls.length - 1
+        : prevIndex - 1
     );
   };
 
@@ -156,7 +169,9 @@ function KonieDetails() {
 
     const today = new Date();
     const expirationDate = new Date(dataWaznosci);
-    const differenceInDays = Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const differenceInDays = Math.ceil(
+      (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     if (differenceInDays <= 0) {
       return "text-red-600 font-bold";
@@ -168,55 +183,72 @@ function KonieDetails() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">{horse.nazwa}</h2>
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+      <h2 className="mb-6 text-3xl font-bold text-white">{horse.nazwa}</h2>
 
-      <div className="w-full max-w-7xl bg-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row gap-6">
-
+      <div className="flex w-full max-w-7xl flex-col gap-6 rounded-lg bg-white p-6 shadow-lg md:flex-row">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-green-900 mb-4">🐎 Informacje o koniu</h3>
+          <h3 className="mb-4 text-xl font-bold text-green-900">
+            🐎 Informacje o koniu
+          </h3>
 
-          <p className="text-gray-800"><strong>Numer przyżyciowy:</strong> {horse.numerPrzyzyciowy}</p>
-          <p className="text-gray-800"><strong>Numer chipa:</strong> {horse.numerChipa}</p>
-          <p className="text-gray-800"><strong>Rocznik urodzenia:</strong> {horse.rocznikUrodzenia}</p>
-          <p className="text-gray-800"><strong>Rodzaj:</strong> {horse.rodzajKonia}</p>
-          <p className="text-gray-800"><strong>Płeć:</strong> {horse.plec}</p>
-          <p className="text-gray-800"><strong>Data przybycia do stajni:</strong> {horse.dataPrzybyciaDoStajni || "Brak danych"}</p>
-          <p className="text-gray-800"><strong>Data odejścia ze stajni:</strong> {horse.dataOdejsciaZeStajni || "Koń nadal w hodowli"}</p>
+          <p className="text-gray-800">
+            <strong>Numer przyżyciowy:</strong> {horse.numerPrzyzyciowy}
+          </p>
+          <p className="text-gray-800">
+            <strong>Numer chipa:</strong> {horse.numerChipa}
+          </p>
+          <p className="text-gray-800">
+            <strong>Rocznik urodzenia:</strong> {horse.rocznikUrodzenia}
+          </p>
+          <p className="text-gray-800">
+            <strong>Rodzaj:</strong> {horse.rodzajKonia}
+          </p>
+          <p className="text-gray-800">
+            <strong>Płeć:</strong> {horse.plec}
+          </p>
+          <p className="text-gray-800">
+            <strong>Data przybycia do stajni:</strong>{" "}
+            {horse.dataPrzybyciaDoStajni || "Brak danych"}
+          </p>
+          <p className="text-gray-800">
+            <strong>Data odejścia ze stajni:</strong>{" "}
+            {horse.dataOdejsciaZeStajni || "Koń nadal w hodowli"}
+          </p>
 
           <button
-            className="mt-4 px-6 py-3 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition block w-full"
+            className="mt-4 block w-full rounded-lg bg-yellow-600 px-6 py-3 text-white shadow-md transition hover:bg-yellow-700"
             onClick={() => navigate(`/konie/${horse.id}/edit`)}
           >
             ✏️ Edytuj dane
           </button>
 
           <button
-            className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition block w-full"
+            className="mt-4 block w-full rounded-lg bg-blue-600 px-6 py-3 text-white shadow-md transition hover:bg-blue-700"
             onClick={() => setIsModalOpen(true)}
           >
             📅 Ostatnie zdarzenia
           </button>
 
           <button
-            className="mt-4 px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition block w-full"
+            className="mt-4 block w-full rounded-lg bg-red-600 px-6 py-3 text-white shadow-md transition hover:bg-red-700"
             onClick={() => setIsDeletePopupOpen(true)}
           >
             🗑️ Usuń konia
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center relative">
+        <div className="relative flex flex-1 flex-col items-center">
           {horse.imageUrls && horse.imageUrls.length > 1 && (
             <>
               <button
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-green-700 bg-opacity-50 text-white px-2 py-1 rounded-full text-3xl font-bold hover:bg-opacity-75 transition"
+                className="bg-opacity-50 hover:bg-opacity-75 absolute top-1/2 left-3 -translate-y-1/2 transform rounded-full bg-green-700 px-2 py-1 text-3xl font-bold text-white transition"
                 onClick={prevImage}
               >
                 <GoArrowLeft />
               </button>
               <button
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-700 bg-opacity-50 text-white px-2 py-1 rounded-full text-3xl font-bold hover:bg-opacity-75 transition"
+                className="bg-opacity-50 hover:bg-opacity-75 absolute top-1/2 right-3 -translate-y-1/2 transform rounded-full bg-green-700 px-2 py-1 text-3xl font-bold text-white transition"
                 onClick={nextImage}
               >
                 <GoArrowRight />
@@ -228,19 +260,19 @@ function KonieDetails() {
             alt={horse.nazwa}
             onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
             onClick={() => setIsImageModalOpen(true)}
-            className="w-64 h-64 object-contain rounded-lg shadow-lg mb-4 cursor-pointer hover:scale-105 transition"
+            className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
           />
-          <label className="cursor-pointer bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">
+          <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
             ➕ Dodaj zdjęcie
             <input type="file" className="hidden" />
           </label>
         </div>
 
         {isImageModalOpen && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex justify-center items-center z-50">
-            <div className="relative max-w-3xl w-full flex flex-col items-center">
+          <div className="bg-opacity-80 fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
+            <div className="relative flex w-full max-w-3xl flex-col items-center">
               <button
-                className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-lg font-bold"
+                className="absolute top-4 right-4 rounded-full bg-red-600 px-4 py-2 text-lg font-bold text-white"
                 onClick={() => setIsImageModalOpen(false)}
               >
                 <IoMdCloseCircle />
@@ -248,33 +280,41 @@ function KonieDetails() {
               <img
                 src={horse.imageUrls?.[currentImageIndex]}
                 alt="Powiększone zdjęcie"
-                className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+                className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
               />
             </div>
           </div>
         )}
 
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-blue-700 mb-4">✅ Aktywne zdarzenia</h3>
-          <ul className="bg-gray-100 p-4 rounded-lg shadow-md">
-            {activeEvents.length > 0 ? activeEvents.map((event, index) => (
-              <li key={index} className="border-b py-2">
-                <strong>{event.type}:</strong>
-                <br />
-                <span className={getDateColor(event.dataWaznosci || "")}>
-                  Ważne do {event.dataWaznosci}
-                </span>
-              </li>
-            )) : <p className="text-gray-600">Brak aktywnych zdarzeń</p>}
+          <h3 className="mb-4 text-xl font-bold text-blue-700">
+            ✅ Aktywne zdarzenia
+          </h3>
+          <ul className="rounded-lg bg-gray-100 p-4 shadow-md">
+            {activeEvents.length > 0 ? (
+              activeEvents.map((event, index) => (
+                <li key={index} className="border-b py-2">
+                  <strong>{event.type}:</strong>
+                  <br />
+                  <span className={getDateColor(event.dataWaznosci || "")}>
+                    Ważne do {event.dataWaznosci}
+                  </span>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-600">Brak aktywnych zdarzeń</p>
+            )}
           </ul>
         </div>
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-lg flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h3 className="text-xl font-bold text-red-700 mb-4">📅 Ostatnie zdarzenia</h3>
-            <ul className="bg-gray-100 p-4 rounded-lg shadow-md">
+        <div className="bg-opacity-30 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-lg">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-xl font-bold text-red-700">
+              📅 Ostatnie zdarzenia
+            </h3>
+            <ul className="rounded-lg bg-gray-100 p-4 shadow-md">
               {events.length > 0 ? (
                 events.map((event, index) => (
                   <li key={index} className="border-b py-2">
@@ -286,7 +326,7 @@ function KonieDetails() {
               )}
             </ul>
             <button
-              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
               onClick={() => setIsModalOpen(false)}
             >
               Zamknij
@@ -296,20 +336,22 @@ function KonieDetails() {
       )}
 
       {isDeletePopupOpen && (
-        <div className="fixed inset-0 bg-opacity-10 backdrop-blur-sm flex justify-center items-center">
-        <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="text-red-600 text-lg font-bold mb-4">Czy na pewno chcesz usunąć konia?</p>
+        <div className="bg-opacity-10 fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+            <p className="mb-4 text-lg font-bold text-red-600">
+              Czy na pewno chcesz usunąć konia?
+            </p>
             <p className="text-gray-700">Ta operacja jest nieodwracalna.</p>
 
-            <div className="flex gap-4 mt-6">
+            <div className="mt-6 flex gap-4">
               <button
-                className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+                className="rounded-lg bg-gray-400 px-4 py-2 text-white transition hover:bg-gray-500"
                 onClick={() => setIsDeletePopupOpen(false)}
               >
                 Anuluj
               </button>
               <button
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
                 onClick={handleDeleteHorse}
               >
                 Usuń
@@ -319,21 +361,20 @@ function KonieDetails() {
         </div>
       )}
 
-
       <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-4">
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition w-full sm:w-auto">
+        <button className="w-full rounded-lg bg-green-600 px-4 py-2 text-white shadow-md transition hover:bg-green-700 sm:w-auto sm:px-6 sm:py-3">
           🐎 Rozrody
         </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition w-full sm:w-auto">
+        <button className="w-full rounded-lg bg-red-600 px-4 py-2 text-white shadow-md transition hover:bg-red-700 sm:w-auto sm:px-6 sm:py-3">
           🤕 Choroby
         </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition w-full sm:w-auto">
+        <button className="w-full rounded-lg bg-amber-600 px-4 py-2 text-white shadow-md transition hover:bg-amber-700 sm:w-auto sm:px-6 sm:py-3">
           💉 Leczenia
         </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-fuchsia-600 text-white rounded-lg shadow-md hover:bg-fuchsia-700 transition w-full sm:w-auto">
+        <button className="w-full rounded-lg bg-fuchsia-600 px-4 py-2 text-white shadow-md transition hover:bg-fuchsia-700 sm:w-auto sm:px-6 sm:py-3">
           🏥 Zdarzenia profilaktyczne
         </button>
-        <button className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition w-full sm:w-auto">
+        <button className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white shadow-md transition hover:bg-blue-700 sm:w-auto sm:px-6 sm:py-3">
           🧲 Podkucia
         </button>
       </div>

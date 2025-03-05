@@ -9,9 +9,11 @@ import {
   rozrody,
   zdarzeniaProfilaktyczne,
   weterynarze,
-  rodzajeKoni, rodzajeZdarzenProfilaktycznych, rodzajeZdarzenRozrodczych,
+  rodzajeKoni,
+  rodzajeZdarzenProfilaktycznych,
+  rodzajeZdarzenRozrodczych,
   users,
-  user_permissions
+  user_permissions,
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -21,12 +23,14 @@ import {
 //       "strictNullChecks": true
 // see for more details: https://github.com/drizzle-team/drizzle-orm/issues/2636
 
-export const rodzaje_koni =  rodzajeKoni.enumValues; 
-export const rodzaje_zdarzen_profilaktycznych = rodzajeZdarzenProfilaktycznych.enumValues;
+export const rodzaje_koni = rodzajeKoni.enumValues;
+export const rodzaje_zdarzen_profilaktycznych =
+  rodzajeZdarzenProfilaktycznych.enumValues;
 export const rodzaje_zdarzen_rozrodczych = rodzajeZdarzenRozrodczych.enumValues;
 
 export type RodzajKonia = typeof rodzaje_koni;
-export type RodzajZdarzeniaProfilaktycznego = typeof rodzaje_zdarzen_profilaktycznych;
+export type RodzajZdarzeniaProfilaktycznego =
+  typeof rodzaje_zdarzen_profilaktycznych;
 export type RodzajZdarzeniaRozrodczego = typeof rodzaje_zdarzen_rozrodczych;
 
 export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;

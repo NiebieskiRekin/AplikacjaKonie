@@ -1,6 +1,6 @@
 import { z } from "zod";
 import dotenv from "dotenv";
-dotenv.config({path: __dirname+"/../../../.env"});
+dotenv.config({ path: __dirname + "/../../../.env" });
 
 const ServeEnv = z.object({
   PORT: z
@@ -14,16 +14,22 @@ const ServeEnv = z.object({
     .url("Must be a valid URL string")
     .default("postgres://postgres:mysecretpassword@localhost:5432/postgres"),
 
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
 
   DOMAIN: z.string().default("localhost"),
 
-  REFRESH_JWT_SECRET: z.string({message: "Brak ustawionego REFRESH_JWT_SECRET w zmiennych środowiskowych."}),
+  REFRESH_JWT_SECRET: z.string({
+    message: "Brak ustawionego REFRESH_JWT_SECRET w zmiennych środowiskowych.",
+  }),
 
-  JWT_SECRET: z.string({message: "Brak ustawionego JWT_SECRET w zmiennych środowiskowych."}),
+  JWT_SECRET: z.string({
+    message: "Brak ustawionego JWT_SECRET w zmiennych środowiskowych.",
+  }),
 
-  ADMIN_PASSWORD_BCRYPT: z.string()
+  ADMIN_PASSWORD_BCRYPT: z.string(),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
-export const __prod__ = ProcessEnv.NODE_ENV === 'production'
+export const __prod__ = ProcessEnv.NODE_ENV === "production";

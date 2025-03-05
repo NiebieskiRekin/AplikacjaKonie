@@ -29,9 +29,9 @@ function Restart() {
       const data = await response.json();
       if (!response.ok) {
         if (data.error && data.error.issues) {
-          const errorMessages = data.error.issues.
-          map((issue: {message: string}) => `❌ ${issue.message}`)
-          .join("\n");
+          const errorMessages = data.error.issues
+            .map((issue: { message: string }) => `❌ ${issue.message}`)
+            .join("\n");
           throw new Error(errorMessages);
         }
         throw new Error(data.error || "Błąd zmiany hasła");
@@ -46,43 +46,48 @@ function Restart() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-700 to-brown-600 p-6">
-      <div className="bg-white p-6 rounded-lg shadow-md w-96 mt-36">
-        <h2 className="text-2xl font-bold text-center text-green-800">Zmień hasło</h2>
-        {error && <p className="text-red-600 text-center">{error}</p>}
-        {success && <p className="text-green-600 text-center">{success}</p>}
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-700 p-6">
+      <div className="mt-36 w-96 rounded-lg bg-white p-6 shadow-md">
+        <h2 className="text-center text-2xl font-bold text-green-800">
+          Zmień hasło
+        </h2>
+        {error && <p className="text-center text-red-600">{error}</p>}
+        {success && <p className="text-center text-green-600">{success}</p>}
         <form onSubmit={handlePasswordChange} className="mt-4">
-          <label className="block mb-2">
+          <label className="mb-2 block">
             <span className="text-gray-700">Stare hasło:</span>
             <input
               type="password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full p-2 border rounded-md"
+              className="w-full rounded-md border p-2"
               required
             />
           </label>
-          <label className="block mb-2">
+          <label className="mb-2 block">
             <span className="text-gray-700">Nowe hasło:</span>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-2 border rounded-md"
+              className="w-full rounded-md border p-2"
               required
             />
           </label>
-          <label className="block mb-4">
+          <label className="mb-4 block">
             <span className="text-gray-700">Potwierdź nowe hasło:</span>
             <input
               type="password"
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
-              className="w-full p-2 border rounded-md"
+              className="w-full rounded-md border p-2"
               required
             />
           </label>
-          <button type="submit" className="w-full bg-green-700 text-white p-2 rounded-md hover:bg-green-800">
+          <button
+            type="submit"
+            className="w-full rounded-md bg-green-700 p-2 text-white hover:bg-green-800"
+          >
             Zmień hasło
           </button>
         </form>

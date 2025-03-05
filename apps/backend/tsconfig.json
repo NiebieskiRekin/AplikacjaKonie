@@ -20,7 +20,7 @@
 
     "paths": {
       "@/backend/*": ["./src/*"]
-    },
+    }
   },
   "include": ["src/**/*.ts"],
   "tsc-alias": {

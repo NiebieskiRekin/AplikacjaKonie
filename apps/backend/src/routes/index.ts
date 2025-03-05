@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import login from "./login"
+import login from "./login";
 import register from "./register";
 import konieRoute from "./konie";
 import restartRoutes from "./restart";
@@ -9,10 +9,10 @@ import refresh from "./refresh";
 import kowaleRoute from "./kowale";
 import weterynarzeRoute from "./weterynarze";
 
-
-export function registerRoutes(app: Hono){
-    return app.basePath("/api")
-    .route("/refresh",refresh)
+export function registerRoutes(app: Hono) {
+  return app
+    .basePath("/api")
+    .route("/refresh", refresh)
     .route("/login", login)
     .route("/register", register)
     .route("/konie", konieRoute)
@@ -20,10 +20,8 @@ export function registerRoutes(app: Hono){
     .route("/wydarzenia", wydarzeniaRoute)
     .route("/hodowcykoni", hodowcyKoniRoute)
     .route("/kowale", kowaleRoute)
-    .route("/weterynarze", weterynarzeRoute)
+    .route("/weterynarze", weterynarzeRoute);
 }
-export const apiRoutes =  registerRoutes(
-    new Hono()
-);
+export const apiRoutes = registerRoutes(new Hono());
 
 export type ApiRoutes = typeof apiRoutes;

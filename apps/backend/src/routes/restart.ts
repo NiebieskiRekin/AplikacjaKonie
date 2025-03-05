@@ -2,20 +2,28 @@ import { Hono } from "hono";
 import { eq, sql } from "drizzle-orm";
 import { users } from "../db/schema";
 import { db } from "../db";
-import { ACCESS_TOKEN, authMiddleware, getUserFromContext, REFRESH_TOKEN, UserPayload } from "../middleware/auth";
+import {
+  ACCESS_TOKEN,
+  authMiddleware,
+  getUserFromContext,
+  REFRESH_TOKEN,
+  UserPayload,
+} from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { deleteCookie } from "hono/cookie";
 
-const passwordResetSchema = z.object({
-  oldPassword: z.string().min(2, "Stare hasło jest wymagane"),
-  newPassword: z.string().min(6, "Nowe hasło musi mieć min. 6 znaków"),
-  confirmNewPassword: z.string(),
-}).refine(data => data.newPassword === data.confirmNewPassword, {
-  message: "Nowe hasła muszą się zgadzać!",
-  path: ["confirmNewPassword"],
-});
+const passwordResetSchema = z
+  .object({
+    oldPassword: z.string().min(2, "Stare hasło jest wymagane"),
+    newPassword: z.string().min(6, "Nowe hasło musi mieć min. 6 znaków"),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Nowe hasła muszą się zgadzać!",
+    path: ["confirmNewPassword"],
+  });
 
 const restartRoutes = new Hono<{ Variables: UserPayload }>();
 
@@ -37,7 +45,7 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
       .select()
       .from(users)
       .where(eq(users.id, user))
-      .then(res => res[0]);
+      .then((res) => res[0]);
 
     if (!dbUser) {
       console.log("Nie znaleziono użytkownika");
@@ -52,12 +60,16 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await db.update(users)
-      .set({ password: hashedPassword, refreshTokenVersion: sql`refresh_token_version+1`})
+    await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        refreshTokenVersion: sql`refresh_token_version+1`,
+      })
       .where(eq(users.id, user));
 
-    deleteCookie(c,ACCESS_TOKEN);
-    deleteCookie(c,REFRESH_TOKEN);
+    deleteCookie(c, ACCESS_TOKEN);
+    deleteCookie(c, REFRESH_TOKEN);
 
     // const tokens = await createAuthTokens({...dbUser, refreshTokenVersion: version.at(0)?.refreshTokenVersion!})
     // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
@@ -68,8 +80,8 @@ restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
   } catch (error) {
     console.error("Błąd podczas zmiany hasła:", error);
     if (error instanceof z.ZodError) {
-        return c.json({ error: { issues: error.issues, name: "ZodError" } }, 400);
-      }
+      return c.json({ error: { issues: error.issues, name: "ZodError" } }, 400);
+    }
     return c.json({ error: "Błąd podczas zmiany hasła" }, 500);
   }
 });

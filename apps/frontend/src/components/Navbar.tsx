@@ -6,29 +6,29 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-green-900 text-white p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-green-900 p-4 text-white shadow-md">
+      <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
         <h1 className="text-xl font-bold">
           <Link to="/konie">🐴 Moja Hodowla</Link>
         </h1>
 
         <button
-          className="md:hidden text-white text-2xl focus:outline-none"
+          className="text-2xl text-white focus:outline-none md:hidden"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <FiX /> : <FiMenu />}
         </button>
 
         {/* Menu główne - ukryte na mobilnych*/}
-        <div className="hidden md:flex gap-6">
+        <div className="hidden gap-6 md:flex">
           <NavLinks />
         </div>
       </div>
 
       {/* Mobilne menu */}
       {isOpen && (
-        <div className="md:hidden flex flex-col bg-green-900 text-white p-4 space-y-3">
+        <div className="flex flex-col space-y-3 bg-green-900 p-4 text-white md:hidden">
           <NavLinks />
         </div>
       )}
@@ -40,35 +40,38 @@ const NavLinks = () => (
   <>
     <Link
       to="/konie"
-      className="px-6 py-3 rounded-lg shadow-lg bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold hover:bg-opacity-80 transition"
+      className="hover:bg-opacity-80 rounded-lg bg-gradient-to-r from-green-400 to-green-600 px-6 py-3 font-semibold text-white shadow-lg transition"
     >
       Konie
     </Link>
     <Link
       to="/weterynarze"
-      className="px-6 py-3 rounded-lg shadow-lg bg-gradient-to-r from-blue-400 to-blue-600 text-white font-semibold hover:bg-opacity-80 transition"
+      className="hover:bg-opacity-80 rounded-lg bg-gradient-to-r from-blue-400 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition"
     >
       Weterynarze
     </Link>
     <Link
       to="/kowale"
-      className="px-6 py-3 rounded-lg shadow-lg bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-semibold hover:bg-opacity-80 transition"
+      className="hover:bg-opacity-80 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 px-6 py-3 font-semibold text-white shadow-lg transition"
     >
       Kowale
     </Link>
     <Link
       to="/wydarzenia"
-      className="px-6 py-3 rounded-lg shadow-lg bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold hover:bg-opacity-80 transition"
+      className="hover:bg-opacity-80 rounded-lg bg-gradient-to-r from-red-400 to-red-600 px-6 py-3 font-semibold text-white shadow-lg transition"
     >
       Wydarzenia w stajni
     </Link>
 
-    <Link to="/restart" className="px-6 py-3 rounded-lg hover:text-brown-300 transition font-semibold">
+    <Link
+      to="/restart"
+      className="hover:text-brown-300 rounded-lg px-6 py-3 font-semibold transition"
+    >
       Zmień hasło
     </Link>
     <button
       onClick={() => (window.location.href = "/login")}
-      className="hover:text-brown-300 transition font-semibold"
+      className="hover:text-brown-300 font-semibold transition"
     >
       Wyloguj
     </button>
