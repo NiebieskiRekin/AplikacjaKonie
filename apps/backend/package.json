@@ -1,6 +1,5 @@
 {
   "name": "@aplikacja-konie/backend",
-  "type": "module",
   "version": "0.1.0",
   "private": true,
   "exports": {

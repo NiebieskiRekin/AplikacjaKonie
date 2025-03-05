@@ -1,15 +1,15 @@
-import type { router } from "@aplikacja-konie/backend/routes";
+import type { ApiRoutes } from "@aplikacja-konie/backend/routes";
 
 import { hc } from "hono/client";
 
 // create instance to inline type in build
 // https://hono.dev/docs/guides/rpc#compile-your-code-before-using-it-recommended
 // eslint-disable-next-line unused-imports/no-unused-vars
-const client = hc<router>("");
+const client = hc<ApiRoutes>("");
 export type Client = typeof client;
 
 export default (...args: Parameters<typeof hc>): Client =>
-  hc<router>(...args);
+  hc<ApiRoutes>(...args);
 
 export type ErrorSchema = {
   error: {

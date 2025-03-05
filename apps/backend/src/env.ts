@@ -1,6 +1,6 @@
 import { z } from "zod";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({path: __dirname+"/../../../.env"});
 
 const ServeEnv = z.object({
   PORT: z
