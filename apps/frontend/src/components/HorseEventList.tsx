@@ -26,7 +26,8 @@ function HorseEventList({ type }: { type: string }) {
       try {
         const response = await fetch(`/api/wydarzenia/${id}/${type}`);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
+        if (!response.ok)
+          throw new Error(data.error || "Błąd pobierania danych");
         setEvents(data);
         console.log(response);
       } catch (err) {
@@ -36,32 +37,48 @@ function HorseEventList({ type }: { type: string }) {
     fetchEvents();
   }, [id, type]);
 
-
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-4 md:p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">📅 {type.charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} Konia: {events.length > 0 ? events[0].nazwaKonia.charAt(0).toUpperCase() + events[0].nazwaKonia.slice(1) : "Brak danych"}</h2>
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
+      <h2 className="mb-6 text-3xl font-bold text-white">
+        📅 {type.charAt(0).toUpperCase() + type.replace("_", " ").slice(1)}{" "}
+        Konia:{" "}
+        {events.length > 0
+          ? events[0].nazwaKonia.charAt(0).toUpperCase() +
+            events[0].nazwaKonia.slice(1)
+          : "Brak danych"}
+      </h2>
       {error && <p className="text-red-600">{error}</p>}
 
       <button
         onClick={() => navigate(`/wydarzenia/add/${id}/${type}`)}
-        className="mb-4 px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+        className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj nowe wydarzenie
       </button>
 
-      <div className="w-full max-w-5xl bg-white p-4 md:p-6 rounded-lg shadow-lg overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 min-w-[700px]">
+      <div className="w-full max-w-5xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
+        <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-4 py-2">📅 Data Rozpoczęcia</th>
+              <th className="border border-gray-300 px-4 py-2">
+                📅 Data Rozpoczęcia
+              </th>
               {["choroby"].includes(type) && (
-                <th className="border border-gray-300 px-4 py-2">⏳ Data zakończenia</th>
+                <th className="border border-gray-300 px-4 py-2">
+                  ⏳ Data zakończenia
+                </th>
               )}
               {["zdarzenia_profilaktyczne", "podkucia"].includes(type) && (
-                <th className="border border-gray-300 px-4 py-2">⏳ Data ważności</th>
+                <th className="border border-gray-300 px-4 py-2">
+                  ⏳ Data ważności
+                </th>
               )}
-              {["leczenia", "rozrody", "zdarzenia_profilaktyczne"].includes(type.toLowerCase()) && (
-                <th className="border border-gray-300 px-4 py-2">👨‍⚕️ Weterynarz</th>
+              {["leczenia", "rozrody", "zdarzenia_profilaktyczne"].includes(
+                type.toLowerCase()
+              ) && (
+                <th className="border border-gray-300 px-4 py-2">
+                  👨‍⚕️ Weterynarz
+                </th>
               )}
               {type.toLowerCase() === "podkucia" && (
                 <th className="border border-gray-300 px-4 py-2">🧲 Kowal</th>
@@ -69,10 +86,19 @@ function HorseEventList({ type }: { type: string }) {
               {type.toLowerCase() === "leczenia" && (
                 <th className="border border-gray-300 px-4 py-2">🤒 Choroba</th>
               )}
-              {["rozrody", "zdarzenia_profilaktyczne"].includes(type.toLowerCase()) && (
-                <th className="border border-gray-300 px-4 py-2">📋 Rodzaj zdarzenia</th>
+              {["rozrody", "zdarzenia_profilaktyczne"].includes(
+                type.toLowerCase()
+              ) && (
+                <th className="border border-gray-300 px-4 py-2">
+                  📋 Rodzaj zdarzenia
+                </th>
               )}
-              {["rozrody", "zdarzenia_profilaktyczne", "choroby", "leczenia"].includes(type.toLowerCase()) && (
+              {[
+                "rozrody",
+                "zdarzenia_profilaktyczne",
+                "choroby",
+                "leczenia",
+              ].includes(type.toLowerCase()) && (
                 <th className="border border-gray-300 px-4 py-2">📝 Opis</th>
               )}
             </tr>
@@ -80,40 +106,69 @@ function HorseEventList({ type }: { type: string }) {
           <tbody>
             {events.length > 0 ? (
               events.map((event) => (
-                <tr key={event.id} className="text-center hover:bg-gray-100 transition">
+                <tr
+                  key={event.id}
+                  className="text-center transition hover:bg-gray-100"
+                >
                   <td className="border border-gray-300 px-4 py-2">
                     {["choroby"].includes(type)
                       ? event.dataRozpoczecia
-                      : ["rozrody", "podkucia", "leczenia", "zdarzenia_profilaktyczne"].includes(type)
-                      ? event.dataZdarzenia || "Brak danych"
-                      : "Brak informacji"}
+                      : [
+                            "rozrody",
+                            "podkucia",
+                            "leczenia",
+                            "zdarzenia_profilaktyczne",
+                          ].includes(type)
+                        ? event.dataZdarzenia || "Brak danych"
+                        : "Brak informacji"}
                   </td>
                   {["choroby"].includes(type) && (
-                    <td className="border border-gray-300 px-4 py-2">{event.dataZakonczenia || "Brak danych"}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.dataZakonczenia || "Brak danych"}
+                    </td>
                   )}
                   {["zdarzenia_profilaktyczne", "podkucia"].includes(type) && (
-                    <td className="border border-gray-300 px-4 py-2">{event.dataWaznosci || "Brak danych"}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.dataWaznosci || "Brak danych"}
+                    </td>
                   )}
-                  {["leczenia", "rozrody", "zdarzenia_profilaktyczne"].includes(type) && (
-                    <td className="border border-gray-300 px-4 py-2">{event.weterynarz || "Brak danych"}</td>
+                  {["leczenia", "rozrody", "zdarzenia_profilaktyczne"].includes(
+                    type
+                  ) && (
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.weterynarz || "Brak danych"}
+                    </td>
                   )}
                   {type === "podkucia" && (
-                    <td className="border border-gray-300 px-4 py-2">{event.kowal || "Brak danych"}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.kowal || "Brak danych"}
+                    </td>
                   )}
                   {type === "leczenia" && (
-                    <td className="border border-gray-300 px-4 py-2">{event.choroba || "Brak danych"}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.choroba || "Brak danych"}
+                    </td>
                   )}
                   {["rozrody", "zdarzenia_profilaktyczne"].includes(type) && (
-                    <td className="border border-gray-300 px-4 py-2">{event.rodzajZdarzenia || "Brak danych"}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.rodzajZdarzenia || "Brak danych"}
+                    </td>
                   )}
-                  {["rozrody", "zdarzenia_profilaktyczne", "choroby", "leczenia"].includes(type) && (
-                    <td className="border border-gray-300 px-4 py-2">{event.opisZdarzenia || "Brak danych"}</td>
+                  {[
+                    "rozrody",
+                    "zdarzenia_profilaktyczne",
+                    "choroby",
+                    "leczenia",
+                  ].includes(type) && (
+                    <td className="border border-gray-300 px-4 py-2">
+                      {event.opisZdarzenia || "Brak danych"}
+                    </td>
                   )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-gray-600 py-4 text-center">
+                <td colSpan={6} className="py-4 text-center text-gray-600">
                   Brak wydarzeń
                 </td>
               </tr>

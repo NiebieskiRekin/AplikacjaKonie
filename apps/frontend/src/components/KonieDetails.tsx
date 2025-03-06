@@ -364,31 +364,31 @@ function KonieDetails() {
       <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-4">
         <Link
           to={`/wydarzenia/${id}/rozrody`}
-          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 transition w-full sm:w-auto"
+          className="w-full rounded-lg bg-gradient-to-r from-green-500 to-green-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-green-800 sm:w-auto sm:px-6 sm:py-3"
         >
           🐎 Rozrody
         </Link>
         <Link
           to={`/wydarzenia/${id}/choroby`}
-          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 transition w-full sm:w-auto"
+          className="w-full rounded-lg bg-gradient-to-r from-red-500 to-red-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-red-600 hover:to-red-800 sm:w-auto sm:px-6 sm:py-3"
         >
           🤕 Choroby
         </Link>
         <Link
           to={`/wydarzenia/${id}/leczenia`}
-          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 transition w-full sm:w-auto"
+          className="w-full rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-yellow-600 hover:to-yellow-800 sm:w-auto sm:px-6 sm:py-3"
         >
           💉 Leczenia
         </Link>
         <Link
           to={`/wydarzenia/${id}/profilaktyczne`}
-          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-600 hover:to-fuchsia-800 transition w-full sm:w-auto"
+          className="w-full rounded-lg bg-gradient-to-r from-fuchsia-500 to-fuchsia-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-fuchsia-600 hover:to-fuchsia-800 sm:w-auto sm:px-6 sm:py-3"
         >
           🏥 Zdarzenia profilaktyczne
         </Link>
         <Link
           to={`/wydarzenia/${id}/podkucia`}
-          className="px-4 py-2 sm:px-6 sm:py-3 text-white font-semibold rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition w-full sm:w-auto"
+          className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-blue-600 hover:to-blue-800 sm:w-auto sm:px-6 sm:py-3"
         >
           🧲 Podkucia
         </Link>
