@@ -56,11 +56,11 @@ services:
       - proxy
     labels:
       traefik.enable: "true"
-      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}/api`)
-      traefik.http.routers.dashboard.entrypoints: websecure
-      traefik.http.routers.dashboard.tls: "true"
-      traefik.http.routers.dashboard.tls.certResolver: acme_tls
-      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
+      traefik.http.routers.backend.rule: "Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      traefik.http.routers.backend.entrypoints: websecure
+      traefik.http.routers.backend.tls: "true"
+      traefik.http.routers.backend.tls.certResolver: acme_tls
+      traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
 
   frontend:
     build:
@@ -76,11 +76,11 @@ services:
       - proxy
     labels:
       traefik.enable: "true"
-      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}`)
-      traefik.http.routers.dashboard.entrypoints: websecure
-      traefik.http.routers.dashboard.tls: "true"
-      traefik.http.routers.dashboard.tls.certResolver: acme_tls
-      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
+      traefik.http.routers.frontend.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.frontend.entrypoints: websecure
+      traefik.http.routers.frontend.tls: "true"
+      traefik.http.routers.frontend.tls.certResolver: acme_tls
+      traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
 
 networks:
   backend-postgres:
