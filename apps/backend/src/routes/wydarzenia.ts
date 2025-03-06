@@ -13,6 +13,9 @@ import {
   konie,
   kowale,
   weterynarze,
+  rozrody,
+  choroby,
+  leczenia,
 } from "../db/schema";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -241,5 +244,59 @@ wydarzeniaRoute.post(
     }
   }
 );
+
+wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
+  const horseId = Number(c.req.param("id"));
+  const eventType = c.req.param("type").toLowerCase();
+  console.log(horseId, eventType);
+
+  if (isNaN(horseId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+  }
+
+  try {
+    let events;
+
+    switch (eventType) {
+      case "choroby":
+        events = await db
+          .select()
+          .from(choroby)
+          .where(eq(choroby.kon, horseId));
+        break;
+      case "leczenia":
+        events = await db
+          .select()
+          .from(leczenia)
+          .where(eq(leczenia.kon, horseId));
+        break;
+      case "rozrody":
+        events = await db
+          .select()
+          .from(rozrody)
+          .where(eq(rozrody.kon, horseId));
+        break;
+      case "zdarzenia_profilaktyczne":
+        events = await db
+          .select()
+          .from(zdarzeniaProfilaktyczne)
+          .where(eq(zdarzeniaProfilaktyczne.kon, horseId));
+        break;
+      case "podkucia":
+        events = await db
+          .select()
+          .from(podkucia)
+          .where(eq(podkucia.kon, horseId));
+        break;
+      default:
+        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+    }
+
+    return c.json(events);
+  } catch (error) {
+    console.error("Błąd pobierania wydarzeń:", error);
+    return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
+  }
+});
 
 export default wydarzeniaRoute;
