@@ -210,19 +210,68 @@ const podkucieSchema = z.object({
 
         switch (eventType) {
             case "choroby":
-                events = await db.select().from(choroby).where(eq(choroby.kon, horseId));
+                events = await db.select({
+                  dataRozpoczecia: choroby.dataRozpoczecia,
+                  dataZakonczenia: choroby.dataZakonczenia,
+                  opisZdarzenia: choroby.opisZdarzenia,
+                  nazwaKonia: konie.nazwa,
+                })
+                .from(choroby)
+                .innerJoin(konie, eq(choroby.kon, konie.id))
+                .where(eq(choroby.kon, horseId));
                 break;
             case "leczenia":
-                events = await db.select().from(leczenia).where(eq(leczenia.kon, horseId));
+                events = await db.select({
+                    dataZdarzenia: leczenia.dataZdarzenia, 
+                    weterynarz: weterynarze.imieINazwisko,
+                    choroba: choroby.opisZdarzenia,
+                    opisZdarzenia: leczenia.opisZdarzenia,
+                    nazwaKonia: konie.nazwa,
+                  })
+                .from(leczenia)
+                .innerJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
+                .innerJoin(choroby, eq(leczenia.choroba, choroby.id))
+                .innerJoin(konie, eq(leczenia.kon, konie.id))
+                .where(eq(leczenia.kon, horseId));
                 break;
             case "rozrody":
-                events = await db.select().from(rozrody).where(eq(rozrody.kon, horseId));
+                events = await db.select({
+                  dataZdarzenia: rozrody.dataZdarzenia,
+                  weterynarz: weterynarze.imieINazwisko,
+                  rodzajZdarzenia: rozrody.rodzajZdarzenia,
+                  opisZdarzenia: rozrody.opisZdarzenia,
+                  nazwaKonia: konie.nazwa,
+                })
+                .from(rozrody)
+                .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
+                .innerJoin(konie, eq(rozrody.kon, konie.id))
+                .where(eq(rozrody.kon, horseId));
                 break;
             case "zdarzenia_profilaktyczne":
-                events = await db.select().from(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.kon, horseId));
+                events = await db.select({
+                  dataZdarzenia: zdarzeniaProfilaktyczne.dataZdarzenia,
+                  dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
+                  weterynarz: weterynarze.imieINazwisko,
+                  rodzajZdarzenia: zdarzeniaProfilaktyczne.rodzajZdarzenia,
+                  opisZdarzenia: zdarzeniaProfilaktyczne.opisZdarzenia,
+                  nazwaKonia: konie.nazwa,  
+                })
+                .from(zdarzeniaProfilaktyczne)
+                .innerJoin(konie, eq(zdarzeniaProfilaktyczne.kon, konie.id))
+                .innerJoin(weterynarze, eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id))
+                .where(eq(zdarzeniaProfilaktyczne.kon, horseId));
                 break;
             case "podkucia":
-                events = await db.select().from(podkucia).where(eq(podkucia.kon, horseId));
+                events = await db.select({
+                  dataZdarzenia: podkucia.dataZdarzenia,
+                  dataWaznosci: podkucia.dataWaznosci,
+                  kowal: kowale.imieINazwisko,
+                  nazwaKonia: konie.nazwa,
+                })
+                .from(podkucia)
+                .innerJoin(konie, eq(podkucia.kon, konie.id))
+                .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
+                .where(eq(podkucia.kon, horseId));
                 break;
             default:
                 return c.json({ error: "Nieznany typ zdarzenia" }, 400);
