@@ -1,18 +1,26 @@
-FROM node:18.20-alpine3.21 AS build
+FROM node:20-alpine AS development-dependencies-env
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install
-COPY . .
+COPY package.json package-lock.json /app/
+RUN npm ci
+
+FROM node:20-alpine AS production-dependencies-env
+COPY package.json package-lock.json /app/
+WORKDIR /app
+RUN npm ci --omit=dev
+
+FROM node:20-alpine AS build-env
+COPY . /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
 RUN npm run build
 
-FROM node:18.20-alpine3.21 AS production
+FROM node:20-alpine AS production
 WORKDIR /app
-COPY package*.json .
-RUN npm ci --only=production && npm cache clean --force
-COPY --from=build /app/dist ./dist
+COPY package.json package-lock.json /app/
+COPY --from=production-dependencies-env /app/node_modules /app/node_modules
+COPY --from=build-env /app/dist /app/dist
 RUN chown node:node ./
 USER node
-# ARG NODE_ENV=production
-# ENV NODE_ENV $NODE_ENV
+ENV NODE_ENV production
 EXPOSE 3001
-CMD ["node", "./dist/index.js"]
+CMD ["npm", "run", "start"]
