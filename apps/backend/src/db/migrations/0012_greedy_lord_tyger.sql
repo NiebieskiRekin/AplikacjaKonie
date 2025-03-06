@@ -1,0 +1,1 @@
+ALTER TABLE "hodowlakoni"."konie" ADD COLUMN "active" boolean DEFAULT true NOT NULL;
