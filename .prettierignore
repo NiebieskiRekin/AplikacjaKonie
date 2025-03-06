@@ -1,7 +1,0 @@
-infra/*
-*/**/dist/*
-*/**/build/*
-*/**/.tsbuildinfo
-*/**/node_modules
-apps/backend/src/db/migrations/*
-apps/frontend/.react-router/*

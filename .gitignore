@@ -1,6 +1,5 @@
 # just in case
 *.env
-.tsbuildinfo
 
 # infra
 infra/Terraform/terraform.tfvars
