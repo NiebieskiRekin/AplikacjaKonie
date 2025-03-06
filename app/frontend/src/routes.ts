@@ -19,7 +19,7 @@ import {
       route("/wydarzenia/:id/choroby", "./components/events/Choroby.tsx"),
       route("/wydarzenia/:id/leczenia", "./components/events/Leczenia.tsx"),
       route("/wydarzenia/:id/profilaktyczne", "./components/events/Profilaktyczne.tsx"),
-      route("/wydarzenia/:id/podkucia", "./components/events/Podkucia.tsx"),
+      route("/wydarzenia/:id/podkucia", "./components/events/Podkucia.tsx"), 
     ]),
     // * matches all URLs, the ? makes it optional so it will match / as well
     // route("*?", "catchall.tsx"),
