@@ -127,7 +127,7 @@ function HorseEventList({ type }: { type: string }) {
                       {event.dataZakonczenia ? (
                         event.dataZakonczenia
                       ) : (
-                        <span className="text-red-600 font-bold">Brak danych</span>
+                        <span className="text-red-600 font-bold">Niewyleczona</span>
                       )}
                     </td>
                   )}
