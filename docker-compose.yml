@@ -1,4 +1,18 @@
 services:
+  traefik:
+    image: traefik:v3.3
+    ports:
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./configs/traefik.yaml:/etc/traefik/traefik.yaml:Z
+      - ./certs:/etc/traefik/certs:Z
+    networks:
+      - proxy
+    restart: unless-stopped
+    healthcheck:
+      test: traefik healthcheck
+
   postgres:
     image: postgres:14.16-alpine3.20
     restart: unless-stopped
@@ -24,11 +38,11 @@ services:
 
   backend:
     build:
-      context: ./backend
-    ports:
-      - 3001:3001
+      context: ./apps/backend
+    # ports:
+    #   - 3001:3001
     env_file:
-      - path: ./backend/.env
+      - path: ./.env
         required: true
     environment:
       DATABASE_URL: postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_DATABASE}
@@ -40,12 +54,19 @@ services:
     networks:
       - backend-postgres
       - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}/api`)
+      traefik.http.routers.dashboard.entrypoints: websecure
+      traefik.http.routers.dashboard.tls: "true"
+      traefik.http.routers.dashboard.tls.certResolver: acme_tls
+      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
 
   frontend:
     build:
-      context: ./frontend
-    ports:
-      - 5173:5733
+      context: ./apps/frontend
+    # ports:
+    #   - 5173:5733
     depends_on:
       backend:
         condition: service_started
@@ -53,6 +74,13 @@ services:
     networks:
       - backend-postgres
       - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.dashboard.entrypoints: websecure
+      traefik.http.routers.dashboard.tls: "true"
+      traefik.http.routers.dashboard.tls.certResolver: acme_tls
+      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
 
 networks:
   backend-postgres:

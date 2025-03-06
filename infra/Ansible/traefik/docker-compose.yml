@@ -1,0 +1,46 @@
+
+services:
+  traefik:
+    image: traefik:v3.3
+    ports:
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./configs/traefik.yaml:/etc/traefik/traefik.yaml:Z
+      # - ./configs/conf:/etc/traefik/conf/:Z
+      - ./certs:/etc/traefik/certs:Z
+    # labels:
+      # traefik.enable: "true"
+
+      # traefik.http.routers.dashboard.rule: Host(`${TRAEFIK_DASHBOARD_HOST}`)
+      # traefik.http.routers.dashboard.service: api@internal
+      # traefik.http.routers.dashboard.entrypoints: websecure
+
+      # traefik.http.routers.dashboard.middlewares: auth, redirect-to-dashboard, vpn-whitelist-traefik@docker
+
+      # traefik.http.middlewares.auth.basicAuth.users: 'admin:${ADMIN_PASSWORD_HASH}'
+      # traefik.http.middlewares.vpn-whitelist-traefik.ipAllowList.sourceRange: 127.0.0.1/32, ${ALLOWED_IP} 
+      # traefik.http.middlewares.redirect-to-dashboard.redirectRegex.regex: (https://)?${TRAEFIK_DASHBOARD_HOST}(/(d(ash(board(/)?)?)?)?)?$$ 
+      # traefik.http.middlewares.redirect-to-dashboard.redirectRegex.replacement: https://${TRAEFIK_DASHBOARD_HOST}/dashboard/
+
+      # traefik.http.routers.dashboard.tls: "true"
+      # traefik.http.routers.dashboard.tls.certResolver: acme_tls
+      # traefik.http.routers.dashboard.tls.domains[0].main: ${MAIN_HOST}
+      # traefik.http.routers.dashboard.tls.domains[0].sans[0]: ${TRAEFIK_DASHBOARD_HOST} 
+      # traefik.http.routers.dashboard.tls.domains[0].sans[1]: ${SUBHOST} 
+
+    networks:
+      - traefik
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: 0.15
+    #       memory: 240M
+    restart: unless-stopped
+    healthcheck:
+      test: traefik healthcheck
+
+networks:
+  traefik:
+    external: true
+
