@@ -1,0 +1,9 @@
+{
+  "filepath": "**/.{mjs,ts,tsx,md,json,yml,yaml}",
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "printWidth": 80,
+  "semi": true,
+  "singleQuote": false,
+  "plugins": ["prettier-plugin-tailwindcss"]
+}

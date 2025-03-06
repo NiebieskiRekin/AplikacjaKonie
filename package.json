@@ -1,0 +1,39 @@
+{
+  "name": "aplikacja-konie",
+  "workspaces": [
+    "packages/eslint-config",
+    "apps/backend",
+    "packages/api-client",
+    "apps/frontend"
+  ],
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently -p \"[{name}]\" -n \"b,f,a\" -c \"bgGray.bold,bgCyan.bold,bgMagenta.bold\" \"npm --prefix apps/backend run dev\" \"npm --prefix apps/frontend run dev\" \"npm --prefix packages/api-client run dev\"",
+    "build": "npm --prefix apps/backend run build && npm --prefix packages/api-client run build && npm --prefix apps/frontend run build",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
+    "format": "npx prettier . -w"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NiebieskiRekin/AplikacjaKonie/"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.4",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-drizzle": "^0.2.3",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.12.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "typescript-eslint": "^8.24.0"
+  }
+}
