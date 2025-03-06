@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 
 type Event = {
   id: number;
+  nazwaKonia: string;
   dataRozpoczecia: string;
   dataZdarzenia?: string; // rozrody
   opisZdarzenia?: string;
@@ -38,7 +39,7 @@ function HorseEventList({ type }: { type: string }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-4 md:p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">📅 {type} dla konia {id}</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">📅 {type.charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} Konia: {events.length > 0 ? events[0].nazwaKonia.charAt(0).toUpperCase() + events[0].nazwaKonia.slice(1) : "Brak danych"}</h2>
       {error && <p className="text-red-600">{error}</p>}
 
       <button
