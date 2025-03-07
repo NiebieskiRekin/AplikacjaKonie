@@ -8,9 +8,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>My App</title>
+        <title>Aplikacja Koni</title>
         <Meta />
         <Links />
+        <link rel="icon" type="image/png" href="/glowne.webp" />
       </head>
       <body>
         {children}
