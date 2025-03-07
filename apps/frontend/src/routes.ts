@@ -28,6 +28,8 @@ export default [
     route("/wydarzenia/add/:id/:type", "./components/AddHorseEvent.tsx"),
     route("/weterynarze", "./components/Weterynarze.tsx"),
     route("/kowale", "./components/Kowale.tsx"),
+    route("/weterynarze/add", "./components/AddWeterynarz.tsx"),
+    route("/kowale/add", "./components/AddKowal.tsx"),
   ]),
   // * matches all URLs, the ? makes it optional so it will match / as well
   // route("*?", "catchall.tsx"),
