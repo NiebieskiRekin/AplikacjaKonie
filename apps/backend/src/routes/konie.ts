@@ -466,4 +466,23 @@ horses.get("/:id{[0-9]+}/active-events", async (c) => {
 //     return c.json(horsesList);
 //   });
 
+horses.get("/choroby/:id{[0-9]+}", async (c) => {
+    const userId = getUserFromContext(c);
+    if (!userId) {
+      return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
+
+    const horseId = Number(c.req.param("id"));
+    if (isNaN(horseId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+    }
+
+    const chorobaList = await db
+      .select()
+      .from(choroby)
+      .where(eq(choroby.kon, horseId));
+
+    return c.json(chorobaList);
+  });
+
 export default horses;

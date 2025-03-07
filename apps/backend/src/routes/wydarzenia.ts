@@ -16,6 +16,9 @@ import {
   rozrody,
   choroby,
   leczenia,
+  rozrodyInsertSchema,
+  chorobyInsertSchema,
+  leczeniaInsertSchema,
 } from "../db/schema";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -133,6 +136,50 @@ const zdarzenieProfilaktyczneSchema = z.object({
   ]),
   opisZdarzenia: z.string().min(5),
 });
+
+wydarzeniaRoute.post("/rozrody", zValidator("json", rozrodyInsertSchema), async (c) => {
+    const _rozrody = c.req.valid("json");
+    console.log(_rozrody);
+    _rozrody.kon = Number(_rozrody.kon);
+    _rozrody.weterynarz = Number(_rozrody.weterynarz);
+
+    const result = await db
+      .insert(rozrody)
+      .values(_rozrody)
+      .returning()
+      .then((res) => res[0]);
+
+    c.status(201);
+    return c.json(result);
+  });
+
+wydarzeniaRoute.post("/choroby", zValidator("json", chorobyInsertSchema), async (c) => {
+    const _choroby = c.req.valid("json");
+    _choroby.kon = Number(_choroby.kon);
+
+    const result = await db
+      .insert(choroby)
+      .values(_choroby)
+      .returning()
+      .then((res) => res[0]);
+
+    c.status(201);
+    return c.json(result);
+  });
+
+wydarzeniaRoute.post("/leczenia", zValidator("json", leczeniaInsertSchema), async (c) => {
+    const _leczenia = c.req.valid("json");
+    _leczenia.kon = Number(_leczenia.kon);
+
+    const result = await db
+      .insert(leczenia)
+      .values(_leczenia)
+      .returning()
+      .then((res) => res[0]);
+
+    c.status(201);
+    return c.json(result);
+  });
 
 wydarzeniaRoute.post(
   "/podkucie",

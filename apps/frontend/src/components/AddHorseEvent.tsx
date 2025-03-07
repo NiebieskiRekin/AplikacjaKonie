@@ -6,37 +6,38 @@ type EventType = "rozrody" | "leczenia" | "choroby" | "zdarzenia_profilaktyczne"
 const eventTypes: Record<EventType, { title: string; fields: string[]; apiEndpoint: string; eventOptions?: string[] }> = {
   rozrody: {
     title: "Dodaj wydarzenie rozrodu",
-    fields: ["id", "weterynarz", "dataZdarzenia", "rodzajZdarzenia", "opisZdarzenia"],
+    fields: ["kon", "weterynarz", "dataZdarzenia", "rodzajZdarzenia", "opisZdarzenia"],
     apiEndpoint: "rozrody",
     eventOptions: ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"],
   },
   leczenia: {
     title: "Dodaj wydarzenie leczenia",
-    fields: ["id", "weterynarz", "dataZdarzenia", "choroba", "opisZdarzenia"],
+    fields: ["kon", "weterynarz", "dataZdarzenia", "choroba", "opisZdarzenia"],
     apiEndpoint: "leczenia",
   },
   choroby: {
     title: "Dodaj chorobę",
-    fields: ["id", "dataRozpoczecia", "dataZakonczenia", "opisZdarzenia"],
+    fields: ["kon", "dataRozpoczecia", "dataZakonczenia", "opisZdarzenia"],
     apiEndpoint: "choroby",
   },
   zdarzenia_profilaktyczne: {
     title: "Dodaj zdarzenie profilaktyczne",
-    fields: ["id", "weterynarz", "dataZdarzenia", "dataWaznosci", "rodzajZdarzenia", "opisZdarzenia"],
-    apiEndpoint: "zdarzenia_profilaktyczne",
+    fields: ["konieId", "weterynarz", "dataZdarzenia", "dataWaznosci", "rodzajZdarzenia", "opisZdarzenia"],
+    apiEndpoint: "zdarzenie-profilaktyczne",
     eventOptions: ["Szczepienia", "Odrobaczanie", "Podanie suplementów", "Dentysta"],
   },
   podkucia: {
     title: "Dodaj podkucie",
-    fields: ["id", "kowal", "dataZdarzenia", "dataWaznosci"],
+    fields: ["kon", "kowal", "dataZdarzenia", "dataWaznosci"],
     apiEndpoint: "podkucia",
   },
 };
 function AddHorseEvent() {
   const navigate = useNavigate();
   const { id, type } = useParams<{ id: string; type: EventType }>(); 
-  const [formData, setFormData] = useState<{ [key: string]: string }>({ id: id || "" });
+  const [formData, setFormData] = useState<{ [key: string]: string | number | number[] | null}>({ kon: id || "" });
   const [people, setPeople] = useState<{ id: string; imieINazwisko: string }[]>([]); // Weterynarze/Kowale
+  const [choroba, setChoroba] = useState<{ id: string; opisZdarzenia: string }[]>([]); // Choroby
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -56,8 +57,25 @@ function AddHorseEvent() {
         setError((err as Error).message);
       }
     };
+
+    const fetchChoroba = async () => {
+        if (type === "leczenia") {
+          try {
+            const response = await fetch(`/api/konie/choroby/${id}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
+            setChoroba(data);
+          } catch (err) {
+            setError((err as Error).message);
+          }
+        }
+      };
+
     fetchPeople();
-  }, [type]);
+    fetchChoroba();
+  }, [type, id]);
+
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -74,17 +92,26 @@ function AddHorseEvent() {
     const eventConfig = eventTypes[type];
 
     try {
+        const formattedData = { ...formData };
+        if (formattedData.kon) formattedData.kon = Number(formattedData.kon);
+        if (formattedData.weterynarz) formattedData.weterynarz = Number(formattedData.weterynarz);
+        if (formattedData.kowal) formattedData.kowal = Number(formattedData.kowal);
+        if (formattedData.choroba) formattedData.choroba = Number(formattedData.choroba);
+        if (formattedData.dataZakonczenia) formattedData.dataZakonczenia = null;
+        if (formattedData.kon && type === "zdarzenia_profilaktyczne") formattedData.konieId = [Number(formattedData.kon)];
+
       const response = await fetch(`/api/wydarzenia/${eventConfig.apiEndpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formattedData),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Błąd dodawania wydarzenia");
 
       setSuccess("Zdarzenie zostało dodane!");
-      setTimeout(() => navigate(`/wydarzenia/${id}/${type}`), 1500); // Przekierowanie
+      const redirectType = type === "zdarzenia_profilaktyczne" ? "profilaktyczne" : type;
+      setTimeout(() => navigate(`/wydarzenia/${id}/${redirectType}`), 1500); // Przekierowanie
     } catch (err) {
       setError((err as Error).message);
     }
@@ -134,6 +161,24 @@ function AddHorseEvent() {
               {people.map((person) => (
                 <option key={person.id} value={person.id}>
                   {person.imieINazwisko}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {fields.includes("choroba") && (
+          <>
+            <label className="block text-gray-700"> 🤒 Wybierz chorobę:</label>
+            <select
+              name="choroba"
+              className="w-full p-2 border rounded mb-3"
+              onChange={handleInputChange}
+            >
+              <option value="">-- Wybierz chrobę --</option>
+              {choroba.map((choroba) => (
+                <option key={choroba.id} value={choroba.id}>
+                  {choroba.opisZdarzenia}
                 </option>
               ))}
             </select>
