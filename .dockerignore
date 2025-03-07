@@ -5,6 +5,8 @@ node_modules
 # Don't copy sensitive data
 .env
 *secret
+infra
+.ansible
 
 # Ignore local editor settings
 .vscode
