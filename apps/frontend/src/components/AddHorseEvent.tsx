@@ -29,7 +29,7 @@ const eventTypes: Record<EventType, { title: string; fields: string[]; apiEndpoi
   podkucia: {
     title: "Dodaj podkucie",
     fields: ["kon", "kowal", "dataZdarzenia", "dataWaznosci"],
-    apiEndpoint: "podkucia",
+    apiEndpoint: "podkucie",
   },
 };
 function AddHorseEvent() {
@@ -156,7 +156,7 @@ function AddHorseEvent() {
         if (formattedData.choroba) formattedData.choroba = Number(formattedData.choroba);
         if (formattedData.dataZakonczenia) formattedData.dataZakonczenia = null;
         if (formattedData.dataZdarzenia) formattedData.dataZdarzenia = new Date().toISOString().split("T")[0];
-        if (formattedData.kon && type === "zdarzenia_profilaktyczne") formattedData.konieId = [Number(formattedData.kon)];
+        if (formattedData.kon && (type === "zdarzenia_profilaktyczne" || type === "podkucia")) formattedData.konieId = [Number(formattedData.kon)];
 
       const response = await fetch(`/api/wydarzenia/${eventConfig.apiEndpoint}`, {
         method: "POST",

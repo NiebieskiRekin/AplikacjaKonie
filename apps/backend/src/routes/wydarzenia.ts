@@ -189,7 +189,7 @@ wydarzeniaRoute.post(
       const user = getUserFromContext(c);
       if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-      const { konieId, kowal, dataZdarzenia } = c.req.valid("json");
+      const { konieId, kowal, dataZdarzenia, dataWaznosci } = c.req.valid("json");
 
       const konieInfo = await db
         .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
@@ -198,22 +198,26 @@ wydarzeniaRoute.post(
 
       // Obliczamy datę ważności na podstawie rodzaju konia
       const valuesToInsert = konieInfo.map((kon) => {
-        const baseDate = new Date(dataZdarzenia);
+        let calculatedDate = dataWaznosci;
+        if (!calculatedDate) {
+          const baseDate = new Date(dataZdarzenia);
 
-        if (
-          kon.rodzajKonia === "Konie sportowe" ||
-          kon.rodzajKonia === "Konie rekreacyjne"
-        ) {
-          baseDate.setDate(baseDate.getDate() + 42); // +6 tygodni
-        } else {
-          baseDate.setDate(baseDate.getDate() + 84); // +12 tygodni
+          if (
+            kon.rodzajKonia === "Konie sportowe" ||
+            kon.rodzajKonia === "Konie rekreacyjne"
+          ) {
+            baseDate.setDate(baseDate.getDate() + 42); // +6 tygodni
+          } else {
+            baseDate.setDate(baseDate.getDate() + 84); // +12 tygodni
+          }
+          calculatedDate = baseDate.toISOString().split("T")[0];
         }
 
         return {
           kon: kon.id,
           kowal,
           dataZdarzenia,
-          dataWaznosci: baseDate.toISOString().split("T")[0], // YYYY-MM-DD
+          dataWaznosci: calculatedDate,
         };
       });
 
@@ -241,6 +245,7 @@ wydarzeniaRoute.post(
         dataZdarzenia,
         rodzajZdarzenia,
         opisZdarzenia,
+        dataWaznosci,
       } = c.req.valid("json");
 
       const konieInfo = await db
@@ -249,31 +254,35 @@ wydarzeniaRoute.post(
         .where(or(...konieId.map((konieId) => eq(konie.id, konieId))));
 
       const valuesToInsert = konieInfo.map((kon) => {
-        const baseDate = new Date(dataZdarzenia);
+        let calculatedDate = dataWaznosci;
+        if (!calculatedDate) {
+          const baseDate = new Date(dataZdarzenia);
 
-        let monthsToAdd = 0;
+          let monthsToAdd = 0;
 
-        if (rodzajZdarzenia === "Szczepienie") {
-          monthsToAdd = kon.rodzajKonia === "Konie sportowe" ? 6 : 12;
-        } else if (rodzajZdarzenia === "Dentysta") {
-          monthsToAdd = ["Konie sportowe", "Konie rekreacyjne"].includes(
-            kon.rodzajKonia
-          )
-            ? 6
-            : 12;
-        } else if (
-          ["Podanie witamin", "Odrobaczanie"].includes(rodzajZdarzenia)
-        ) {
-          monthsToAdd = 6;
+          if (rodzajZdarzenia === "Szczepienie") {
+            monthsToAdd = kon.rodzajKonia === "Konie sportowe" ? 6 : 12;
+          } else if (rodzajZdarzenia === "Dentysta") {
+            monthsToAdd = ["Konie sportowe", "Konie rekreacyjne"].includes(
+              kon.rodzajKonia
+            )
+              ? 6
+              : 12;
+          } else if (
+            ["Podanie witamin", "Odrobaczanie"].includes(rodzajZdarzenia)
+          ) {
+            monthsToAdd = 6;
+          }
+
+          baseDate.setMonth(baseDate.getMonth() + monthsToAdd);
+          calculatedDate = baseDate.toISOString().split("T")[0];
         }
-
-        baseDate.setMonth(baseDate.getMonth() + monthsToAdd);
 
         return {
           kon: kon.id,
           weterynarz,
           dataZdarzenia,
-          dataWaznosci: baseDate.toISOString().split("T")[0], // YYYY-MM-DD
+          dataWaznosci: calculatedDate
           rodzajZdarzenia,
           opisZdarzenia,
         };
