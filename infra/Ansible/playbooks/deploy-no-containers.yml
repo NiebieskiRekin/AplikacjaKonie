@@ -1,0 +1,34 @@
+- name: Deploy from Github repository
+  hosts: main
+  vars:
+    repo: https://github.com/NiebieskiRekin/AplikacjaKonie/
+    dest: "/home/{{ ansible_user }}"
+  tasks:
+    - name: Install node and npm
+      become: true
+      ansible.builtin.apt:
+        pkg:
+          - nodejs
+          - npm
+        state: latest # noqa package-latest
+        update_cache: true
+    - name: Clone the github repository
+      git:
+        repo: "{{ repo }}"
+        dest: "{{ dest }}/AplikacjaKonie"
+        clone: yes
+        update: yes
+    - name: Deploy nodejs app
+      vars_files:
+        - .env.production
+      block:
+        - name: Install Dependencies
+          npm:
+            path: "{{ dest }}/AplikacjaKonie"
+            cmd: npm install && npm run build
+        - name: Start the application
+          command:
+            chdir: "{{ dest }}/AplikacjaKonie"
+            cmd: npm run start
+          async: 1000
+          poll: 0
