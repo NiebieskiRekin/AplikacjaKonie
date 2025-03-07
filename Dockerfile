@@ -1,14 +1,18 @@
-FROM node:20-alpine AS development-dependencies-env
+FROM node:23-alpine AS development-dependencies-env
 WORKDIR /app
-COPY **/package.json package-lock.json /app/
+COPY package.json package-lock.json /app/
+COPY apps/frontend/package.json /app/apps/frontend/package.json
+COPY apps/backend/package.json /app/apps/backend/package.json
 RUN npm ci
 
-FROM node:20-alpine AS production-dependencies-env
+FROM node:23-alpine AS production-dependencies-env
 WORKDIR /app
-COPY **/package.json package-lock.json /app/
+COPY package.json package-lock.json /app/
+COPY apps/frontend/package.json /app/apps/frontend/package.json
+COPY apps/backend/package.json /app/apps/backend/package.json
 RUN npm ci --omit=dev
 
-FROM node:20-alpine AS build-env
+FROM node:23-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
@@ -20,10 +24,13 @@ COPY --from=build-env /app/apps/frontend/build /usr/share/nginx/html
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"] 
 
-FROM node:20-alpine AS production-backend
+FROM node:23-alpine AS production-backend
 WORKDIR /app
-COPY **/package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/apps/backend/node_modules /app/node_modules
+COPY package.json package-lock.json /app/
+COPY apps/frontend/package.json /app/apps/frontend/package.json
+COPY apps/backend/package.json /app/apps/backend/package.json
+COPY --from=production-dependencies-env /app/node_modules /app/node_modules
+RUN npm prune --workspace apps/backend
 COPY --from=build-env /app/apps/backend/dist /app/dist
 RUN chown node:node ./
 USER node
