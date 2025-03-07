@@ -61,7 +61,7 @@ function HorseEventList({ type }: { type: string }) {
           <thead>
             <tr className="bg-gray-200">
               <th className="border border-gray-300 px-4 py-2">
-                📅 Data Rozpoczęcia
+                📅 Data Zdarzenia
               </th>
               {["choroby"].includes(type) && (
                 <th className="border border-gray-300 px-4 py-2">
@@ -124,12 +124,29 @@ function HorseEventList({ type }: { type: string }) {
                   </td>
                   {["choroby"].includes(type) && (
                     <td className="border border-gray-300 px-4 py-2">
-                      {event.dataZakonczenia || "Brak danych"}
+                      {event.dataZakonczenia ? (
+                        event.dataZakonczenia
+                      ) : (
+                        <span className="text-red-600 font-bold">Niewyleczona</span>
+                      )}
                     </td>
                   )}
                   {["zdarzenia_profilaktyczne", "podkucia"].includes(type) && (
                     <td className="border border-gray-300 px-4 py-2">
-                      {event.dataWaznosci || "Brak danych"}
+                      {(() => {
+                        const today = new Date();
+                        const expirationDate = event.dataWaznosci ? new Date(event.dataWaznosci) : null;
+
+                        let textColor = "text-green-600"; // Domyślnie zielony
+
+                        if (!expirationDate || expirationDate <= today) {
+                          textColor = "text-red-600 font-bold";
+                        } else if (expirationDate && (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) <= 7) {
+                          textColor = "text-orange-400 font-bold";
+                        }
+
+                        return <span className={textColor}>{event.dataWaznosci || "Brak danych"}</span>;
+                      })()}
                     </td>
                   )}
                   {["leczenia", "rozrody", "zdarzenia_profilaktyczne"].includes(
