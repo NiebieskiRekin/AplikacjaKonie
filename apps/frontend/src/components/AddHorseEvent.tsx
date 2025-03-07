@@ -24,7 +24,7 @@ const eventTypes: Record<EventType, { title: string; fields: string[]; apiEndpoi
     title: "Dodaj zdarzenie profilaktyczne",
     fields: ["konieId", "weterynarz", "dataZdarzenia", "dataWaznosci", "rodzajZdarzenia", "opisZdarzenia"],
     apiEndpoint: "zdarzenie-profilaktyczne",
-    eventOptions: ["Szczepienia", "Odrobaczanie", "Podanie suplementów", "Dentysta"],
+    eventOptions: ["Szczepienie", "Odrobaczanie", "Podanie suplementów", "Dentysta", "Inne"],
   },
   podkucia: {
     title: "Dodaj podkucie",
