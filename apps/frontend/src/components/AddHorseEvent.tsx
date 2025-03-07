@@ -103,8 +103,13 @@ function AddHorseEvent() {
       "Podanie suplementów": 180, // +6 miesiące
       "Dentysta": horseType == "Konie sportowe" || horseType == "Konie rekreacyjne" ? 180 : 365, // +6 miesięcy dla koni sportowych i rekreacyjnych, +1 rok dla innych
     };
-  
-    const daysToAdd = expirationRules[eventType] || 365;
+
+    let daysToAdd = 365; 
+    if (type == "zdarzenia_profilaktyczne") {
+        daysToAdd = expirationRules[eventType] || 365;
+    } else if (type == "podkucia") {
+        daysToAdd = horseType == "Konie sportowe" || horseType == "Konie rekreacyjne" ? 42 : 84;
+    }
     baseDate.setDate(baseDate.getDate() + daysToAdd);
   
     return baseDate.toISOString().split("T")[0];
@@ -116,7 +121,7 @@ function AddHorseEvent() {
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
 
-      if (name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") {
+      if ((name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") || type === "podkucia") {
         updatedData.dataWaznosci = getExpirationDate(value);
       }
 
@@ -125,7 +130,7 @@ function AddHorseEvent() {
   };
 
   useEffect(() => {
-    if (type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) {
+    if ((type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) || type === "podkucia") {
       setFormData((prev) => ({
         ...prev,
         dataWaznosci: getExpirationDate(formData.rodzajZdarzenia as string),
