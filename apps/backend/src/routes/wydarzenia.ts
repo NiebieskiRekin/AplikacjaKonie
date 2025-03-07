@@ -282,7 +282,7 @@ wydarzeniaRoute.post(
           kon: kon.id,
           weterynarz,
           dataZdarzenia,
-          dataWaznosci: calculatedDate
+          dataWaznosci: calculatedDate,
           rodzajZdarzenia,
           opisZdarzenia,
         };
