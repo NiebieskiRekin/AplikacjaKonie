@@ -121,7 +121,7 @@ function AddHorseEvent() {
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
 
-      if ((name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") || type === "podkucia") {
+      if (name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") {
         updatedData.dataWaznosci = getExpirationDate(value);
       }
 
@@ -130,13 +130,22 @@ function AddHorseEvent() {
   };
 
   useEffect(() => {
-    if ((type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) || type === "podkucia") {
+    if (type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) {
       setFormData((prev) => ({
         ...prev,
         dataWaznosci: getExpirationDate(formData.rodzajZdarzenia as string),
       }));
     }
   }, [formData.rodzajZdarzenia, type]);
+
+  useEffect(() => {
+    if (type === "podkucia" && !formData.dataWaznosci) {
+      setFormData((prev) => ({
+        ...prev,
+        dataWaznosci: getExpirationDate(""),
+      }));
+    }
+  }, [formData.kon, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
