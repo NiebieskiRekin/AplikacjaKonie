@@ -35,6 +35,7 @@ const eventTypes: Record<EventType, { title: string; fields: string[]; apiEndpoi
 function AddHorseEvent() {
   const navigate = useNavigate();
   const { id, type } = useParams<{ id: string; type: EventType }>(); 
+  const [horseType, setHorseType] = useState("");
   const [formData, setFormData] = useState<{ [key: string]: string | number | number[] | null}>({ kon: id || "" });
   const [people, setPeople] = useState<{ id: string; imieINazwisko: string }[]>([]); // Weterynarze/Kowale
   const [choroba, setChoroba] = useState<{ id: string; opisZdarzenia: string }[]>([]); // Choroby
@@ -46,6 +47,13 @@ function AddHorseEvent() {
       setError("Nieznany typ wydarzenia.");
       return;
     }
+
+    if (!formData.dataZdarzenia) {
+        setFormData((prev) => ({
+          ...prev,
+          dataZdarzenia: new Date().toISOString().split("T")[0], // Ustawienie wartości początkowej
+        }));
+      }
 
     const fetchPeople = async () => {
       try {
@@ -71,15 +79,59 @@ function AddHorseEvent() {
         }
       };
 
+    const fetchHorseType = async () => {
+        try {
+            const response = await fetch(`/api/konie/${id}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
+            setHorseType(data.rodzajKonia);
+        } catch (err) {
+            setError((err as Error).message);
+        }
+    };
+
     fetchPeople();
     fetchChoroba();
+    fetchHorseType();
   }, [type, id]);
 
+  const getExpirationDate = (eventType: string) => {
+    const baseDate = new Date();
+    const expirationRules: Record<string, number> = {
+      "Szczepienia": horseType == "Konie sportowe" ? 180 : 365, // +6 miesięcy dla koni sportowych, +1 rok dla innych
+      "Odrobaczanie": 180,       // +6 miesięcy
+      "Podanie suplementów": 180, // +6 miesiące
+      "Dentysta": horseType == "Konie sportowe" || horseType == "Konie rekreacyjne" ? 180 : 365, // +6 miesięcy dla koni sportowych i rekreacyjnych, +1 rok dla innych
+    };
   
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const daysToAdd = expirationRules[eventType] || 365;
+    baseDate.setDate(baseDate.getDate() + daysToAdd);
+  
+    return baseDate.toISOString().split("T")[0];
   };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => {
+      const updatedData = { ...prev, [name]: value };
+
+      if (name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") {
+        updatedData.dataWaznosci = getExpirationDate(value);
+      }
+
+      return updatedData;
+    });
+  };
+
+  useEffect(() => {
+    if (type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) {
+      setFormData((prev) => ({
+        ...prev,
+        dataWaznosci: getExpirationDate(formData.rodzajZdarzenia as string),
+      }));
+    }
+  }, [formData.rodzajZdarzenia, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +150,7 @@ function AddHorseEvent() {
         if (formattedData.kowal) formattedData.kowal = Number(formattedData.kowal);
         if (formattedData.choroba) formattedData.choroba = Number(formattedData.choroba);
         if (formattedData.dataZakonczenia) formattedData.dataZakonczenia = null;
+        if (formattedData.dataZdarzenia) formattedData.dataZdarzenia = new Date().toISOString().split("T")[0];
         if (formattedData.kon && type === "zdarzenia_profilaktyczne") formattedData.konieId = [Number(formattedData.kon)];
 
       const response = await fetch(`/api/wydarzenia/${eventConfig.apiEndpoint}`, {
@@ -210,6 +263,7 @@ function AddHorseEvent() {
               type="date"
               name="dataZdarzenia"
               className="w-full p-2 border rounded mb-3"
+              value={formData.dataZdarzenia as string || ""}
               onChange={handleInputChange}
             />
           </>
@@ -246,6 +300,7 @@ function AddHorseEvent() {
               type="date"
               name="dataWaznosci"
               className="w-full p-2 border rounded mb-3"
+              value={formData.dataWaznosci as string || ""}
               onChange={handleInputChange}
             />
           </>
