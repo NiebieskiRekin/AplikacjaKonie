@@ -42,7 +42,7 @@ services:
       traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
 
   postgres:
-    image: postgres:14.16-alpine3.20
+    image: postgres:17-alpine
     restart: unless-stopped
     user: postgres
     env_file:
