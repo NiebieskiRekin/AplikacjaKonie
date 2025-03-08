@@ -3,7 +3,7 @@
 node_modules
 
 # Don't copy sensitive data
-.env
+.env*
 *secret
 infra
 .ansible

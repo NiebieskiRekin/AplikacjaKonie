@@ -5,13 +5,41 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./infra/Ansible/traefik/configs/traefik.yaml:/etc/traefik/traefik.yaml:Z
       - ./infra/Ansible/traefik/certs:/etc/traefik/certs:Z
     networks:
-      - proxy
+      - traefik
     restart: unless-stopped
+    env_file:
+      - path: ./.env
+        required: true
+    environment:
+      TRAEFIK_ENTRYPOINTS_HTTPS: true
+      TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+      TRAEFIK_PROVIDERS_DOCKER: true
+      TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
+      TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
+      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS: true
+      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
+      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_TLSCHALLENGE: true
+      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_STORAGE: /etc/traefik/certs/acme_tls.json
+      # TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
     healthcheck:
       test: traefik healthcheck
+    labels:
+      traefik.enable: "true"
+
+      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}`) && PathPrefix(`/dashboard`)"
+      traefik.http.routers.dashboard.service: api@internal
+      traefik.http.routers.dashboard.entrypoints: https
+
+      traefik.http.routers.dashboard.middlewares: auth, vpn-whitelist-traefik@docker
+
+      traefik.http.middlewares.auth.basicAuth.users: 'admin:${ADMIN_PASSWORD_BCRYPT}'
+      traefik.http.middlewares.vpn-whitelist-traefik.ipAllowList.sourceRange: 127.0.0.1/32, ${TRAEFIK_ADMIN_ALLOWED_IP} 
+
+      traefik.http.routers.dashboard.tls: "true"
+      traefik.http.routers.dashboard.tls.certResolver: acme_tls
+      traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
 
   postgres:
     image: postgres:14.16-alpine3.20
@@ -51,11 +79,11 @@ services:
         restart: true
     networks:
       - backend-postgres
-      - proxy
+      - traefik
     labels:
       traefik.enable: "true"
       traefik.http.routers.backend.rule: "Host(`${DOMAIN}`) && PathPrefix(`/api`)"
-      traefik.http.routers.backend.entrypoints: websecure
+      traefik.http.routers.backend.entrypoints: https
       traefik.http.routers.backend.tls: "true"
       traefik.http.routers.backend.tls.certResolver: acme_tls
       traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
@@ -72,17 +100,17 @@ services:
         restart: true
     networks:
       - backend-postgres
-      - proxy
+      - traefik
     labels:
       traefik.enable: "true"
       traefik.http.routers.frontend.rule: Host(`${DOMAIN}`)
-      traefik.http.routers.frontend.entrypoints: websecure
+      traefik.http.routers.frontend.entrypoints: https
       traefik.http.routers.frontend.tls: "true"
       traefik.http.routers.frontend.tls.certResolver: acme_tls
       traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
 
 networks:
   backend-postgres:
-  proxy:
+  traefik:
 # volumes:
 #   pg_data_aplikacja_konie:
