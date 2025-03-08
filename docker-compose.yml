@@ -105,7 +105,7 @@ services:
       traefik.http.routers.frontend.rule: Host(`${DOMAIN}`)
       traefik.http.routers.frontend.entrypoints: https
       traefik.http.routers.frontend.tls: "true"
-      traefik.http.routers.frontend.tls.certResolver: acme_tls
+      traefik.http.routers.frontend.tls.certResolver: myresolver
       traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
 
 networks:
