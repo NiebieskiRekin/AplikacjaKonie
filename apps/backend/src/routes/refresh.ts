@@ -29,11 +29,11 @@ const refresh = new Hono().get("/", async (c) => {
   // Create a new access and refresh token pair and set it on the cookie
   try {
     const user = <RefreshTokenData>(
-      await verify(refreshToken, ProcessEnv.REFRESH_JWT_SECRET)
+      await verify(refreshToken, ProcessEnv.JWT_REFRESH_PUBLIC_KEY, ProcessEnv.JWT_ALG)
     );
     const tokens = await createAuthTokens({
       userId: user.userId,
-      refreshTokenVersion: user.refreshTokenVersion!,
+      refreshTokenVersion: user.refreshTokenVersion,
     });
     setCookie(c, ACCESS_TOKEN, tokens.accessToken, access_cookie_opts);
     setCookie(c, REFRESH_TOKEN, tokens.refreshToken, refresh_cookie_opts);
