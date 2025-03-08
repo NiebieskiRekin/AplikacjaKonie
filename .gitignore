@@ -1,5 +1,5 @@
 # just in case
-*.env
+*.env*
 .tsbuildinfo
 
 # infra
@@ -17,6 +17,7 @@ infra/Ansible/postgres/cloudflare.ini
 infra/Ansible/certbot/cloudflare.ini
 infra/Ansible/certbot/.env
 infra/Ansible/certbot/notes.md
+infra/Ansible/traefik/certs
 
 # Logs
 logs

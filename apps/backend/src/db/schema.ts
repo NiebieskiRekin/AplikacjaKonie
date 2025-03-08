@@ -15,7 +15,7 @@ import {
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-// import z from "zod";
+import z from "zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -363,7 +363,10 @@ export const users = hodowlakoni.table("users", {
 });
 
 export const usersSelectSchema = createSelectSchema(users);
-export const usersInsertSchema = createInsertSchema(users);
+export const usersInsertSchema = createInsertSchema(users).extend({
+  createdAt: z.optional(z.string().date()),
+  refreshTokenVersion: z.optional(z.number()),
+});
 export const usersUpdateSchema = createUpdateSchema(users);
 
 // Tabela łącząca użytkowników z uprawnieniami;
