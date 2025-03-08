@@ -5,7 +5,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./infra/Ansible/traefik/certs:/etc/traefik/certs:Z
+      - /etc/traefik/certs:/etc/traefik/certs:Z
     networks:
       - traefik
     restart: unless-stopped
@@ -18,11 +18,11 @@ services:
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
-      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS: true
-      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
-      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_TLSCHALLENGE: true
-      TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_STORAGE: /etc/traefik/certs/acme_tls.json
-      # TRAEFIK_CERTIFICATESRESOLVERS_ACME_TLS_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
+      # TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
     healthcheck:
       test: traefik healthcheck
     labels:
@@ -34,8 +34,8 @@ services:
 
       traefik.http.routers.dashboard.middlewares: auth, vpn-whitelist-traefik@docker
 
-      traefik.http.middlewares.auth.basicAuth.users: 'admin:${ADMIN_PASSWORD_BCRYPT}'
-      traefik.http.middlewares.vpn-whitelist-traefik.ipAllowList.sourceRange: 127.0.0.1/32, ${TRAEFIK_ADMIN_ALLOWED_IP} 
+      traefik.http.middlewares.auth.basicAuth.users: "admin:${ADMIN_PASSWORD_BCRYPT}"
+      traefik.http.middlewares.vpn-whitelist-traefik.ipAllowList.sourceRange: 127.0.0.1/32, ${TRAEFIK_ADMIN_ALLOWED_IP}
 
       traefik.http.routers.dashboard.tls: "true"
       traefik.http.routers.dashboard.tls.certResolver: acme_tls
@@ -54,8 +54,8 @@ services:
       POSTGRES_DB: ${DATABASE_DATABASE}
     # ports:
     #   - 5433:5432
-    # volumes:
-    # - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
+    volumes:
+      - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
@@ -99,7 +99,6 @@ services:
         condition: service_started
         restart: true
     networks:
-      - backend-postgres
       - traefik
     labels:
       traefik.enable: "true"
@@ -112,5 +111,4 @@ services:
 networks:
   backend-postgres:
   traefik:
-# volumes:
-#   pg_data_aplikacja_konie:
+    external: true
