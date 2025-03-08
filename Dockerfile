@@ -20,7 +20,7 @@ RUN npm run build
 
 FROM nginx:stable-alpine AS production-frontend
 COPY apps/frontend/nginx.conf /etc/nginx/nginx.conf
-COPY --from=build-env /app/apps/frontend/build /usr/share/nginx/html
+COPY --from=build-env /app/apps/frontend/build/client /usr/share/nginx/html
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"] 
 
