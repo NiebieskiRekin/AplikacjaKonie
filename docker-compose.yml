@@ -3,6 +3,7 @@ services:
     image: traefik:v3.3
     ports:
       - 443:443
+      - 5432:5432
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/traefik/certs:/etc/traefik/certs:Z
@@ -15,6 +16,8 @@ services:
     environment:
       TRAEFIK_ENTRYPOINTS_HTTPS: true
       TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+      TRAEFIK_ENTRYPOINTS_DB: true
+      TRAEFIK_ENTRYPOINTS_DB_ADDRESS: :5432
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
@@ -39,7 +42,7 @@ services:
 
       traefik.http.routers.dashboard.tls: "true"
       traefik.http.routers.dashboard.tls.certResolver: myresolver
-      traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
+      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
 
   postgres:
     image: postgres:17-alpine
@@ -63,7 +66,12 @@ services:
       retries: 20
     networks:
       - backend-postgres
-
+    labels:
+      traefik.enable: "true"
+      traefik.tcp.routers.postgres.rule: "HostSNI(`*`)"
+      traefik.tcp.routers.postgres.entrypoints: db
+      traefik.tcp.routers.postgres.service: service_db
+      traefik.tcp.services.service_db.loadbalancer.server.port: 5432
   backend:
     build:
       context: ./
