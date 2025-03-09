@@ -65,7 +65,7 @@ services:
       timeout: 15s
       retries: 20
     networks:
-      - backend-postgres
+      - traefik
     labels:
       traefik.enable: "true"
       traefik.tcp.routers.postgres.rule: "HostSNI(`*`)"
@@ -86,7 +86,6 @@ services:
         condition: service_healthy
         restart: true
     networks:
-      - backend-postgres
       - traefik
     labels:
       traefik.enable: "true"
@@ -117,6 +116,5 @@ services:
       traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
 
 networks:
-  backend-postgres:
   traefik:
     external: true
