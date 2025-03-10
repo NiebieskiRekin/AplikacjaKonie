@@ -18,6 +18,10 @@ jobs:
     steps:
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v3
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+          ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
+          ANSIBLE_USER: ${{secrets.ANSIBLE_USER}}
         with:
           # Required, playbook filepath
           playbook: deploy-using-docker.yml
@@ -30,3 +34,4 @@ jobs:
           options: |
             --inventory ./infra/Ansible/inventory/inventory.yml
             --verbose
+            --extra-vars ENV_FILE=${{ secrets.ENV_FILE }}

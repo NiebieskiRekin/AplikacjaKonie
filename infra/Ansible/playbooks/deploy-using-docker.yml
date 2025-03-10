@@ -44,7 +44,7 @@
     - name: Setup .env
       ansible.builtin.copy:
         path: "{{ dest }}/.env"
-        content: "{{ lookup('env','ENVIRONMENT_FILE') }}"
+        content: "{{ lookup('env','ENV_FILE') }}"
         state: file
         mode: "0600"
 
