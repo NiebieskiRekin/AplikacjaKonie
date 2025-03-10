@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Docker
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    environment: development
+    steps:
+      - name: Run playbook
+        uses: dawidd6/action-ansible-playbook@v3
+        with:
+          # Required, playbook filepath
+          playbook: deploy-using-docker.yml
+          # Optional, directory where playbooks live
+          directory: ./infra/Ansible/playbooks/
+          # Optional, SSH private key
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          # Optional, SSH known hosts file content
+          known_hosts: ${{secrets.SSH_KNOWN_HOSTS}}
+          options: |
+            --inventory ./infra/Ansible/inventory/inventory.yml
+            --verbose
