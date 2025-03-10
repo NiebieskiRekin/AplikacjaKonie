@@ -161,10 +161,10 @@ function AddKonia() {
             className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
-            <option value="Konie hodowlane">Konie hodowlane</option>
-            <option value="Konie rekreacyjne">Konie rekreacyjne</option>
-            <option value="Źrebaki">Źrebaki</option>
-            <option value="Konie sportowe">Konie sportowe</option>
+            <option value="Konie hodowlane">Koń hodowlane</option>
+            <option value="Konie rekreacyjne">Koń rekreacyjne</option>
+            <option value="Źrebaki">Źrebak</option>
+            <option value="Konie sportowe">Koń sportowe</option>
           </select>
         </label>
 
@@ -176,8 +176,8 @@ function AddKonia() {
             className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
-            <option value="samiec">Samiec</option>
-            <option value="samica">Samica</option>
+            <option value="samiec">Klacz</option>
+            <option value="samica">Ogier</option>
           </select>
         </label>
 

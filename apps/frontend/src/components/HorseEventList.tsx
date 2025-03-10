@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, Link } from "react-router";
 
 type Event = {
   id: number;
+  _id: number;
   nazwaKonia: string;
   dataRozpoczecia: string;
   dataZdarzenia?: string; // rozrody
@@ -60,6 +61,9 @@ function HorseEventList({ type }: { type: string }) {
         <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
+              <th className="border border-gray-300 px-4 py-2 w-12">
+                ✏️ Edytuj
+              </th>
               <th className="border border-gray-300 px-4 py-2">
                 📅 Data Zdarzenia
               </th>
@@ -110,6 +114,18 @@ function HorseEventList({ type }: { type: string }) {
                   key={event.id}
                   className="text-center transition hover:bg-gray-100"
                 >
+                  <td className="border border-gray-300 px-4 py-2">
+                    {["rozrody", "podkucia", "leczenia", "zdarzenia_profilaktyczne", "choroby"].includes(type) ? (
+                      <Link
+                        to={`/wydarzenia/${id}/${type}/${event._id}/edit`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        ✍🏻
+                      </Link>
+                    ) : (
+                      "Brak informacji"
+                    )}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {["choroby"].includes(type)
                       ? event.dataRozpoczecia
