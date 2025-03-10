@@ -1,8 +1,5 @@
-plugin: generator
-strict: False
 main:
   hosts:
     gcp-debian-us-east-001:
       ansible_ssh_user: "{{ lookup('env','ANSIBLE_USER') }}"
       ansible_host: "{{ lookup('env','ANSIBLE_HOST') }}"
-      ansible_ssh_private_key: "{{ lookup('env','SSH_PRIVATE_KEY') }}"

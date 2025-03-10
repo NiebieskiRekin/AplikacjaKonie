@@ -6,7 +6,7 @@ services:
       - 5432:5432
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - certs:/etc/traefik/certs:Z
+      - /etc/traefik/certs:/etc/traefik/certs:Z
     networks:
       - traefik
     restart: unless-stopped
@@ -55,7 +55,7 @@ services:
     # ports:
     #   - 5433:5432
     volumes:
-      - pg_data:/var/lib/postgresql/data:z
+      - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
@@ -114,10 +114,4 @@ services:
 
 networks:
   traefik:
-    external: true
-
-volumes:
-  certs:
-    external: true
-  pg_data:
     external: true

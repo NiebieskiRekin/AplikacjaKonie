@@ -23,6 +23,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
           ANSIBLE_USER: ${{secrets.ANSIBLE_USER}}
+          ENV_FILE: "${{ secrets.ENV_FILE }}"
         with:
           # Required, playbook filepath
           playbook: /infra/Ansible/playbooks/deploy-using-docker.yml
@@ -33,4 +34,3 @@ jobs:
           options: |
             --inventory /infra/Ansible/inventory/inventory.yml
             --verbose
-            --extra-vars ENV_FILE=${{ secrets.ENV_FILE }}

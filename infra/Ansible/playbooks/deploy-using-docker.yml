@@ -1,52 +1,45 @@
+- name: Assert docker, docker-compose is setup
+  ansible.builtin.import_playbook: setup-docker.yml
+
 - name: Deploy using docker images
   vars:
     dest: "/opt/AplikacjaKonie"
-    docker-compose: https://raw.githubusercontent.com/NiebieskiRekin/AplikacjaKonie/refs/heads/main/docker-compose.yml
+    dockercompose: https://raw.githubusercontent.com/NiebieskiRekin/AplikacjaKonie/refs/heads/main/docker-compose.yml
   hosts: main
   tasks:
-    - name: Assert docker, docker-compose is setup
-      ansible.builtin.import_playbook: setup-docker.yml
-
     - name: Create traefik docker network 
       community.docker.docker_network:
         name: traefik
-
-    - name: Create postgres data volume
-      community.docker.docker_volume:
-        name: pg_data
-        driver_options:
-          type: none
-          device: /mnt/disks/pg_data/data
-          opt: bind
-
-    - name: Create traefik volume for certificates
-      community.docker.docker_volume:
-        name: certs
-        driver_options:
-          type: none
-          device: /etc/traefik/certs
-          opt: bind
 
     - name: Create project directory
       ansible.builtin.file:
         path: "{{ dest }}"
         state: directory
-        mode: "0644"
+        mode: "0777"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      become: true
 
     - name: Copy docker-compose.yml
       ansible.builtin.get_url:
-        url: "{{ docker-compose }}"
+        url: "{{ dockercompose }}"
         dest: "{{ dest }}/docker-compose.yml"
-        mode: "0644"
+        mode: "0660"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
         force: true
+      become: true
 
-    # Setup versioned secrets object storage in the future
+    # TODO: Setup versioned secrets object storage in the future
     - name: Setup .env
       ansible.builtin.copy:
-        path: "{{ dest }}/.env"
-        content: "{{ lookup('env','ENV_FILE') }}"
-        state: file
+        dest: "{{ dest }}/.env"
+        content: |
+          {{ lookup('env','ENV_FILE') }}
         mode: "0600"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      become: true
 
     - name: Start services
       community.docker.docker_compose_v2:
