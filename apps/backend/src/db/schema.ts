@@ -49,6 +49,10 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
   ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
 );
 
+export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
+  "Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"
+]);
+
 export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
 
 export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
@@ -404,3 +408,22 @@ export const userPermissionsRelations = relations(
     }),
   })
 );
+
+export const notifications = hodowlakoni.table("notifications", {
+  id: serial("id").primaryKey(),
+  hodowla: integer("hodowla")
+    .notNull()
+    .references(() => hodowcyKoni.id),
+  rodzajZdarzenia: rodzajeNotifications("rodzaje_notifications").notNull(),
+  days: integer("days").notNull(),
+  time: varchar("time", { length: 4 }).notNull(),
+  active: boolean("active").notNull().default(true),
+});
+
+export const notificationsSelectSchema = createSelectSchema(notifications);
+export const notificationsUpdateSchema = createUpdateSchema(notifications);
+export const notificationsInsertSchema = createInsertSchema(notifications);
+
+// TODO
+// export const notificationsRelations = 
+// }));
