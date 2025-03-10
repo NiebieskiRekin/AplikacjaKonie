@@ -30,4 +30,4 @@ ENV NODE_ENV=production
 EXPOSE 3001
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/apps/backend/dist /app/dist
-ENTRYPOINT ["node", "dist/index.js"]
+CMD ["dist/index.js"]
