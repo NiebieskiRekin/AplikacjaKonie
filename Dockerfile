@@ -19,12 +19,14 @@ WORKDIR /app
 RUN npm run build
 
 FROM nginx:stable-alpine AS production-frontend
+LABEL org.opencontainers.image.source=https://github.com/NiebieskiRekin/AplikacjaKonie/
 COPY apps/frontend/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build-env /app/apps/frontend/build/client /usr/share/nginx/html
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"] 
 
 FROM gcr.io/distroless/nodejs22:nonroot AS production-backend
+LABEL org.opencontainers.image.source=https://github.com/NiebieskiRekin/AplikacjaKonie/
 WORKDIR /app
 ENV NODE_ENV=production
 EXPOSE 3001

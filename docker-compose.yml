@@ -6,7 +6,7 @@ services:
       - 5432:5432
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/traefik/certs:/etc/traefik/certs:Z
+      - certs:/etc/traefik/certs:Z
     networks:
       - traefik
     restart: unless-stopped
@@ -23,6 +23,7 @@ services:
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
+      TRAEFIK_API: ${TRAEFIK_ENABLE_API}
       # TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
     healthcheck:
       test: traefik healthcheck
@@ -54,7 +55,7 @@ services:
     # ports:
     #   - 5433:5432
     volumes:
-      - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
+      - pg_data:/var/lib/postgresql/data:z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
@@ -72,7 +73,7 @@ services:
     build:
       context: ./
       target: production-backend
-    image: aplikacja-konie-backend
+    image: ghcr.io/niebieskirekin/aplikacjakonie-backend:main
     # ports:
     #   - 3001:3001
     env_file: .env
@@ -94,7 +95,7 @@ services:
     build:
       context: ./
       target: production-frontend
-    image: aplikacja-konie-frontend
+    image: ghcr.io/niebieskirekin/aplikacjakonie-frontend:main
     # ports:
     #   - 5173:5733
     depends_on:
@@ -113,4 +114,10 @@ services:
 
 networks:
   traefik:
+    external: true
+
+volumes:
+  certs:
+    external: true
+  pg_data:
     external: true

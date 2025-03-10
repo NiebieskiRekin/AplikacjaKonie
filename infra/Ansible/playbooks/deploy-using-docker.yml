@@ -1,0 +1,53 @@
+- name: Deploy using docker images
+  vars:
+    dest: "/opt/AplikacjaKonie"
+    docker-compose: https://raw.githubusercontent.com/NiebieskiRekin/AplikacjaKonie/refs/heads/main/docker-compose.yml
+  hosts: main
+  tasks:
+    - name: Assert docker, docker-compose is setup
+      ansible.builtin.import_playbook: setup-docker.yml
+
+    - name: Create traefik docker network 
+      community.docker.docker_network:
+        name: traefik
+
+    - name: Create postgres data volume
+      community.docker.docker_volume:
+        name: pg_data
+        driver_options:
+          type: none
+          device: /mnt/disks/pg_data/data
+          opt: bind
+
+    - name: Create traefik volume for certificates
+      community.docker.docker_volume:
+        name: certs
+        driver_options:
+          type: none
+          device: /etc/traefik/certs
+          opt: bind
+
+    - name: Create project directory
+      ansible.builtin.file:
+        path: "{{ dest }}"
+        state: directory
+        mode: "0644"
+
+    - name: Copy docker-compose.yml
+      ansible.builtin.get_url:
+        url: "{{ docker-compose }}"
+        dest: "{{ dest }}/docker-compose.yml"
+        mode: "0644"
+        force: true
+
+    # Setup versioned secrets object storage in the future
+    - name: Setup .env
+      ansible.builtin.copy:
+        path: "{{ dest }}/.env"
+        content: "{{ lookup('env','ENV_FILE') }}"
+        state: file
+        mode: "0600"
+
+    - name: Start services
+      community.docker.docker_compose_v2:
+        project_src: "{{ dest }}"
