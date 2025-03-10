@@ -24,7 +24,7 @@ COPY --from=build-env /app/apps/frontend/build/client /usr/share/nginx/html
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"] 
 
-FROM gcr.io/distroless/nodejs22 AS production-backend
+FROM gcr.io/distroless/nodejs22:nonroot AS production-backend
 WORKDIR /app
 ENV NODE_ENV=production
 EXPOSE 3001
