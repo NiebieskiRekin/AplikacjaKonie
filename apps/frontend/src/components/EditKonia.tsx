@@ -20,12 +20,7 @@ function EditKonia() {
   useEffect(() => {
     const fetchHorseDetails = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
-        const response = await fetch(`/api/konie/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(`/api/konie/${id}`);
 
         const data = await response.json();
         if (!response.ok)
@@ -76,12 +71,10 @@ function EditKonia() {
     });
 
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/konie/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: requestData,
       });
