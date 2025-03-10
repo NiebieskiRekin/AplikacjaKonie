@@ -317,6 +317,7 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
       case "choroby":
         events = await db
           .select({
+            _id: choroby.id,
             dataRozpoczecia: choroby.dataRozpoczecia,
             dataZakonczenia: choroby.dataZakonczenia,
             opisZdarzenia: choroby.opisZdarzenia,
@@ -329,6 +330,7 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
       case "leczenia":
         events = await db
           .select({
+            _id: leczenia.id,
             dataZdarzenia: leczenia.dataZdarzenia,
             weterynarz: weterynarze.imieINazwisko,
             choroba: choroby.opisZdarzenia,
@@ -344,6 +346,7 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
       case "rozrody":
         events = await db
           .select({
+            _id: rozrody.id,
             dataZdarzenia: rozrody.dataZdarzenia,
             weterynarz: weterynarze.imieINazwisko,
             rodzajZdarzenia: rozrody.rodzajZdarzenia,
@@ -358,6 +361,7 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
       case "zdarzenia_profilaktyczne":
         events = await db
           .select({
+            _id: zdarzeniaProfilaktyczne.id,
             dataZdarzenia: zdarzeniaProfilaktyczne.dataZdarzenia,
             dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
             weterynarz: weterynarze.imieINazwisko,
@@ -376,6 +380,7 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
       case "podkucia":
         events = await db
           .select({
+            _id: podkucia.id,
             dataZdarzenia: podkucia.dataZdarzenia,
             dataWaznosci: podkucia.dataWaznosci,
             kowal: kowale.imieINazwisko,
@@ -396,5 +401,246 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
     return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
   }
 });
+
+wydarzeniaRoute.get("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
+  const eventId = Number(c.req.param("id"));
+  const eventType = c.req.param("type").toLowerCase();
+  console.log(eventId, eventType);
+
+  if (isNaN(eventId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+  }
+
+  try {
+    let events;
+
+    switch (eventType) {
+      case "choroby":
+        events = await db
+          .select({
+            _id: choroby.id,
+            dataRozpoczecia: choroby.dataRozpoczecia,
+            dataZakonczenia: choroby.dataZakonczenia,
+            opisZdarzenia: choroby.opisZdarzenia,
+            nazwaKonia: konie.nazwa,
+          })
+          .from(choroby)
+          .innerJoin(konie, eq(choroby.kon, konie.id))
+          .where(eq(choroby.id, eventId));
+        break;
+      case "leczenia":
+        events = await db
+          .select({
+            _id: leczenia.id,
+            dataZdarzenia: leczenia.dataZdarzenia,
+            weterynarz: weterynarze.imieINazwisko,
+            choroba: choroby.opisZdarzenia,
+            opisZdarzenia: leczenia.opisZdarzenia,
+            nazwaKonia: konie.nazwa,
+          })
+          .from(leczenia)
+          .innerJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
+          .innerJoin(choroby, eq(leczenia.choroba, choroby.id))
+          .innerJoin(konie, eq(leczenia.kon, konie.id))
+          .where(eq(leczenia.id, eventId));
+        break;
+      case "rozrody":
+        events = await db
+          .select({
+            _id: rozrody.id,
+            dataZdarzenia: rozrody.dataZdarzenia,
+            weterynarz: weterynarze.imieINazwisko,
+            rodzajZdarzenia: rozrody.rodzajZdarzenia,
+            opisZdarzenia: rozrody.opisZdarzenia,
+            nazwaKonia: konie.nazwa,
+          })
+          .from(rozrody)
+          .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
+          .innerJoin(konie, eq(rozrody.kon, konie.id))
+          .where(eq(rozrody.id, eventId));
+        break;
+      case "zdarzenia-profilaktyczne":
+        events = await db
+          .select({
+            _id: zdarzeniaProfilaktyczne.id,
+            dataZdarzenia: zdarzeniaProfilaktyczne.dataZdarzenia,
+            dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
+            weterynarz: weterynarze.imieINazwisko,
+            rodzajZdarzenia: zdarzeniaProfilaktyczne.rodzajZdarzenia,
+            opisZdarzenia: zdarzeniaProfilaktyczne.opisZdarzenia,
+            nazwaKonia: konie.nazwa,
+          })
+          .from(zdarzeniaProfilaktyczne)
+          .innerJoin(konie, eq(zdarzeniaProfilaktyczne.kon, konie.id))
+          .innerJoin(
+            weterynarze,
+            eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id)
+          )
+          .where(eq(zdarzeniaProfilaktyczne.id, eventId));
+        break;
+      case "podkucie":
+        events = await db
+          .select({
+            _id: podkucia.id,
+            dataZdarzenia: podkucia.dataZdarzenia,
+            dataWaznosci: podkucia.dataWaznosci,
+            kowal: kowale.imieINazwisko,
+            nazwaKonia: konie.nazwa,
+          })
+          .from(podkucia)
+          .innerJoin(konie, eq(podkucia.kon, konie.id))
+          .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
+          .where(eq(podkucia.id, eventId));
+        break;
+      default:
+        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+    }
+
+    return c.json(events);
+  } catch (error) {
+    console.error("Błąd pobierania wydarzeń:", error);
+    return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
+  }
+});
+
+wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
+  const eventId = Number(c.req.param("id"));
+  const eventType = c.req.param("type").toLowerCase();
+  const updatedData = await c.req.json();
+
+  if (isNaN(eventId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+  }
+
+  try {
+    let updateQuery;
+
+    switch (eventType) {
+      case "choroby":
+        updateQuery = await db
+          .update(choroby)
+          .set({
+            dataRozpoczecia: updatedData.dataRozpoczecia,
+            dataZakonczenia: updatedData.dataZakonczenia,
+            opisZdarzenia: updatedData.opisZdarzenia,
+          })
+          .where(eq(choroby.id, eventId))
+          .returning();
+        break;
+
+      case "leczenia":
+        updateQuery = await db
+          .update(leczenia)
+          .set({
+            dataZdarzenia: updatedData.dataZdarzenia,
+            weterynarz: updatedData.weterynarz,
+            choroba: updatedData.choroba,
+            opisZdarzenia: updatedData.opisZdarzenia,
+          })
+          .where(eq(leczenia.id, eventId))
+          .returning();
+        break;
+
+      case "rozrody":
+        updateQuery = await db
+          .update(rozrody)
+          .set({
+            dataZdarzenia: updatedData.dataZdarzenia,
+            weterynarz: updatedData.weterynarz,
+            rodzajZdarzenia: updatedData.rodzajZdarzenia,
+            opisZdarzenia: updatedData.opisZdarzenia,
+          })
+          .where(eq(rozrody.id, eventId))
+          .returning();
+        break;
+
+      case "zdarzenia-profilaktyczne":
+        updateQuery = await db
+          .update(zdarzeniaProfilaktyczne)
+          .set({
+            dataZdarzenia: updatedData.dataZdarzenia,
+            dataWaznosci: updatedData.dataWaznosci,
+            weterynarz: updatedData.weterynarz,
+            rodzajZdarzenia: updatedData.rodzajZdarzenia,
+            opisZdarzenia: updatedData.opisZdarzenia,
+          })
+          .where(eq(zdarzeniaProfilaktyczne.id, eventId))
+          .returning();
+        break;
+
+      case "podkucie":
+        updateQuery = await db
+          .update(podkucia)
+          .set({
+            dataZdarzenia: updatedData.dataZdarzenia,
+            dataWaznosci: updatedData.dataWaznosci,
+            kowal: updatedData.kowal,
+          })
+          .where(eq(podkucia.id, eventId))
+          .returning();
+        break;
+
+      default:
+        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+    }
+
+    if (updateQuery.length === 0) {
+      return c.json({ error: "Nie znaleziono wydarzenia do aktualizacji" }, 404);
+    }
+
+    return c.json({ success: true, updatedEvent: updateQuery[0] });
+  } catch (error) {
+    console.error("Błąd aktualizacji wydarzenia:", error);
+    return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+  }
+});
+
+wydarzeniaRoute.delete("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
+  const eventId = Number(c.req.param("id"));
+  const eventType = c.req.param("type").toLowerCase();
+
+  if (isNaN(eventId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+  }
+
+  try {
+    let deleteQuery;
+
+    switch (eventType) {
+      case "choroby":
+        deleteQuery = await db.delete(choroby).where(eq(choroby.id, eventId)).returning();
+        break;
+
+      case "leczenia":
+        deleteQuery = await db.delete(leczenia).where(eq(leczenia.id, eventId)).returning();
+        break;
+
+      case "rozrody":
+        deleteQuery = await db.delete(rozrody).where(eq(rozrody.id, eventId)).returning();
+        break;
+
+      case "zdarzenia-rofilaktyczne":
+        deleteQuery = await db.delete(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.id, eventId)).returning();
+        break;
+
+      case "podkucie":
+        deleteQuery = await db.delete(podkucia).where(eq(podkucia.id, eventId)).returning();
+        break;
+
+      default:
+        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+    }
+
+    if (deleteQuery.length === 0) {
+      return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+    }
+
+    return c.json({ success: true, deletedEvent: deleteQuery[0] });
+  } catch (error) {
+    console.error("Błąd usuwania wydarzenia:", error);
+    return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+  }
+});
+
 
 export default wydarzeniaRoute;
