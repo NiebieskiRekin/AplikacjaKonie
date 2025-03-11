@@ -57,6 +57,11 @@ variable "vpn_ip_addr" {
   default     = ["0.0.0.0/0"]
 }
 
+variable "cors_domains" {
+  type        = list(string)
+  description = "Domain names of the frontend websites"
+}
+
 output "project_id" {
   description = "Google Cloud project ID"
   value       = local.project_id

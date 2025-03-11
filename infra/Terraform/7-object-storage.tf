@@ -5,6 +5,13 @@ resource "google_storage_bucket" "zdjecia-koni" {
   project                     = local.project_id
   uniform_bucket_level_access = false
   public_access_prevention    = "enforced"
+
+  cors {
+    origin          = var.cors_domains
+    method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
+    response_header = ["*"]
+    max_age_seconds = 3600
+  }
 }
 
 
