@@ -4,7 +4,8 @@ locals {
   zone       = "us-east1-b"
   res_prefix = "aplikacjakonie-"
   apis = [
-    "compute.googleapis.com"
+    "compute.googleapis.com",
+    "storage-component.googleapis.com"
   ]
   firewall_rules = {
     "allow-https" = {
@@ -56,3 +57,7 @@ variable "vpn_ip_addr" {
   default     = ["0.0.0.0/0"]
 }
 
+output "project_id" {
+  description = "Google Cloud project ID"
+  value       = local.project_id
+}
