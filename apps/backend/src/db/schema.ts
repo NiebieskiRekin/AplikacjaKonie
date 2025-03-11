@@ -8,6 +8,7 @@ import {
   uuid,
   customType,
   boolean,
+  time 
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -51,6 +52,10 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
 
 export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
   "Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"
+]);
+
+export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania_notifications", [
+  "Push", "Email", "Oba", "Żadne"
 ]);
 
 export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
@@ -409,15 +414,17 @@ export const userPermissionsRelations = relations(
   })
 );
 
+// tabelka z preferencji użytkownika dot. powiadomień
 export const notifications = hodowlakoni.table("notifications", {
   id: serial("id").primaryKey(),
-  hodowla: integer("hodowla")
+  userId: integer("user_id")
     .notNull()
-    .references(() => hodowcyKoni.id),
+    .references(() => users.id),
   rodzajZdarzenia: rodzajeNotifications("rodzaje_notifications").notNull(),
   days: integer("days").notNull(),
-  time: varchar("time", { length: 4 }).notNull(),
+  time: time({ precision: 6, withTimezone: true }).notNull(),
   active: boolean("active").notNull().default(true),
+
 });
 
 export const notificationsSelectSchema = createSelectSchema(notifications);
