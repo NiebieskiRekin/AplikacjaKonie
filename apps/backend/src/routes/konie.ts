@@ -71,9 +71,6 @@ horses.get("/", async (c) => {
   }
 });
 
-const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 MB
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
-
 // add new koń
 horses.post(
   "/",
@@ -83,15 +80,15 @@ horses.post(
       .extend({
         hodowla: z.optional(z.number()),
         rocznikUrodzenia: z.number({ coerce: true }),
-        file: z
-          .custom<File | undefined>()
-          .refine((file) => (!file || file?.size <= MAX_FILE_SIZE)!, {
-            message: "Maksymalny rozmiar pliku wynosi 5MB.",
-          })
-          .refine(
-            (file) => (!file || ACCEPTED_IMAGE_TYPES.includes(file?.type))!,
-            "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
-          ),
+        file: z.optional(z.string()),
+        // .custom<File | undefined>()
+        // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
+        //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
+        // })
+        // .refine(
+        //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
+        //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
+        // ),
       })
       .strict()
   ),
@@ -467,22 +464,22 @@ horses.get("/:id{[0-9]+}/active-events", async (c) => {
 //   });
 
 horses.get("/choroby/:id{[0-9]+}", async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+  const userId = getUserFromContext(c);
+  if (!userId) {
+    return c.json({ error: "Błąd autoryzacji" }, 401);
+  }
 
-    const horseId = Number(c.req.param("id"));
-    if (isNaN(horseId)) {
-      return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
-    }
+  const horseId = Number(c.req.param("id"));
+  if (isNaN(horseId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+  }
 
-    const chorobaList = await db
-      .select()
-      .from(choroby)
-      .where(eq(choroby.kon, horseId));
+  const chorobaList = await db
+    .select()
+    .from(choroby)
+    .where(eq(choroby.kon, horseId));
 
-    return c.json(chorobaList);
-  });
+  return c.json(chorobaList);
+});
 
 export default horses;
