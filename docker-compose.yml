@@ -73,7 +73,9 @@ services:
     build:
       context: ./
       target: production-backend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-backend:main
+      tags:
+        - ${DOCKER_REGISTRY}-backend:latest
+    image: ${DOCKER_REGISTRY}-backend:latest
     # ports:
     #   - 3001:3001
     env_file: .env
@@ -95,7 +97,9 @@ services:
     build:
       context: ./
       target: production-frontend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-frontend:main
+      tags:
+        - ${DOCKER_REGISTRY}-frontend:latest
+    image: ${DOCKER_REGISTRY}-frontend:latest
     # ports:
     #   - 5173:5733
     depends_on:
