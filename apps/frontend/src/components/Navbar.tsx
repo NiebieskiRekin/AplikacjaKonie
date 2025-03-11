@@ -64,10 +64,10 @@ const NavLinks = () => (
     </Link>
 
     <Link
-      to="/restart"
+      to="/ustawienia"
       className="hover:text-brown-300 rounded-lg px-6 py-3 font-semibold transition"
     >
-      Zmień hasło
+      Ustawienia
     </Link>
     <button
       onClick={() => (window.location.href = "/login")}
