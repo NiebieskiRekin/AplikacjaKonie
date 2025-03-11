@@ -10,13 +10,16 @@ on:
 
 jobs:
   deploy:
-    if: ${{github.event_name == 'workflow_run' }} && ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }} || ${{github.event_name == 'workflow_run' }} && ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
     environment: development
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v3
         env:
