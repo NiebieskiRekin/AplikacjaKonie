@@ -32,10 +32,10 @@ locals {
       "ports"       = ["22"]
       "priority"    = "1000"
       "tags"        = ["ssh"]
-      "description" = "Allow SSH communication from trusted sources."
-      "source_ip_ranges" = concat([
-        "35.245.240.0/20", # ip range of internal google
-      ], var.vpn_ip_addr)
+      "description" = "Allow SSH communication."
+      "source_ip_ranges" = [
+        "0.0.0.0/0"
+      ]
     },
     "allow-postgres" = {
       "protocol"    = "tcp"
