@@ -7,7 +7,7 @@
     dockercompose: https://raw.githubusercontent.com/NiebieskiRekin/AplikacjaKonie/refs/heads/main/docker-compose.yml
   hosts: main
   tasks:
-    - name: Create traefik docker network 
+    - name: Create traefik docker network
       community.docker.docker_network:
         name: traefik
 
@@ -35,12 +35,30 @@
       ansible.builtin.copy:
         dest: "{{ dest }}/.env"
         content: |
-          {{ lookup('env','ENV_FILE') }}
+          {{ lookup('env', 'ENV_FILE') }}
         mode: "0600"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
       become: true
 
+    - name: Pull services
+      community.docker.docker_compose_v2_pull:
+        project_src: "{{ dest }}"
+
     - name: Start services
       community.docker.docker_compose_v2:
         project_src: "{{ dest }}"
+        build: never
+        pull: never
+        recreate: always
+
+    - name: Cleanup images
+      community.docker.docker_prune:
+        images: true
+        containers: true
+        containers_filters:
+          # Don't prune containers who have a DONTPRUNE=true label
+          # label:
+          #   - DONTPRUNE=false
+
+          "label!": DONTPRUNE=true
