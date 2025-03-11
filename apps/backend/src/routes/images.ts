@@ -26,11 +26,13 @@ import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 
 const images = new Hono<{ Variables: UserPayload }>();
 
-const storage = new Storage();
+const storage = new Storage({
+  projectId: "aplikacjakonie",
+  keyFilename: "/home/niebieskirekin/Dokumenty/AplikacjaKonie/Kod/key.json",
+});
 images.use(authMiddleware);
 
 const bucketName = "aplikacjakonie-zdjecia-koni";
-
 
 // const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 MB
 // const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -53,10 +55,10 @@ async function generateV4UploadSignedUrl(filename: string) {
   return url;
 }
 
-images.get("/upload-image/:filename", async (c) => {
+images.get("/upload/:filename", async (c) => {
   // Creates a client
   const filename = c.req.param("filename");
-  const signed_url = generateV4UploadSignedUrl(filename);
+  const signed_url = await generateV4UploadSignedUrl(filename);
 
   return c.json({
     url: signed_url,
@@ -81,13 +83,14 @@ async function generateV4ReadSignedUrl(filename: string) {
   return url;
 }
 
-images.get('/read-image/:filename', async (c) => {
+images.get("/read/:filename", async (c) => {
   // Creates a client
   const filename = c.req.param("filename");
-  const signed_url = generateV4ReadSignedUrl(filename);
+  const signed_url = await generateV4ReadSignedUrl(filename);
 
   return c.json({
     url: signed_url,
   });
 });
-)
+
+export default images;

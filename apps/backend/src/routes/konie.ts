@@ -9,7 +9,7 @@ import {
   podkucia,
   rozrody,
   zdarzeniaProfilaktyczne,
-  zdjeciaKoniInsertSchema,
+  // zdjeciaKoniInsertSchema,
   zdjeciaKoni,
 } from "../db/schema";
 import { db } from "../db";
@@ -21,8 +21,8 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
-import { imageSize } from "image-size";
+// import { randomUUID } from "node:crypto";
+// import { imageSize } from "image-size";
 
 const horses = new Hono<{ Variables: UserPayload }>();
 
@@ -148,33 +148,33 @@ horses.post(
         await db.with(hodowla).insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
 
-      const dimensions = imageSize(await formData.file!.bytes());
+      // const dimensions = imageSize(await formData.file!.bytes());
 
-      const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
-        id: randomUUID(),
-        kon: newHorse.id,
-        width: dimensions.width,
-        height: dimensions.height,
-        file: formData.file?.name!,
-        default: true,
-      });
+      // const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
+      //   id: randomUUID(),
+      //   kon: newHorse.id,
+      //   width: dimensions.width,
+      //   height: dimensions.height,
+      //   file: formData.file?.name!,
+      //   default: true,
+      // });
 
-      if (!photoValidationResult.success) {
-        console.error(
-          "Błąd walidacji formatu zdjecia:",
-          photoValidationResult.error
-        );
-        return c.json(
-          { success: false, error: photoValidationResult.error.flatten() },
-          400
-        );
-      }
+      // if (!photoValidationResult.success) {
+      //   console.error(
+      //     "Błąd walidacji formatu zdjecia:",
+      //     photoValidationResult.error
+      //   );
+      //   return c.json(
+      //     { success: false, error: photoValidationResult.error.flatten() },
+      //     400
+      //   );
+      // }
 
-      await db
-        .with(hodowla)
-        .insert(zdjeciaKoni)
-        .values(photoValidationResult.data)
-        .returning({ id: zdjeciaKoni.id });
+      // await db
+      //   .with(hodowla)
+      //   .insert(zdjeciaKoni)
+      //   .values(photoValidationResult.data)
+      //   .returning({ id: zdjeciaKoni.id });
 
       return c.json({ message: "Koń został dodany!", horse: newHorse });
     } catch (error) {
