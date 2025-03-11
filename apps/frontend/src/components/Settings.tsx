@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
 function Settings() {
-  const [settings, setSettings] = useState({
-    podkucia: { active: true, days: 0, time: "09:00" },
-    odrobaczanie: { active: true, days: 0, time: "09:00" },
-    suplementy: { active: true, days: 0, time: "09:00" },
-    szczepienie: { active: true, days: 0, time: "09:00" },
-    dentysta: { active: true, days: 0, time: "09:00" },
-    inne: { active: true, days: 0, time: "09:00" },
-  });
+    const [settings, setSettings] = useState({
+      podkucia: { active: true, days: 0, time: "09:00", notify: "nic" },
+      odrobaczanie: { active: true, days: 0, time: "09:00", notify: "nic" },
+      suplementy: { active: true, days: 0, time: "09:00", notify: "nic" },
+      szczepienie: { active: true, days: 0, time: "09:00", notify: "nic" },
+      dentysta: { active: true, days: 0, time: "09:00", notify: "nic" },
+      inne: { active: true, days: 0, time: "09:00", notify: "nic" },
+    });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,17 +23,17 @@ function Settings() {
         if (!response.ok) throw new Error(data.error || "Błąd pobierania ustawień");
         setSettings(data);
       } catch (err) {
-        setError((err as Error).message);
+        // setError((err as Error).message);
       }
     };
     fetchSettings();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string, type: "days" | "time" | "active") => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string, type: "days" | "time" | "active" | "notify") => {
     let value: any = e.target.value;
 
     if (type === "active") {
-      value = e.target.checked;
+      value = (e.target as HTMLInputElement).checked;
     } else if (type === "days") {
       value = Math.max(0, Number(value));
     } else if (type === "time") {
@@ -76,7 +76,12 @@ function Settings() {
 
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
         {Object.entries(settings).map(([key, value]) => (
-          <div key={key} className="mb-4">
+          <div
+            key={key}
+            className={`mb-4 p-3 rounded-md transition ${
+                value.active ? "bg-gray-100" : "bg-gray-300 line-through opacity-60"
+            }`}
+          >
             <label className="block text-gray-700 font-semibold capitalize mb-1">
               {key.replace("_", " ")}
             </label>
@@ -93,7 +98,7 @@ function Settings() {
                 min="0"
                 name={`${key}-days`}
                 placeholder="Ile dni"
-                className="w-1/3 p-2 border rounded text-center"
+                className="w-1/4 p-2 border rounded text-center"
                 value={value.days}
                 onChange={(e) => handleInputChange(e, key, "days")}
               />
@@ -101,10 +106,22 @@ function Settings() {
                 type="time"
                 step="3600"
                 name={`${key}-time`}
-                className="w-1/3 p-2 border rounded text-center"
+                className="w-1/4 p-2 border rounded text-center"
                 value={value.time}
                 onChange={(e) => handleInputChange(e, key, "time")}
               />
+               <select
+                name={`${key}-notify`}
+                className="w-1/4 p-2 border rounded"
+                value={value.notify}
+                onChange={(e) => handleInputChange(e, key, "notify")}
+                disabled={!value.active}
+              >
+                <option value="oba">Oba</option>
+                <option value="push">Push</option>
+                <option value="email">Email</option>
+                <option value="nic">Nic</option>
+              </select>
             </div>
           </div>
         ))}
