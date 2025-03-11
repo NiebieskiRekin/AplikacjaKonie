@@ -424,7 +424,7 @@ export const notifications = hodowlakoni.table("notifications", {
   days: integer("days").notNull(),
   time: time({ precision: 6, withTimezone: true }).notNull(),
   active: boolean("active").notNull().default(true),
-
+  rodzajWysylania: rodzajeWysylaniaNotifications("rodzaje_wysylania_notifications").notNull(),
 });
 
 export const notificationsSelectSchema = createSelectSchema(notifications);
