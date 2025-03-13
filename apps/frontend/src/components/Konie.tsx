@@ -22,18 +22,13 @@ function Konie() {
   useEffect(() => {
     const fetchHorses = async () => {
       try {
-        const response = await fetch("/api/konie");
+        const horses = await fetch("/api/konie");
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");
+        const data = await horses.json();
+        if (!horses.ok) throw new Error(data.error || "Błąd pobierania koni");
 
-        const horeseWithImages = data.map((horse: Horse) => ({
-          ...horse,
-          imageUrl: `${import.meta.env.BASE_URL}horses/${horse.id}.jpg`,
-        }));
-
-        setHorses(horeseWithImages);
-        setFilteredHorses(horeseWithImages);
+        setHorses(data);
+        setFilteredHorses(data);
       } catch (err) {
         setError((err as Error).message);
       }
