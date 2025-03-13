@@ -9,7 +9,6 @@ import {
   podkucia,
   rozrody,
   zdarzeniaProfilaktyczne,
-  // zdjeciaKoniInsertSchema,
   zdjeciaKoni,
 } from "../db/schema";
 import { db } from "../db";
@@ -21,10 +20,8 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
 import { generateV4ReadSignedUrl } from "./images";
-// import { randomUUID } from "node:crypto";
-// import { imageSize } from "image-size";
+import { InsertZdjecieKonia } from "../db/types";
 
 const horses = new Hono<{ Variables: UserPayload }>();
 
@@ -54,7 +51,7 @@ horses.get("/", async (c) => {
         // hodowla:konie.hodowla,
         rodzajKonia: konie.rodzajKonia,
         // plec: konie.plec,
-        imageUrl: zdjeciaKoni.file,
+        img_uuid: zdjeciaKoni.id
       })
       .from(user)
       .innerJoin(
@@ -67,24 +64,14 @@ horses.get("/", async (c) => {
       )
       .orderBy(sql`LOWER(${konie.nazwa})`);
     
-    const images_urls: Array<Promise<string>> = [];
-    for (const horse of horsesList){
-      if (horse.imageUrl === null){
-        continue;
-      }
-      images_urls.push(generateV4ReadSignedUrl(horse.imageUrl))
-    }
-    Promise.all(images_urls).then((images)=>{
-      for (let i=0; i<images.length; i++){
-        horsesList[i].imageUrl = images[i]
-      }  
-    }).catch(()=>{
-      for (let i=0; i<horsesList.length; i++){
-        horsesList[i].imageUrl = null;
-      } 
-    });
+    const images_urls = await Promise.allSettled(horsesList.map((val)=>{
+      if (val.img_uuid !== null)
+        return generateV4ReadSignedUrl(val.img_uuid);
+      else
+        return null;
+    }))
 
-    return c.json(horsesList);
+    return c.json({horsesList,images_urls});
   } catch (error) {
     return c.json({ error: "Błąd zapytania" });
   }
@@ -186,13 +173,17 @@ horses.post(
       //   );
       // }
 
-      // await db
-      //   .with(hodowla)
-      //   .insert(zdjeciaKoni)
-      //   .values(photoValidationResult.data)
-      //   .returning({ id: zdjeciaKoni.id });
+      const img: InsertZdjecieKonia =  {
+        kon: newHorse.id,
+        default: true
+      }
 
-      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: randomUUID() });
+      const uuid_of_image = await db
+        .insert(zdjeciaKoni)
+        .values(img)
+        .returning({ id: zdjeciaKoni.id });
+
+      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: uuid_of_image[0]});
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
