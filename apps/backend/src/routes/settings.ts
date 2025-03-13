@@ -10,53 +10,21 @@ import { zValidator } from "@hono/zod-validator";
 import { eq, and, asc } from "drizzle-orm";
 import { z } from "zod";
 
-export const notificationsInsertSchema = z.object({
 const common_settings = z.object({
-  days: z.number().int().nonnegative(),
-  time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-  active: z.boolean(),
-  rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-});
-
-export const notificationsInsertSchema = z.object({
-  Podkucia: common_settings,
-  Odrobaczanie: common_settings,
-  "Podanie suplementów": common_settings,
-  Szczepienie: common_settings,
-  Dentysta: common_settings,
-  Inne: common_settings,
-});
-    Odrobaczanie: z.object({
-        days: z.number().int().nonnegative(),
-        time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-        active: z.boolean(),
-        rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-    }),
-    "Podanie suplementów": z.object({
-        days: z.number().int().nonnegative(),
-        time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-        active: z.boolean(),
-        rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-    }),
-    Szczepienie: z.object({
-        days: z.number().int().nonnegative(),
-        time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-        active: z.boolean(),
-        rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-    }),
-    Dentysta: z.object({
-        days: z.number().int().nonnegative(),
-        time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-        active: z.boolean(),
-        rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-    }),
-    Inne: z.object({
-        days: z.number().int().nonnegative(),
-        time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-        active: z.boolean(),
-        rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-    }),
-});
+    days: z.number().int().nonnegative(),
+    time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
+    active: z.boolean(),
+    rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
+  });
+  
+  export const notificationsInsertSchema = z.object({
+    Podkucia: common_settings,
+    Odrobaczanie: common_settings,
+    "Podanie suplementów": common_settings,
+    Szczepienie: common_settings,
+    Dentysta: common_settings,
+    Inne: common_settings,
+  });
 
 const settingsRoute = new Hono<{ Variables: UserPayload }>();
 
