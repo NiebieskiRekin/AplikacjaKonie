@@ -207,7 +207,7 @@ function AddEvent() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             {selectedHorses.length > 0
-              ? `Wybrano ${selectedHorses.length} koni`
+              ? `Liczba wybranych Koni: ${selectedHorses.length}`
               : "Kliknij, aby wybrać konie"}
           </button>
 
