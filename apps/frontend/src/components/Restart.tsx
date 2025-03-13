@@ -44,9 +44,9 @@ function Restart() {
         }
         throw new Error(data.error || "Błąd zmiany hasła");
       }
-      setSuccess("Hasło zostało zmienione! Zaloguj się ponownie.");
+      setSuccess("Hasło zostało zmienione! Wylogowanie nastąpi po 5s. \n Zaloguj się ponownie.");
       setError("");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/login"), 6000);
     } catch (err) {
       setError((err as Error).message);
       setSuccess("");
@@ -60,7 +60,7 @@ function Restart() {
           Zmień hasło
         </h2>
         {error && <p className="text-center text-red-600">{error}</p>}
-        {success && <p className="text-center text-green-600">{success}</p>}
+        {success && <p className="text-center text-green-600 font-bold">{success}</p>}
         <form onSubmit={handlePasswordChange} className="mt-4">
           <label className="mb-2 block relative">
             <span className="text-gray-700">Stare hasło:</span>
