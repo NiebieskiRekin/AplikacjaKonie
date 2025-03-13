@@ -21,6 +21,8 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
+import { generateV4ReadSignedUrl } from "./images";
 // import { randomUUID } from "node:crypto";
 // import { imageSize } from "image-size";
 
@@ -64,6 +66,23 @@ horses.get("/", async (c) => {
         and(eq(konie.id, zdjeciaKoni.kon), eq(zdjeciaKoni.default, true))
       )
       .orderBy(sql`LOWER(${konie.nazwa})`);
+    
+    const images_urls: Array<Promise<string>> = [];
+    for (const horse of horsesList){
+      if (horse.imageUrl === null){
+        continue;
+      }
+      images_urls.push(generateV4ReadSignedUrl(horse.imageUrl))
+    }
+    Promise.all(images_urls).then((images)=>{
+      for (let i=0; i<images.length; i++){
+        horsesList[i].imageUrl = images[i]
+      }  
+    }).catch(()=>{
+      for (let i=0; i<horsesList.length; i++){
+        horsesList[i].imageUrl = null;
+      } 
+    });
 
     return c.json(horsesList);
   } catch (error) {
@@ -80,7 +99,6 @@ horses.post(
       .extend({
         hodowla: z.optional(z.number()),
         rocznikUrodzenia: z.number({ coerce: true }),
-        file: z.optional(z.string()),
         // .custom<File | undefined>()
         // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
         //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
@@ -142,8 +160,6 @@ horses.post(
       };
 
       //Wstawienie danych do bazy
-      // TODO: transakcyjność?
-      // TODO: upload file to object storage
       const newHorse = (
         await db.with(hodowla).insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
@@ -176,7 +192,7 @@ horses.post(
       //   .values(photoValidationResult.data)
       //   .returning({ id: zdjeciaKoni.id });
 
-      return c.json({ message: "Koń został dodany!", horse: newHorse });
+      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: randomUUID() });
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
@@ -299,7 +315,24 @@ horses.get("/:id{[0-9]+}", async (c) => {
     return c.json({ error: "Koń nie znaleziony" }, 404);
   }
 
-  return c.json(horse);
+  const images_names = await db
+  .select({name: zdjeciaKoni.file})
+  .from(zdjeciaKoni)
+  .where(eq(zdjeciaKoni.kon,horse.id));
+
+  const images_signed_urls: Array<string> = []
+
+  const images_urls: Array<Promise<string>> = [];
+  for (const img of images_names){
+    images_urls.push(generateV4ReadSignedUrl(img.name))
+  }
+  Promise.all(images_urls).then((images)=>{
+    for (let i=0; i<images.length; i++){
+      images_signed_urls.push(images[i])
+    }  
+  }).catch(()=>{});
+
+  return c.json({...horse, images_signed_urls});
 });
 
 horses.get("/:id{[0-9]+}/events", async (c) => {

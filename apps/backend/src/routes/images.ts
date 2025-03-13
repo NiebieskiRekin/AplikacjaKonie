@@ -38,7 +38,7 @@ const bucketName = "aplikacjakonie-zdjecia-koni";
 // const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 // https://github.com/googleapis/nodejs-storage/blob/main/samples/generateV4UploadSignedUrl.js
-async function generateV4UploadSignedUrl(filename: string) {
+export async function generateV4UploadSignedUrl(filename: string) {
   // These options will allow temporary uploading of the file with outgoing
   const options: GetSignedUrlConfig = {
     version: "v4",
@@ -66,7 +66,7 @@ images.get("/upload/:filename", async (c) => {
 });
 
 // https://github.com/googleapis/nodejs-storage/blob/main/samples/generateV4ReadSignedUrl.js
-async function generateV4ReadSignedUrl(filename: string) {
+export async function generateV4ReadSignedUrl(filename: string) {
   // These options will allow temporary read access to the file
   const options: GetSignedUrlConfig = {
     version: "v4",
