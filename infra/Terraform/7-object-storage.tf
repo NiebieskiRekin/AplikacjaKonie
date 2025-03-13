@@ -7,7 +7,7 @@ resource "google_storage_bucket" "zdjecia-koni" {
   public_access_prevention    = "enforced"
 
   cors {
-    origin          = var.cors_domains
+    origin          = ["*"] # var.cors_domains
     method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
     response_header = ["*"]
     max_age_seconds = 3600
