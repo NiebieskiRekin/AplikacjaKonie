@@ -34,8 +34,7 @@ function AddKonia() {
       !numerChipa ||
       !rocznikUrodzenia ||
       !rodzajKonia ||
-      !plec ||
-      !file
+      !plec
     ) {
       setError("Wszystkie pola są wymagane.");
       return;
@@ -50,7 +49,9 @@ function AddKonia() {
     formData.append("dataOdejsciaZeStajni", dataOdejscia);
     formData.append("rodzajKonia", rodzajKonia);
     formData.append("plec", plec);
-    formData.append("file", file);
+    if (file) {
+      formData.append("file", file);
+    }
 
     try {
       const response = await fetch("/api/konie", {
@@ -161,10 +162,10 @@ function AddKonia() {
             className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
-            <option value="Konie hodowlane">Koń hodowlane</option>
-            <option value="Konie rekreacyjne">Koń rekreacyjne</option>
+            <option value="Konie hodowlane">Koń hodowlany</option>
+            <option value="Konie rekreacyjne">Koń rekreacyjny</option>
             <option value="Źrebaki">Źrebak</option>
-            <option value="Konie sportowe">Koń sportowe</option>
+            <option value="Konie sportowe">Koń sportowy</option>
           </select>
         </label>
 
