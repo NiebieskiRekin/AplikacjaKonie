@@ -72,7 +72,7 @@ horses.get("/", async (c) => {
         return null;
     }))
 
-    return c.json({horsesList,images_urls});
+    return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i]}}));
   } catch {
     return c.json({ error: "Błąd zapytania" });
   }
@@ -85,8 +85,9 @@ horses.post(
     "form",
     konieInsertSchema
       .extend({
-        hodowla: z.optional(z.number()),
         rocznikUrodzenia: z.number({ coerce: true }),
+        dataPrzybyciaDoStajni: z.optional(z.string()),
+        dataOdejsciaZeStajni: z.optional(z.string()),
         // .custom<File | undefined>()
         // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
         //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
@@ -95,6 +96,8 @@ horses.post(
         //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
         //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
         // ),
+      }).omit({
+        hodowla: true
       })
       .strict()
   ),
@@ -102,31 +105,13 @@ horses.post(
     try {
       const userId = getUserFromContext(c);
 
-      const hodowla = db
-        .$with("user_hodowla")
-        .as(
-          db
+
+      const hodowla = await db
             .select({ hodowla: users.hodowla })
             .from(users)
-            .where(eq(users.id, userId))
-        );
+            .where(eq(users.id, userId));
 
       const formData = c.req.valid("form");
-
-      const validationResult = konieInsertSchema
-        .extend({
-          hodowla: z.optional(z.number()),
-          dataPrzybyciaDoStajni: z.optional(z.string()),
-          dataOdejsciaZeStajni: z.optional(z.string()),
-        })
-        .safeParse(formData);
-      if (!validationResult.success) {
-        console.error("Błąd walidacji danych konia:", validationResult.error);
-        return c.json(
-          { success: false, error: validationResult.error.flatten() },
-          400
-        );
-      }
 
       const convert_empty_to_null = (date: string | null | undefined) => {
         if (date === null || date === undefined || date?.length == 0) {
@@ -137,19 +122,19 @@ horses.post(
       };
 
       const kon_to_insert = {
-        ...validationResult.data,
+        ...formData,
         dataPrzybyciaDoStajni: convert_empty_to_null(
-          validationResult.data.dataPrzybyciaDoStajni
+          formData.dataPrzybyciaDoStajni
         ),
         dataOdejsciaZeStajni: convert_empty_to_null(
-          validationResult.data.dataOdejsciaZeStajni
+          formData.dataOdejsciaZeStajni
         ),
-        hodowla: sql`(select * from user_hodowla)`,
+        hodowla: hodowla[0].hodowla,
       };
 
       //Wstawienie danych do bazy
       const newHorse = (
-        await db.with(hodowla).insert(konie).values(kon_to_insert).returning()
+        await db.insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
 
       // const dimensions = imageSize(await formData.file!.bytes());

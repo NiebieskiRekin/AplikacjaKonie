@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { IoMdCloseCircle } from "react-icons/io";
+import apiClient from "../lib/api-client"
 
 type Horse = {
   id: number;
@@ -20,8 +21,10 @@ function Konie() {
   const navigate = useNavigate();
 
   useEffect(() => {
+
     const fetchHorses = async () => {
       try {
+        
         const horses = await fetch("/api/konie");
 
         const data = await horses.json();

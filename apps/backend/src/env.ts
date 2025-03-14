@@ -41,6 +41,8 @@ const ServeEnv = z.object({
   JWT_ALG: z.enum(["HS256", "HS384" , "HS512" , "RS256" ,"RS384" , "RS512" , "PS256" , "PS384" , "PS512" , "ES256" , "ES384" , "ES512" , "EdDSA"]).default("HS256"),
 
   ADMIN_PASSWORD_BCRYPT: z.string(),
+
+  GOOGLE_API_KEY_BASE64: z.string().base64()
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
