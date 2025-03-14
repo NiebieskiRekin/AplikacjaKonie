@@ -19,6 +19,11 @@ import {
   rozrodyInsertSchema,
   chorobyInsertSchema,
   leczeniaInsertSchema,
+  chorobyUpdateSchema,
+  leczeniaUpdateSchema,
+  rozrodyUpdateSchema,
+  zdarzeniaProfilaktyczneUpdateSchema,
+  podkuciaUpdateSchema,
 } from "../db/schema";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -503,10 +508,13 @@ wydarzeniaRoute.get("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
   }
 });
 
-wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
+// TODO: rewrite to multiple PUT requests
+wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", zValidator("json",chorobyUpdateSchema.or(leczeniaUpdateSchema).or(rozrodyUpdateSchema).or(zdarzeniaProfilaktyczneUpdateSchema).or(podkuciaUpdateSchema)), async (c) => {
   const eventId = Number(c.req.param("id"));
-  const eventType = c.req.param("type").toLowerCase();
-  const updatedData = await c.req.json();
+  const eventTypes = z.enum(["choroby", "leczenia", "rozrody", "zdarzenia-profilaktyczne","podkucie"])
+  const eventType = eventTypes.parse(c.req.param("type").toLowerCase());
+
+  const updatedData = c.req.valid("json");
 
   if (isNaN(eventId)) {
     return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
@@ -519,11 +527,7 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
       case "choroby":
         updateQuery = await db
           .update(choroby)
-          .set({
-            dataRozpoczecia: updatedData.dataRozpoczecia,
-            dataZakonczenia: updatedData.dataZakonczenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
+          .set(updatedData)
           .where(eq(choroby.id, eventId))
           .returning();
         break;
@@ -531,12 +535,7 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
       case "leczenia":
         updateQuery = await db
           .update(leczenia)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            weterynarz: updatedData.weterynarz,
-            choroba: updatedData.choroba,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
+          .set(updatedData)
           .where(eq(leczenia.id, eventId))
           .returning();
         break;
@@ -544,12 +543,7 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
       case "rozrody":
         updateQuery = await db
           .update(rozrody)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            weterynarz: updatedData.weterynarz,
-            rodzajZdarzenia: updatedData.rodzajZdarzenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
+          .set(updatedData)
           .where(eq(rozrody.id, eventId))
           .returning();
         break;
@@ -557,13 +551,7 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
       case "zdarzenia-profilaktyczne":
         updateQuery = await db
           .update(zdarzeniaProfilaktyczne)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            dataWaznosci: updatedData.dataWaznosci,
-            weterynarz: updatedData.weterynarz,
-            rodzajZdarzenia: updatedData.rodzajZdarzenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
+          .set(updatedData)
           .where(eq(zdarzeniaProfilaktyczne.id, eventId))
           .returning();
         break;
@@ -571,11 +559,7 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
       case "podkucie":
         updateQuery = await db
           .update(podkucia)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            dataWaznosci: updatedData.dataWaznosci,
-            kowal: updatedData.kowal,
-          })
+          .set(updatedData)
           .where(eq(podkucia.id, eventId))
           .returning();
         break;
@@ -595,6 +579,8 @@ wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
   }
 });
 
+// TODO: rewrite to multiple DELETE requests
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 wydarzeniaRoute.delete("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
   const eventId = Number(c.req.param("id"));
   const eventType = c.req.param("type").toLowerCase();

@@ -10,6 +10,7 @@ import {
   rozrody,
   zdarzeniaProfilaktyczne,
   zdjeciaKoni,
+  konieUpdateSchema,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -72,7 +73,7 @@ horses.get("/", async (c) => {
     }))
 
     return c.json({horsesList,images_urls});
-  } catch (error) {
+  } catch {
     return c.json({ error: "Błąd zapytania" });
   }
 });
@@ -192,7 +193,7 @@ horses.post(
 );
 
 // edit kon
-horses.put("/:id{[0-9]+}", async (c) => {
+horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
   // TODO: check if object can be edited by this user
   // const userId = getUserFromContext(c);
 
@@ -202,40 +203,11 @@ horses.put("/:id{[0-9]+}", async (c) => {
   }
 
   try {
-    const {
-      nazwa,
-      numerPrzyzyciowy,
-      numerChipa,
-      rocznikUrodzenia,
-      dataPrzybycia,
-      dataOdejscia,
-      rodzajKonia,
-      plec,
-    } = await c.req.json();
-
-    if (
-      !nazwa ||
-      !numerPrzyzyciowy ||
-      !numerChipa ||
-      !rocznikUrodzenia ||
-      !rodzajKonia ||
-      !plec
-    ) {
-      return c.json({ error: "Wszystkie pola są wymagane" }, 400);
-    }
+    const d = c.req.valid("json");
 
     const updatedHorse = await db
       .update(konie)
-      .set({
-        nazwa,
-        numerPrzyzyciowy,
-        numerChipa,
-        rocznikUrodzenia,
-        dataPrzybyciaDoStajni: dataPrzybycia || null,
-        dataOdejsciaZeStajni: dataOdejscia || null,
-        rodzajKonia,
-        plec,
-      })
+      .set(d)
       .where(eq(konie.id, horseId))
       .returning();
 
@@ -253,7 +225,7 @@ horses.put("/:id{[0-9]+}", async (c) => {
   }
 });
 
-// TODO
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 horses.delete("/:id{[0-9]+}", async (c) => {
   try {
     const userId = getUserFromContext(c);
@@ -307,7 +279,7 @@ horses.get("/:id{[0-9]+}", async (c) => {
   }
 
   const images_names = await db
-  .select({name: zdjeciaKoni.file})
+  .select({name: zdjeciaKoni.id})
   .from(zdjeciaKoni)
   .where(eq(zdjeciaKoni.kon,horse.id));
 
