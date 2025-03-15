@@ -9,6 +9,7 @@ type Horse = {
   numerPrzyzyciowy: string;
   rodzajKonia: string;
   imageUrl?: string;
+  imageId?: string;
 };
 
 function Konie() {
@@ -79,11 +80,11 @@ function Konie() {
               onClick={() => navigate(`/konie/${horse.id}`)}
             >
               <img
-                src={horse.imageUrl}
+                src={horse.imageUrl || "/horses/default.jpg"}
                 alt={horse.nazwa}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedImage(horse.imageUrl!);
+                  setSelectedImage(e.currentTarget.src!);
                 }}
                 onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
                 className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"

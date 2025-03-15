@@ -57,10 +57,9 @@ function KonieDetails() {
         if (!response.ok)
           throw new Error(data.error || "Błąd pobierania danych konia");
 
-        // tutaj będziesz trzeba pobierać wszystkie zdjęcia dla danego konia z db
         setHorse({
           ...data,
-          imageUrls: [`/horses/${data.id}-1.jpg`, `/horses/${data.id}-2.jpg`],
+          imageUrls: data.images_signed_urls || [],
         });
       } catch (err) {
         setError((err as Error).message);
