@@ -52,7 +52,8 @@ horses.get("/", async (c) => {
         // hodowla:konie.hodowla,
         rodzajKonia: konie.rodzajKonia,
         // plec: konie.plec,
-        img_uuid: zdjeciaKoni.id
+        imageId: zdjeciaKoni.id,
+        imageUrl: sql<string>`null` // Placeholder
       })
       .from(user)
       .innerJoin(
@@ -65,12 +66,15 @@ horses.get("/", async (c) => {
       )
       .orderBy(sql`LOWER(${konie.nazwa})`);
     
-    const images_urls = await Promise.allSettled(horsesList.map((val)=>{
-      if (val.img_uuid !== null)
-        return generateV4ReadSignedUrl(val.img_uuid);
-      else
-        return null;
-    }))
+      const images_urls = await Promise.all(
+        horsesList.map((horse) =>
+          horse.imageId ? generateV4ReadSignedUrl(horse.imageId) : null
+        )
+      );
+  
+      horsesList.forEach((horse, index) => {
+        horse.imageUrl = images_urls[index] || ""; 
+      });
 
     return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i]}}));
   } catch {
@@ -268,19 +272,11 @@ horses.get("/:id{[0-9]+}", async (c) => {
   .from(zdjeciaKoni)
   .where(eq(zdjeciaKoni.kon,horse.id));
 
-  const images_signed_urls: Array<string> = []
+  const images_signed_urls = await Promise.all(
+    images_names.map((img) => generateV4ReadSignedUrl(img.name))
+  );
 
-  const images_urls: Array<Promise<string>> = [];
-  for (const img of images_names){
-    images_urls.push(generateV4ReadSignedUrl(img.name))
-  }
-  Promise.all(images_urls).then((images)=>{
-    for (let i=0; i<images.length; i++){
-      images_signed_urls.push(images[i])
-    }  
-  }).catch(()=>{});
-
-  return c.json({...horse, images_signed_urls});
+  return c.json({ ...horse, images_signed_urls });
 });
 
 horses.get("/:id{[0-9]+}/events", async (c) => {
