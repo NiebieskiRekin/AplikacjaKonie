@@ -9,8 +9,8 @@ import {
   podkucia,
   rozrody,
   zdarzeniaProfilaktyczne,
-  // zdjeciaKoniInsertSchema,
   zdjeciaKoni,
+  konieUpdateSchema,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -21,10 +21,8 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
 import { generateV4ReadSignedUrl } from "./images";
-// import { randomUUID } from "node:crypto";
-// import { imageSize } from "image-size";
+import { InsertZdjecieKonia } from "../db/types";
 
 const horses = new Hono<{ Variables: UserPayload }>();
 
@@ -54,7 +52,7 @@ horses.get("/", async (c) => {
         // hodowla:konie.hodowla,
         rodzajKonia: konie.rodzajKonia,
         // plec: konie.plec,
-        imageUrl: zdjeciaKoni.file,
+        img_uuid: zdjeciaKoni.id
       })
       .from(user)
       .innerJoin(
@@ -67,25 +65,15 @@ horses.get("/", async (c) => {
       )
       .orderBy(sql`LOWER(${konie.nazwa})`);
     
-    const images_urls: Array<Promise<string>> = [];
-    for (const horse of horsesList){
-      if (horse.imageUrl === null){
-        continue;
-      }
-      images_urls.push(generateV4ReadSignedUrl(horse.imageUrl))
-    }
-    Promise.all(images_urls).then((images)=>{
-      for (let i=0; i<images.length; i++){
-        horsesList[i].imageUrl = images[i]
-      }  
-    }).catch(()=>{
-      for (let i=0; i<horsesList.length; i++){
-        horsesList[i].imageUrl = null;
-      } 
-    });
+    const images_urls = await Promise.allSettled(horsesList.map((val)=>{
+      if (val.img_uuid !== null)
+        return generateV4ReadSignedUrl(val.img_uuid);
+      else
+        return null;
+    }))
 
-    return c.json(horsesList);
-  } catch (error) {
+    return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i]}}));
+  } catch {
     return c.json({ error: "Błąd zapytania" });
   }
 });
@@ -97,8 +85,9 @@ horses.post(
     "form",
     konieInsertSchema
       .extend({
-        hodowla: z.optional(z.number()),
         rocznikUrodzenia: z.number({ coerce: true }),
+        dataPrzybyciaDoStajni: z.optional(z.string()),
+        dataOdejsciaZeStajni: z.optional(z.string()),
         // .custom<File | undefined>()
         // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
         //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
@@ -107,6 +96,8 @@ horses.post(
         //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
         //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
         // ),
+      }).omit({
+        hodowla: true
       })
       .strict()
   ),
@@ -114,31 +105,13 @@ horses.post(
     try {
       const userId = getUserFromContext(c);
 
-      const hodowla = db
-        .$with("user_hodowla")
-        .as(
-          db
+
+      const hodowla = await db
             .select({ hodowla: users.hodowla })
             .from(users)
-            .where(eq(users.id, userId))
-        );
+            .where(eq(users.id, userId));
 
       const formData = c.req.valid("form");
-
-      const validationResult = konieInsertSchema
-        .extend({
-          hodowla: z.optional(z.number()),
-          dataPrzybyciaDoStajni: z.optional(z.string()),
-          dataOdejsciaZeStajni: z.optional(z.string()),
-        })
-        .safeParse(formData);
-      if (!validationResult.success) {
-        console.error("Błąd walidacji danych konia:", validationResult.error);
-        return c.json(
-          { success: false, error: validationResult.error.flatten() },
-          400
-        );
-      }
 
       const convert_empty_to_null = (date: string | null | undefined) => {
         if (date === null || date === undefined || date?.length == 0) {
@@ -149,19 +122,19 @@ horses.post(
       };
 
       const kon_to_insert = {
-        ...validationResult.data,
+        ...formData,
         dataPrzybyciaDoStajni: convert_empty_to_null(
-          validationResult.data.dataPrzybyciaDoStajni
+          formData.dataPrzybyciaDoStajni
         ),
         dataOdejsciaZeStajni: convert_empty_to_null(
-          validationResult.data.dataOdejsciaZeStajni
+          formData.dataOdejsciaZeStajni
         ),
-        hodowla: sql`(select * from user_hodowla)`,
+        hodowla: hodowla[0].hodowla,
       };
 
       //Wstawienie danych do bazy
       const newHorse = (
-        await db.with(hodowla).insert(konie).values(kon_to_insert).returning()
+        await db.insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
 
       // const dimensions = imageSize(await formData.file!.bytes());
@@ -186,13 +159,17 @@ horses.post(
       //   );
       // }
 
-      // await db
-      //   .with(hodowla)
-      //   .insert(zdjeciaKoni)
-      //   .values(photoValidationResult.data)
-      //   .returning({ id: zdjeciaKoni.id });
+      const img: InsertZdjecieKonia =  {
+        kon: newHorse.id,
+        default: true
+      }
 
-      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: randomUUID() });
+      const uuid_of_image = await db
+        .insert(zdjeciaKoni)
+        .values(img)
+        .returning({ id: zdjeciaKoni.id });
+
+      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: uuid_of_image[0]});
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
@@ -201,7 +178,7 @@ horses.post(
 );
 
 // edit kon
-horses.put("/:id{[0-9]+}", async (c) => {
+horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
   // TODO: check if object can be edited by this user
   // const userId = getUserFromContext(c);
 
@@ -211,40 +188,11 @@ horses.put("/:id{[0-9]+}", async (c) => {
   }
 
   try {
-    const {
-      nazwa,
-      numerPrzyzyciowy,
-      numerChipa,
-      rocznikUrodzenia,
-      dataPrzybycia,
-      dataOdejscia,
-      rodzajKonia,
-      plec,
-    } = await c.req.json();
-
-    if (
-      !nazwa ||
-      !numerPrzyzyciowy ||
-      !numerChipa ||
-      !rocznikUrodzenia ||
-      !rodzajKonia ||
-      !plec
-    ) {
-      return c.json({ error: "Wszystkie pola są wymagane" }, 400);
-    }
+    const d = c.req.valid("json");
 
     const updatedHorse = await db
       .update(konie)
-      .set({
-        nazwa,
-        numerPrzyzyciowy,
-        numerChipa,
-        rocznikUrodzenia,
-        dataPrzybyciaDoStajni: dataPrzybycia || null,
-        dataOdejsciaZeStajni: dataOdejscia || null,
-        rodzajKonia,
-        plec,
-      })
+      .set(d)
       .where(eq(konie.id, horseId))
       .returning();
 
@@ -262,7 +210,7 @@ horses.put("/:id{[0-9]+}", async (c) => {
   }
 });
 
-// TODO
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 horses.delete("/:id{[0-9]+}", async (c) => {
   try {
     const userId = getUserFromContext(c);
@@ -316,7 +264,7 @@ horses.get("/:id{[0-9]+}", async (c) => {
   }
 
   const images_names = await db
-  .select({name: zdjeciaKoni.file})
+  .select({name: zdjeciaKoni.id})
   .from(zdjeciaKoni)
   .where(eq(zdjeciaKoni.kon,horse.id));
 

@@ -6,7 +6,7 @@ resource "google_service_account" "image-uploader-and-notifier" {
 // Google Cloud Object Storage
 resource "google_project_iam_member" "storage_uploader_binding" {
   project = local.project_id
-  role    = "roles/storage.objectCreator"
+  role    = "roles/storage.objectUser"
   member  = "serviceAccount:${google_service_account.image-uploader-and-notifier.email}"
 }
 

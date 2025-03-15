@@ -27,7 +27,7 @@ kowaleRoute.get("/", async (c) => {
         )
       );
     return c.json(allKowale);
-  } catch (error) {
+  } catch {
     return c.json({ error: "Błąd pobierania kowali" }, 500);
   }
 });
@@ -62,7 +62,7 @@ kowaleRoute.post("/", zValidator("json", kowaleInsertSchema), async (c) => {
 
     c.status(201);
     return c.json(result);
-  } catch (error) {
+  } catch {
     return c.json({ error: "Błąd pdodania kowala" }, 500);
   }
 });

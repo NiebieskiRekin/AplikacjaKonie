@@ -117,7 +117,7 @@ export const authMiddleware: MiddlewareHandler<{
     const decoded = await verify(accessToken!, ProcessEnv.JWT_ACCESS_PUBLIC_KEY, ProcessEnv.JWT_ALG);
     c.set("jwtPayload", decoded);
     await next();
-  } catch (error) {
+  } catch {
     deleteCookie(c, ACCESS_TOKEN);
     setCookie(c, ON_SUCCESS_REDIRECT_TO, c.req.path, refresh_cookie_opts);
     return c.redirect("/api/refresh");

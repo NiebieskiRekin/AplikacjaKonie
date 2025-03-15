@@ -27,11 +27,7 @@ const login = new Hono().post(
   ),
   async (c) => {
     try {
-      const { email, password } = await c.req.json();
-
-      if (!email || !password) {
-        return c.json({ error: "Email i hasło są wymagane." }, 400);
-      }
+      const { email, password } = c.req.valid("json");
 
       const [user] = await db
         .select()
