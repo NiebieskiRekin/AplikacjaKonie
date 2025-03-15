@@ -26,11 +26,9 @@ const common_settings = z.object({
     Inne: common_settings,
   });
 
-const settingsRoute = new Hono<{ Variables: UserPayload }>();
-
-settingsRoute.use(authMiddleware);
-
-settingsRoute.get("/", async (c) => {
+const settingsRoute = new Hono<{Variables: { jwtPayload:UserPayload} }>()
+    .use(authMiddleware)
+    .get("/", async (c) => {
     try {
         const userId = getUserFromContext(c);
         if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
@@ -56,11 +54,7 @@ settingsRoute.get("/", async (c) => {
         console.error("Błąd pobierania ustawień:", error);
         return c.json({ error: "Błąd pobierania ustawień" }, 500);
     }
-});
-
-
-
-settingsRoute.put("/", zValidator("json", notificationsInsertSchema), async (c) => {
+}).put("/", zValidator("json", notificationsInsertSchema), async (c) => {
     try {
         const userId = getUserFromContext(c);
         if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);

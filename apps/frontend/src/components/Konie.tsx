@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { IoMdCloseCircle } from "react-icons/io";
+import APIClient from "../lib/api-client";
+import formatApiError from "../lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 
 type Horse = {
   id: number;
@@ -26,25 +29,27 @@ function Konie() {
 
     const fetchHorses = async () => {
       try {
+        const resp = await APIClient.konie.$get();
         
-        const horses = await fetch("/api/konie");
+        if (resp.ok){
+          const horses = await resp.json();
+          const data = horses.data;
+          data.forEach(element => {
+            element.img_url = element.img_url ?? default_img;
+          });
+          setHorses(data);
+          setFilteredHorses(data);
+        } else {
+          const data = await resp.json();
+          setError(data.error);
+        }
 
-        const data: Horse[] = await horses.json();
-        console.log(data);
-        if (!horses.ok) throw new Error(data.error || "Błąd pobierania koni");
-
-        data.forEach(element => {
-          element.img_url = element.img_url ?? default_img;
-        });
-
-        setHorses(data);
-        setFilteredHorses(data);
       } catch (err) {
-        setError((err as Error).message);
+        setError(formatApiError(err as ErrorSchema));
       }
     };
 
-    fetchHorses();
+    fetchHorses().then(()=>{}).catch(()=>{})
   }, []);
 
   useEffect(() => {

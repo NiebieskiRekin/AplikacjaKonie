@@ -24,13 +24,11 @@ import { z } from "zod";
 import { generateV4ReadSignedUrl } from "./images";
 import { InsertZdjecieKonia } from "../db/types";
 
-const horses = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
-
-horses.use(authMiddleware);
-
-horses.get("/", async (c) => {
+// eslint-disable-next-line drizzle/enforce-delete-with-where
+const konieRoute = new Hono<{ Variables: { jwtPayload:UserPayload} }>()
+  .use(authMiddleware)
+  .get("/", async (c) => {
   const userId = getUserFromContext(c);
-
   try {
     const user = db
       .select()
@@ -71,14 +69,11 @@ horses.get("/", async (c) => {
         )
       );
 
-    return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i].status === "fulfilled" ? images_urls[i].value! : null }}));
+    return c.json({success: true, data: horsesList.map((k,i)=>{return {...k, img_url: images_urls[i].status === "fulfilled" ? images_urls[i].value! : null }})}, 200);
   } catch {
-    return c.json({ error: "Błąd zapytania" });
+    return c.json({success: false, error: "Bład zapytania"}, 400);
   }
-});
-
-// add new koń
-horses.post(
+}).post(
   "/",
   zValidator(
     "form",
@@ -174,10 +169,8 @@ horses.post(
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
     }
   }
-);
-
-// edit kon
-horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
+)
+  .put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
   // TODO: check if object can be edited by this user
   // const userId = getUserFromContext(c);
 
@@ -207,10 +200,7 @@ horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
     console.error("Błąd aktualizacji konia:", error);
     return c.json({ error: "Błąd aktualizacji konia" }, 500);
   }
-});
-
-// eslint-disable-next-line drizzle/enforce-delete-with-where
-horses.delete("/:id{[0-9]+}", async (c) => {
+}).delete("/:id{[0-9]+}", async (c) => {
   try {
     const userId = getUserFromContext(c);
     if (!userId) {
@@ -239,9 +229,7 @@ horses.delete("/:id{[0-9]+}", async (c) => {
     console.error("Błąd podczas usuwania konia:", error);
     return c.json({ error: "Błąd podczas usuwania konia" }, 500);
   }
-});
-
-horses.get("/:id{[0-9]+}", async (c) => {
+}).get("/:id{[0-9]+}", async (c) => {
   const userId = getUserFromContext(c);
   if (!userId) {
     return c.json({ error: "Błąd autoryzacji" }, 401);
@@ -271,10 +259,9 @@ horses.get("/:id{[0-9]+}", async (c) => {
     images_names.map((img) => generateV4ReadSignedUrl(img.name))
   );
 
-  return c.json({ ...horse, images_signed_urls });
-});
-
-horses.get("/:id{[0-9]+}/events", async (c) => {
+  return c.json({...horse, images_signed_urls});
+})
+  .get("/:id{[0-9]+}/events", async (c) => {
   const horseId = Number(c.req.param("id"));
   if (isNaN(horseId)) {
     return c.json({ error: "Nieprawidłowy identyfikator konia." }, 400);
@@ -341,9 +328,7 @@ horses.get("/:id{[0-9]+}/events", async (c) => {
     console.error("Błąd pobierania zdarzeń konia:", error);
     return c.json({ error: "Błąd pobierania zdarzeń konia." }, 500);
   }
-});
-
-horses.get("/:id{[0-9]+}/active-events", async (c) => {
+}).get("/:id{[0-9]+}/active-events", async (c) => {
   const userId = getUserFromContext(c);
   if (!userId) {
     return c.json({ error: "Błąd autoryzacji" }, 401);
@@ -408,6 +393,23 @@ horses.get("/:id{[0-9]+}/active-events", async (c) => {
     console.error("Błąd pobierania aktywnych zdarzeń:", error);
     return c.json({ error: "Błąd pobierania aktywnych zdarzeń." }, 500);
   }
+}).get("/choroby/:id{[0-9]+}", async (c) => {
+  const userId = getUserFromContext(c);
+  if (!userId) {
+    return c.json({ error: "Błąd autoryzacji" }, 401);
+  }
+
+  const horseId = Number(c.req.param("id"));
+  if (isNaN(horseId)) {
+    return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+  }
+
+  const chorobaList = await db
+    .select()
+    .from(choroby)
+    .where(eq(choroby.kon, horseId));
+
+  return c.json(chorobaList);
 });
 
 // get kon per type
@@ -435,23 +437,4 @@ horses.get("/:id{[0-9]+}/active-events", async (c) => {
 //     return c.json(horsesList);
 //   });
 
-horses.get("/choroby/:id{[0-9]+}", async (c) => {
-  const userId = getUserFromContext(c);
-  if (!userId) {
-    return c.json({ error: "Błąd autoryzacji" }, 401);
-  }
-
-  const horseId = Number(c.req.param("id"));
-  if (isNaN(horseId)) {
-    return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
-  }
-
-  const chorobaList = await db
-    .select()
-    .from(choroby)
-    .where(eq(choroby.kon, horseId));
-
-  return c.json(chorobaList);
-});
-
-export default horses;
+export default konieRoute;
