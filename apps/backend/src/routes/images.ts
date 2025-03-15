@@ -25,7 +25,7 @@ import { z } from "zod";
 import { GetSignedUrlConfig, Storage,  } from "@google-cloud/storage";
 import { ProcessEnv } from "../env";
 
-const images = new Hono<{ Variables: UserPayload }>();
+const images = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
 
 const key_schema = z.object({
   "type": z.string(),

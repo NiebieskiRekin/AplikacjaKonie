@@ -109,7 +109,7 @@ export async function checkTokens(tokens: {
 }
 
 export const authMiddleware: MiddlewareHandler<{
-  Variables: UserPayload;
+  Variables: { jwtPayload:UserPayload};
 }> = async (c, next) => {
   const accessToken = getCookie(c, ACCESS_TOKEN);
 
@@ -124,7 +124,7 @@ export const authMiddleware: MiddlewareHandler<{
   }
 };
 
-export function getUserFromContext(c: Context<{ Variables: UserPayload }>) {
+export function getUserFromContext(c: Context<{ Variables: { jwtPayload:UserPayload}; }>) {
   const user: number = c.get("jwtPayload").userId;
   return user;
 }

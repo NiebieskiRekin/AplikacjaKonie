@@ -9,7 +9,7 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 
-const weterynarzeRoute = new Hono<{ Variables: UserPayload }>();
+const weterynarzeRoute = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
 
 weterynarzeRoute.use(authMiddleware);
 

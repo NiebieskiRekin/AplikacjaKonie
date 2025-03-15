@@ -24,7 +24,7 @@ import { z } from "zod";
 import { generateV4ReadSignedUrl } from "./images";
 import { InsertZdjecieKonia } from "../db/types";
 
-const horses = new Hono<{ Variables: UserPayload }>();
+const horses = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
 
 horses.use(authMiddleware);
 

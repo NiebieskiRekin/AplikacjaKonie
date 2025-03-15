@@ -9,7 +9,7 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 
-const kowaleRoute = new Hono<{ Variables: UserPayload }>();
+const kowaleRoute =new Hono<{ Variables: { jwtPayload:UserPayload} }>();
 
 kowaleRoute.use(authMiddleware);
 

@@ -28,7 +28,7 @@ import {
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
-const wydarzeniaRoute = new Hono<{ Variables: UserPayload }>();
+const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
 
 wydarzeniaRoute.use(authMiddleware);
 
