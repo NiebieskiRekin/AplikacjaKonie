@@ -1,4 +1,5 @@
 import type { ApiRoutes } from "@aplikacja-konie/backend/routes";
+export type * as BackendTypes from "@aplikacja-konie/backend/schema";
 
 import { hc } from "hono/client";
 
