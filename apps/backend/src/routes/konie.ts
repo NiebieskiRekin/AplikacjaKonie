@@ -53,7 +53,6 @@ horses.get("/", async (c) => {
         rodzajKonia: konie.rodzajKonia,
         // plec: konie.plec,
         imageId: zdjeciaKoni.id,
-        imageUrl: sql<string>`null` // Placeholder
       })
       .from(user)
       .innerJoin(
@@ -66,17 +65,13 @@ horses.get("/", async (c) => {
       )
       .orderBy(sql`LOWER(${konie.nazwa})`);
     
-      const images_urls = await Promise.all(
+      const images_urls = await Promise.allSettled(
         horsesList.map((horse) =>
           horse.imageId ? generateV4ReadSignedUrl(horse.imageId) : null
         )
       );
-  
-      horsesList.forEach((horse, index) => {
-        horse.imageUrl = images_urls[index] || ""; 
-      });
 
-    return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i]}}));
+    return c.json(horsesList.map((k,i)=>{return {...k, img_url: images_urls[i].status === "fulfilled" ? images_urls[i].value! : null }}));
   } catch {
     return c.json({ error: "Błąd zapytania" });
   }

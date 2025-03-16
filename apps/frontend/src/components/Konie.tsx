@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { IoMdCloseCircle } from "react-icons/io";
-import apiClient from "../lib/api-client"
 
 type Horse = {
   id: number;
   nazwa: string;
   numerPrzyzyciowy: string;
   rodzajKonia: string;
-  imageUrl?: string;
-  imageId?: string;
+  img_url: string | null;
+  imageId: string | null;
 };
+
+const default_img = "/horses/default.png";
 
 function Konie() {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -28,8 +29,13 @@ function Konie() {
         
         const horses = await fetch("/api/konie");
 
-        const data = await horses.json();
+        const data: Horse[] = await horses.json();
+        console.log(data);
         if (!horses.ok) throw new Error(data.error || "Błąd pobierania koni");
+
+        data.forEach(element => {
+          element.img_url = element.img_url ?? default_img;
+        });
 
         setHorses(data);
         setFilteredHorses(data);
@@ -80,13 +86,13 @@ function Konie() {
               onClick={() => navigate(`/konie/${horse.id}`)}
             >
               <img
-                src={horse.imageUrl || "/horses/default.jpg"}
+                src={horse.img_url || default_img}
                 alt={horse.nazwa}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedImage(e.currentTarget.src!);
+                  setSelectedImage(e.currentTarget.src);
                 }}
-                onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
+                onError={(e)=>e.currentTarget.src = default_img}
                 className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
               />
               <div className="p-3">
