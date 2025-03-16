@@ -28,7 +28,7 @@ weterynarzeRoute.get("/", async (c) => {
         )
       );
     return c.json(allWeterynarze);
-  } catch (error) {
+  } catch {
     return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
   }
 });
@@ -87,7 +87,7 @@ weterynarzeRoute.post("/", zValidator("json", weterynarzeInsertSchema), async (c
 
     c.status(201);
     return c.json(result);
-  } catch (error) {
+  } catch {
     return c.json({ error: "Błąd dodania weterynarza" }, 500);
   }
 });

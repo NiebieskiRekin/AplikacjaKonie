@@ -139,9 +139,9 @@ export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
   kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  file: varchar("file").notNull(),
-  width: integer("width").notNull(),
-  height: integer("height").notNull(),
+  // file: varchar("file").notNull(),
+  // width: integer("width").notNull(),
+  // height: integer("height").notNull(),
   default: boolean("default").notNull(),
 });
 

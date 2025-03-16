@@ -7,6 +7,7 @@ import { authMiddleware, UserPayload } from "../middleware/auth";
 export const hodowcyKoniRoute = new Hono<{ Variables: UserPayload }>();
 hodowcyKoniRoute.use(authMiddleware);
 
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 hodowcyKoniRoute
   .get("/", async (c) => {
     const hodowcyKoni_result = await db.select().from(hodowcyKoni);
