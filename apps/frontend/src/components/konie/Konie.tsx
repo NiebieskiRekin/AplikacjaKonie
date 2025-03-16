@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { NavLink } from "react-router";
 import { IoMdCloseCircle } from "react-icons/io";
-import APIClient from "../lib/api-client";
-import formatApiError from "../lib/format-api-error";
+import APIClient from "../../lib/api-client";
+import formatApiError from "../../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
-import Kon from "./components/Kon";
+import Kon from "../components/Kon";
 
 type Horse = {
   id: number;
@@ -23,8 +23,6 @@ function Konie() {
   const [filteredHorses, setFilteredHorses] = useState<Horse[]>([]);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHorses = async () => {
@@ -70,12 +68,12 @@ function Konie() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-lg border border-gray-300 p-3 text-white shadow-md focus:ring focus:ring-green-500 md:w-2/3"
         />
-        <button
-          onClick={() => navigate("/konie/add")}
+        <NavLink
+          to={"/konie/add"}
           className="w-full rounded-lg bg-green-600 px-5 py-3 text-white shadow-md transition hover:bg-green-700 md:w-auto"
         >
           ➕ Dodaj konia
-        </button>
+        </NavLink>
       </div>
 
       <h2 className="mb-6 text-center text-3xl font-bold text-white">
