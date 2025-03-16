@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "../index.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
 
