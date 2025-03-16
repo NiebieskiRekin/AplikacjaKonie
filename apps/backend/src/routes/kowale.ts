@@ -9,96 +9,92 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 
-const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
+// eslint-disable-next-line drizzle/enforce-delete-with-where
+const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
+  .use(authMiddleware)
+  .get("/", async (c) => {
+    try {
+      const user = getUserFromContext(c);
+      if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-kowaleRoute.use(authMiddleware);
-
-kowaleRoute.get("/", async (c) => {
-  try {
-    const user = getUserFromContext(c);
-    if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
-
-    const allKowale = await db
-      .select()
-      .from(kowale)
-      .where(
-        eq(
-          kowale.hodowla,
-          db.select({ h: users.hodowla }).from(users).where(eq(users.id, user))
-        )
-      );
-    return c.json(allKowale);
-  } catch {
-    return c.json({ error: "Błąd pobierania kowali" }, 500);
-  }
-});
-
-kowaleRoute.get("/:id{[0-9]+}", async (c) => {
-  try {
-    const user = getUserFromContext(c);
-    if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
-
-    const weterynarz = await db
-      .select()
-      .from(kowale)
-      .where(
-        and(
+      const allKowale = await db
+        .select()
+        .from(kowale)
+        .where(
           eq(
             kowale.hodowla,
             db
               .select({ h: users.hodowla })
               .from(users)
               .where(eq(users.id, user))
-          ),
-          eq(kowale.id, Number(c.req.param("id")))
-        )
-      )
-      .then((res) => res[0]);
-    return c.json(weterynarz);
-  } catch (error) {
-    return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
-  }
-});
-
-kowaleRoute.post("/", zValidator("json", kowaleInsertSchema), async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-    const { imieINazwisko, numerTelefonu } = c.req.valid("json");
-
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
-
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+          )
+        );
+      return c.json(allKowale);
+    } catch {
+      return c.json({ error: "Błąd pobierania kowali" }, 500);
     }
+  })
+  .get("/:id{[0-9]+}", async (c) => {
+    try {
+      const user = getUserFromContext(c);
+      if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-    const newKowal = {
-      imieINazwisko,
-      numerTelefonu,
-      hodowla: Number(hodowla.hodowlaId),
-    };
+      const weterynarz = await db
+        .select()
+        .from(kowale)
+        .where(
+          and(
+            eq(
+              kowale.hodowla,
+              db
+                .select({ h: users.hodowla })
+                .from(users)
+                .where(eq(users.id, user))
+            ),
+            eq(kowale.id, Number(c.req.param("id")))
+          )
+        )
+        .then((res) => res[0]);
+      return c.json(weterynarz);
+    } catch {
+      return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
+    }
+  })
+  .post("/", zValidator("json", kowaleInsertSchema), async (c) => {
+    try {
+      const userId = getUserFromContext(c);
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-    const result = await db
-      .insert(kowale)
-      .values(newKowal)
-      .returning()
-      .then((res) => res[0]);
+      const hodowla = await db
+        .select({ hodowlaId: users.hodowla })
+        .from(users)
+        .where(eq(users.id, userId))
+        .then((res) => res[0]);
 
-    c.status(201);
-    return c.json(result);
-  } catch {
-    return c.json({ error: "Błąd pdodania kowala" }, 500);
-  }
-});
+      if (!hodowla) {
+        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      }
 
-kowaleRoute.put(
-  "/:id{[0-9]+}",
-  zValidator("json", kowaleInsertSchema),
-  async (c) => {
+      const newKowal = {
+        imieINazwisko,
+        numerTelefonu,
+        hodowla: Number(hodowla.hodowlaId),
+      };
+
+      const result = await db
+        .insert(kowale)
+        .values(newKowal)
+        .returning()
+        .then((res) => res[0]);
+
+      c.status(201);
+      return c.json(result);
+    } catch {
+      return c.json({ error: "Błąd pdodania kowala" }, 500);
+    }
+  })
+  .put("/:id{[0-9]+}", zValidator("json", kowaleInsertSchema), async (c) => {
     try {
       const userId = getUserFromContext(c);
       if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
@@ -128,46 +124,44 @@ kowaleRoute.put(
 
       c.status(201);
       return c.json(result);
-    } catch (error) {
+    } catch {
       return c.json({ error: "Błąd dodania weterynarza" }, 500);
     }
-  }
-);
+  })
+  .delete("/:id{[0-9]+}", async (c) => {
+    try {
+      const eventId = Number(c.req.param("id"));
+      const userId = getUserFromContext(c);
 
-kowaleRoute.delete("/:id{[0-9]+}", async (c) => {
-  try {
-    const eventId = Number(c.req.param("id"));
-    const userId = getUserFromContext(c);
+      if (!userId) {
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+      }
 
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+      const hodowla = await db
+        .select({ hodowlaId: users.hodowla })
+        .from(users)
+        .where(eq(users.id, userId))
+        .then((res) => res[0]);
 
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
+      if (!hodowla) {
+        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      }
 
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-    }
-
-    await db
-      .delete(kowale)
-      .where(
-        and(
-          eq(kowale.id, eventId),
-          eq(kowale.hodowla, Number(hodowla.hodowlaId))
+      await db
+        .delete(kowale)
+        .where(
+          and(
+            eq(kowale.id, eventId),
+            eq(kowale.hodowla, Number(hodowla.hodowlaId))
+          )
         )
-      )
-      .returning();
+        .returning();
 
-    return c.json({ success: "Koń został usunięty" });
-  } catch (error) {
-    console.error("Błąd podczas usuwania konia:", error);
-    return c.json({ error: "Błąd podczas usuwania konia" }, 500);
-  }
-});
+      return c.json({ success: "Koń został usunięty" });
+    } catch (error) {
+      console.error("Błąd podczas usuwania konia:", error);
+      return c.json({ error: "Błąd podczas usuwania konia" }, 500);
+    }
+  });
 
 export default kowaleRoute;
