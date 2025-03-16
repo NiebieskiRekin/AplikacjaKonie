@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 
 type Weterynarz = {
   id: number;
@@ -44,6 +44,7 @@ function Weterynarze() {
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
+              <th className="border border-gray-300 px-4 py-2 w-12">✏️ Edytuj</th>
               <th className="border border-gray-300 px-4 py-2">👤 Imię i nazwisko</th>
               <th className="border border-gray-300 px-4 py-2">📞 Numer telefonu</th>
             </tr>
@@ -52,6 +53,9 @@ function Weterynarze() {
             {weterynarze.length > 0 ? (
               weterynarze.map((wet) => (
                 <tr key={wet.id} className="text-center transition hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">
+                    <Link to={`/weterynarze/edit/${wet.id}`} className="text-blue-600 hover:underline">✍🏻</Link>
+                  </td>
                   <td className="border border-gray-300 px-4 py-2">{wet.imieINazwisko}</td>
                   <td className="border border-gray-300 px-4 py-2">{wet.numerTelefonu || "Brak danych"}</td>
                 </tr>
