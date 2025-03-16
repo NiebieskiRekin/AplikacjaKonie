@@ -8,7 +8,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Aplikacja Koni</title>
+        <title>Moje konie</title>
         <Meta />
         <Links />
         <link rel="icon" type="image/svg" href="/favicon.svg" />
