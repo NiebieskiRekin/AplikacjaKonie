@@ -42,12 +42,7 @@ function AddEvent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
-        const horsesRes = await fetch("/api/konie", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const horsesRes = await fetch("/api/konie");
         const horsesData = await horsesRes.json();
         if (!horsesRes.ok)
           throw new Error(horsesData.error || "Błąd pobierania koni");
@@ -55,9 +50,7 @@ function AddEvent() {
         setHorses(horsesData);
 
         const peopleType = type === "podkucie" ? "kowale" : "weterynarze";
-        const peopleRes = await fetch(`/api/${peopleType}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const peopleRes = await fetch(`/api/${peopleType}`);
         const peopleData = await peopleRes.json();
         if (!peopleRes.ok)
           throw new Error(peopleData.error || "Błąd pobierania osób");
@@ -112,9 +105,6 @@ function AddEvent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
       const payload = {
         konieId: selectedHorses,
         dataZdarzenia: date,
@@ -143,7 +133,6 @@ function AddEvent() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });

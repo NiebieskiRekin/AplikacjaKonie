@@ -85,12 +85,7 @@ function KonieDetails() {
 
     const fetchActiveEvents = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Brak tokena. Zaloguj się.");
-
-        const response = await fetch(`/api/konie/${id}/active-events`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(`/api/konie/${id}/active-events`);
 
         const data = await response.json();
         if (!response.ok)
@@ -131,16 +126,14 @@ function KonieDetails() {
 
   const handleDeleteHorse = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/konie/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) throw new Error("Nie udało się usunąć konia");
 
       setIsDeletePopupOpen(false);
-      navigate("/konie");
+      await navigate("/konie");
     } catch (err) {
       setError((err as Error).message);
     }

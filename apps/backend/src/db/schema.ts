@@ -8,6 +8,7 @@ import {
   uuid,
   customType,
   boolean,
+  time 
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -15,7 +16,7 @@ import {
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-// import z from "zod";
+import z from "zod";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -48,6 +49,14 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
   "rodzaje_zdarzen_rozrodczych",
   ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
 );
+
+export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
+  "Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"
+]);
+
+export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania_notifications", [
+  "Push", "Email", "Oba", "Żadne"
+]);
 
 export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
 
@@ -363,7 +372,10 @@ export const users = hodowlakoni.table("users", {
 });
 
 export const usersSelectSchema = createSelectSchema(users);
-export const usersInsertSchema = createInsertSchema(users);
+export const usersInsertSchema = createInsertSchema(users).extend({
+  createdAt: z.optional(z.string().date()),
+  refreshTokenVersion: z.optional(z.number()),
+});
 export const usersUpdateSchema = createUpdateSchema(users);
 
 // Tabela łącząca użytkowników z uprawnieniami;
@@ -401,3 +413,24 @@ export const userPermissionsRelations = relations(
     }),
   })
 );
+
+// tabelka z preferencji użytkownika dot. powiadomień
+export const notifications = hodowlakoni.table("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  rodzajZdarzenia: rodzajeNotifications("rodzaje_notifications").notNull(),
+  days: integer("days").notNull(),
+  time: time({ precision: 6, withTimezone: true }).notNull(),
+  active: boolean("active").notNull().default(true),
+  rodzajWysylania: rodzajeWysylaniaNotifications("rodzaje_wysylania_notifications").notNull(),
+});
+
+export const notificationsSelectSchema = createSelectSchema(notifications);
+export const notificationsUpdateSchema = createUpdateSchema(notifications);
+export const notificationsInsertSchema = createInsertSchema(notifications);
+
+// TODO
+// export const notificationsRelations = 
+// }));

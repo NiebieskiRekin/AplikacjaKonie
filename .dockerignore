@@ -1,0 +1,31 @@
+## .dockerignore
+# Ignore node_modules directory to prevent copying unnecessary dependencies
+node_modules
+
+# Don't copy sensitive data
+.env*
+*secret
+infra
+.ansible
+
+# Ignore local editor settings
+.vscode
+
+# Ignore Git repository files
+.git
+
+# Ignore build folder
+dist
+build
+
+# Ignore ESLint, Prettier, and other configuration files that aren't needed in the final image
+.eslint*
+.prettier*
+.editorconfig
+.DS_Store
+
+# Other fun stuff
+.dockerignore
+Dockerfile
+README.md
+.tsbuildinfo

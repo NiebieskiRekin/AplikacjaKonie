@@ -29,7 +29,7 @@ export async function createAccessToken(user_id: number) {
   const now = Math.floor(Date.now() / 1000);
   return sign(
     { userId: user_id, exp: now + fifteen_minutes },
-    ProcessEnv.JWT_SECRET
+    ProcessEnv.JWT_ACCESS_PRIVATE_KEY, ProcessEnv.JWT_ALG
   );
 }
 
@@ -45,12 +45,14 @@ export async function createAuthTokens(user: {
       refreshTokenVersion: user.refreshTokenVersion,
       exp: now + thirty_days,
     },
-    ProcessEnv.REFRESH_JWT_SECRET
+    ProcessEnv.JWT_REFRESH_PRIVATE_KEY,
+    ProcessEnv.JWT_ALG
   );
 
   const accessToken = sign(
     { userId: user.userId, exp: now + fifteen_minutes },
-    ProcessEnv.JWT_SECRET
+    ProcessEnv.JWT_ACCESS_PRIVATE_KEY,
+    ProcessEnv.JWT_ALG
   );
 
   return { accessToken: await accessToken, refreshToken: await refreshToken };
@@ -80,7 +82,7 @@ export async function checkTokens(tokens: {
 }) {
   try {
     const decoded = <UserPayload>(
-      await verify(tokens.accessToken, ProcessEnv.JWT_SECRET)
+      await verify(tokens.accessToken, ProcessEnv.JWT_ACCESS_PUBLIC_KEY, ProcessEnv.JWT_ALG)
     );
     return decoded;
   } catch {
@@ -89,7 +91,7 @@ export async function checkTokens(tokens: {
 
   try {
     const data = <RefreshTokenData>(
-      await verify(tokens.refreshToken, ProcessEnv.REFRESH_JWT_SECRET)
+      await verify(tokens.refreshToken, ProcessEnv.JWT_REFRESH_PUBLIC_KEY, ProcessEnv.JWT_ALG)
     );
     const user = (
       await db.select().from(users).where(eq(users.id, data.userId)).limit(1)
@@ -112,7 +114,7 @@ export const authMiddleware: MiddlewareHandler<{
   const accessToken = getCookie(c, ACCESS_TOKEN);
 
   try {
-    const decoded = await verify(accessToken!, ProcessEnv.JWT_SECRET);
+    const decoded = await verify(accessToken!, ProcessEnv.JWT_ACCESS_PUBLIC_KEY, ProcessEnv.JWT_ALG);
     c.set("jwtPayload", decoded);
     await next();
   } catch (error) {

@@ -1,7 +1,6 @@
 {
   "name": "aplikacja-konie",
   "workspaces": [
-    "packages/eslint-config",
     "apps/backend",
     "packages/api-client",
     "apps/frontend"
