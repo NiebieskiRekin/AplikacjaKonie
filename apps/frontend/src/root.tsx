@@ -11,7 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <title>Aplikacja Koni</title>
         <Meta />
         <Links />
-        <link rel="icon" type="image/png" href="/glowne.webp" />
+        <link rel="icon" type="image/svg" href="/favicon.svg" />
       </head>
       <body>
         {children}
