@@ -13,7 +13,8 @@
     "db:push": "drizzle-kit push --config=./src/db/drizzle.config.ts",
     "db:pull": "drizzle-kit pull --config=./src/db/drizzle.config.ts",
     "db:generate": "drizzle-kit generate --config=./src/db/drizzle.config.ts",
-    "db:studio": "drizzle-kit studio --host localhost --port 3002 --verbose --config=./src/db/drizzle.config.ts"
+    "db:studio": "drizzle-kit studio --host localhost --port 3002 --verbose --config=./src/db/drizzle.config.ts",
+    "typecheck": "tsc --noEmit --preserveWatchOutput"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

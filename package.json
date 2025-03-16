@@ -11,7 +11,8 @@
     "build": "npm --prefix apps/backend run build && npm --prefix packages/api-client run build && npm --prefix apps/frontend run build",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
-    "format": "npx prettier . -w"
+    "format": "npx prettier . -w",
+    "typecheck": "npm --prefix apps/backend run typecheck && npm --prefix packages/api-client run typecheck && npm --prefix apps/frontend run typecheck"
   },
   "license": "MIT",
   "repository": {
