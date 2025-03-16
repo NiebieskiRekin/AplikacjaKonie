@@ -21,27 +21,33 @@ export default [
     ]),
 
     ...prefix("wydarzenia", [
-      index("./components/Wydarzenia.tsx"),
-      route("add/:type", "./components/AddWydarzenie.tsx"),
-      route(":id/rozrody", "./components/events/Rozrody.tsx"),
-      route(":id/choroby", "./components/events/Choroby.tsx"),
-      route(":id/leczenia", "./components/events/Leczenia.tsx"),
-      route(":id/profilaktyczne", "./components/events/Profilaktyczne.tsx"),
-      route(":id/:type/:eventId/edit", "./components/EditHorseEvent.tsx"),
-      route(":id/podkucia", "./components/events/Podkucia.tsx"),
-      route("add/:id/:type", "./components/AddHorseEvent.tsx"),
+      index("./components/wydarzenia/Wydarzenia.tsx"),
+      route("add/:type", "./components/wydarzenia/DodajWydarzenie.tsx"),
+      route(
+        "add/:id/:type",
+        "./components/wydarzenia/DodajWydarzenieKonia.tsx"
+      ),
+      route(
+        ":id/:type/:eventId/edit",
+        "./components/wydarzenia/EdytujWydarzenie.tsx"
+      ),
+      route(":id/rozrody", "./components/wydarzenia/Rozrody.tsx"),
+      route(":id/choroby", "./components/wydarzenia/Choroby.tsx"),
+      route(":id/leczenia", "./components/wydarzenia/Leczenia.tsx"),
+      route(":id/podkucia", "./components/wydarzenia/Podkucia.tsx"),
+      route(":id/profilaktyczne", "./components/wydarzenia/Profilaktyczne.tsx"),
     ]),
 
     ...prefix("weterynarze", [
-      index("./components/Weterynarze.tsx"),
-      route("add", "./components/AddWeterynarz.tsx"),
-      route("edit/:id", "./components/EditWeterynarz.tsx"),
+      index("./components/weterynarze/Weterynarze.tsx"),
+      route("add", "./components/weterynarze/DodajWeterynarza.tsx"),
+      route("edit/:id", "./components/weterynarze/EdytujWeterynarza.tsx"),
     ]),
 
     ...prefix("kowale", [
-      index("./components/Kowale.tsx"),
-      route("add", "./components/AddKowal.tsx"),
-      route("edit/:id", "./components/EditKowal.tsx"),
+      index("./components/kowale/Kowale.tsx"),
+      route("add", "./components/kowale/DodajKowala.tsx"),
+      route("edit/:id", "./components/kowale/EdytujKowala.tsx"),
     ]),
   ]),
   // * matches all URLs, the ? makes it optional so it will match / as well
