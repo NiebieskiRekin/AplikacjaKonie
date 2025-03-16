@@ -8,7 +8,7 @@ import {
   uuid,
   customType,
   boolean,
-  time 
+  time,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -51,12 +51,18 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
 );
 
 export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
-  "Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"
+  "Podkucia",
+  "Odrobaczanie",
+  "Podanie suplementów",
+  "Szczepienie",
+  "Dentysta",
+  "Inne",
 ]);
 
-export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania_notifications", [
-  "Push", "Email", "Oba", "Żadne"
-]);
+export const rodzajeWysylaniaNotifications = hodowlakoni.enum(
+  "rodzaje_wysylania_notifications",
+  ["Push", "Email", "Oba", "Żadne"]
+);
 
 export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
 
@@ -424,7 +430,9 @@ export const notifications = hodowlakoni.table("notifications", {
   days: integer("days").notNull(),
   time: time({ precision: 6, withTimezone: true }).notNull(),
   active: boolean("active").notNull().default(true),
-  rodzajWysylania: rodzajeWysylaniaNotifications("rodzaje_wysylania_notifications").notNull(),
+  rodzajWysylania: rodzajeWysylaniaNotifications(
+    "rodzaje_wysylania_notifications"
+  ).notNull(),
 });
 
 export const notificationsSelectSchema = createSelectSchema(notifications);
@@ -432,5 +440,5 @@ export const notificationsUpdateSchema = createUpdateSchema(notifications);
 export const notificationsInsertSchema = createInsertSchema(notifications);
 
 // TODO
-// export const notificationsRelations = 
+// export const notificationsRelations =
 // }));

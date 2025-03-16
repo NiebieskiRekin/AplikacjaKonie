@@ -26,15 +26,14 @@ function Konie() {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     const fetchHorses = async () => {
       try {
         const resp = await APIClient.konie.$get();
-        
-        if (resp.ok){
+
+        if (resp.ok) {
           const horses = await resp.json();
           const data = horses.data;
-          data.forEach(element => {
+          data.forEach((element) => {
             element.img_url = element.img_url ?? default_img;
           });
           setHorses(data);
@@ -43,13 +42,14 @@ function Konie() {
           const data = await resp.json();
           setError(data.error);
         }
-
       } catch (err) {
         setError(formatApiError(err as ErrorSchema));
       }
     };
 
-    fetchHorses().then(()=>{}).catch(()=>{})
+    fetchHorses()
+      .then(() => {})
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ function Konie() {
                   e.stopPropagation();
                   setSelectedImage(e.currentTarget.src);
                 }}
-                onError={(e)=>e.currentTarget.src = default_img}
+                onError={(e) => (e.currentTarget.src = default_img)}
                 className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
               />
               <div className="p-3">

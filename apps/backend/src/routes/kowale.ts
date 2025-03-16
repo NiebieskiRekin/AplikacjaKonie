@@ -9,7 +9,7 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 
-const kowaleRoute =new Hono<{ Variables: { jwtPayload:UserPayload} }>();
+const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
 
 kowaleRoute.use(authMiddleware);
 
@@ -45,7 +45,10 @@ kowaleRoute.get("/:id{[0-9]+}", async (c) => {
         and(
           eq(
             kowale.hodowla,
-            db.select({ h: users.hodowla }).from(users).where(eq(users.id, user))
+            db
+              .select({ h: users.hodowla })
+              .from(users)
+              .where(eq(users.id, user))
           ),
           eq(kowale.id, Number(c.req.param("id")))
         )
@@ -92,41 +95,44 @@ kowaleRoute.post("/", zValidator("json", kowaleInsertSchema), async (c) => {
   }
 });
 
-kowaleRoute.put("/:id{[0-9]+}", zValidator("json", kowaleInsertSchema), async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-    const { imieINazwisko, numerTelefonu } = c.req.valid("json");
+kowaleRoute.put(
+  "/:id{[0-9]+}",
+  zValidator("json", kowaleInsertSchema),
+  async (c) => {
+    try {
+      const userId = getUserFromContext(c);
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
+      const hodowla = await db
+        .select({ hodowlaId: users.hodowla })
+        .from(users)
+        .where(eq(users.id, userId))
+        .then((res) => res[0]);
 
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      if (!hodowla) {
+        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      }
+
+      const newKowal = {
+        imieINazwisko,
+        numerTelefonu,
+        hodowla: Number(hodowla.hodowlaId),
+      };
+
+      const result = await db
+        .update(kowale)
+        .set(newKowal)
+        .where(eq(kowale.id, Number(c.req.param("id"))))
+        .returning();
+
+      c.status(201);
+      return c.json(result);
+    } catch (error) {
+      return c.json({ error: "Błąd dodania weterynarza" }, 500);
     }
-
-    const newKowal = {
-      imieINazwisko,
-      numerTelefonu,
-      hodowla: Number(hodowla.hodowlaId),
-    };
-
-    const result = await db
-      .update(kowale)
-      .set(newKowal)
-      .where(eq(kowale.id, Number(c.req.param("id"))))
-      .returning()
-
-    c.status(201);
-    return c.json(result);
-  } catch (error) {
-    return c.json({ error: "Błąd dodania weterynarza" }, 500);
   }
-});
-
+);
 
 kowaleRoute.delete("/:id{[0-9]+}", async (c) => {
   try {
@@ -138,20 +144,24 @@ kowaleRoute.delete("/:id{[0-9]+}", async (c) => {
     }
 
     const hodowla = await db
-    .select({ hodowlaId: users.hodowla })
-    .from(users)
-    .where(eq(users.id, userId))
-    .then((res) => res[0]);
+      .select({ hodowlaId: users.hodowla })
+      .from(users)
+      .where(eq(users.id, userId))
+      .then((res) => res[0]);
 
     if (!hodowla) {
       return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
     }
 
-    await db.delete(kowale)
-    .where(and(
-      eq(kowale.id, eventId),
-      eq(kowale.hodowla, Number(hodowla.hodowlaId))
-    )).returning();
+    await db
+      .delete(kowale)
+      .where(
+        and(
+          eq(kowale.id, eventId),
+          eq(kowale.hodowla, Number(hodowla.hodowlaId))
+        )
+      )
+      .returning();
 
     return c.json({ success: "Koń został usunięty" });
   } catch (error) {

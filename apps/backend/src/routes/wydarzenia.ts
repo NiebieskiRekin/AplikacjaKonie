@@ -28,7 +28,7 @@ import {
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
-const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
+const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
 
 wydarzeniaRoute.use(authMiddleware);
 
@@ -144,7 +144,10 @@ const zdarzenieProfilaktyczneSchema = z.object({
   opisZdarzenia: z.string().min(5),
 });
 
-wydarzeniaRoute.post("/rozrody", zValidator("json", rozrodyInsertSchema), async (c) => {
+wydarzeniaRoute.post(
+  "/rozrody",
+  zValidator("json", rozrodyInsertSchema),
+  async (c) => {
     const _rozrody = c.req.valid("json");
     console.log(_rozrody);
     _rozrody.kon = Number(_rozrody.kon);
@@ -158,9 +161,13 @@ wydarzeniaRoute.post("/rozrody", zValidator("json", rozrodyInsertSchema), async 
 
     c.status(201);
     return c.json(result);
-  });
+  }
+);
 
-wydarzeniaRoute.post("/choroby", zValidator("json", chorobyInsertSchema), async (c) => {
+wydarzeniaRoute.post(
+  "/choroby",
+  zValidator("json", chorobyInsertSchema),
+  async (c) => {
     const _choroby = c.req.valid("json");
     _choroby.kon = Number(_choroby.kon);
 
@@ -172,9 +179,13 @@ wydarzeniaRoute.post("/choroby", zValidator("json", chorobyInsertSchema), async 
 
     c.status(201);
     return c.json(result);
-  });
+  }
+);
 
-wydarzeniaRoute.post("/leczenia", zValidator("json", leczeniaInsertSchema), async (c) => {
+wydarzeniaRoute.post(
+  "/leczenia",
+  zValidator("json", leczeniaInsertSchema),
+  async (c) => {
     const _leczenia = c.req.valid("json");
     _leczenia.kon = Number(_leczenia.kon);
 
@@ -186,7 +197,8 @@ wydarzeniaRoute.post("/leczenia", zValidator("json", leczeniaInsertSchema), asyn
 
     c.status(201);
     return c.json(result);
-  });
+  }
+);
 
 wydarzeniaRoute.post(
   "/podkucie",
@@ -196,7 +208,8 @@ wydarzeniaRoute.post(
       const user = getUserFromContext(c);
       if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-      const { konieId, kowal, dataZdarzenia, dataWaznosci } = c.req.valid("json");
+      const { konieId, kowal, dataZdarzenia, dataWaznosci } =
+        c.req.valid("json");
 
       const konieInfo = await db
         .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
@@ -511,52 +524,66 @@ wydarzeniaRoute.get("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
 });
 
 const wydarzenia_array = [
-  {path: "rozrody", schema: rozrodyUpdateSchema, table: rozrody},
-  {path: "leczenia", schema: leczeniaUpdateSchema, table: leczenia},
-  {path: "choroby", schema: chorobyUpdateSchema, table: choroby},
-  {path: "zdarzenia-profilaktyczne", schema: zdarzeniaProfilaktyczneUpdateSchema, table: zdarzeniaProfilaktyczne},
-  {path: "podkucie", schema: podkuciaUpdateSchema, table: podkucia}
-]
-for (const {path, schema, table} of wydarzenia_array){
-  wydarzeniaRoute.put(`/${path}/:id{[0-9]+}`, zValidator("json",schema), async (c) => {
-    const eventId = Number(c.req.param("id"));
-    const updatedData = c.req.valid("json");
-  
-    if (isNaN(eventId)) {
-      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-    }
-  
-    try {
-      const updateQuery = await db
-      .update(table)
-      .set(updatedData)
-      .where(eq(table.id, eventId))
-      .returning();
-      if (updateQuery.length === 0) {
-        return c.json({ error: "Nie znaleziono wydarzenia do aktualizacji" }, 404);
+  { path: "rozrody", schema: rozrodyUpdateSchema, table: rozrody },
+  { path: "leczenia", schema: leczeniaUpdateSchema, table: leczenia },
+  { path: "choroby", schema: chorobyUpdateSchema, table: choroby },
+  {
+    path: "zdarzenia-profilaktyczne",
+    schema: zdarzeniaProfilaktyczneUpdateSchema,
+    table: zdarzeniaProfilaktyczne,
+  },
+  { path: "podkucie", schema: podkuciaUpdateSchema, table: podkucia },
+];
+for (const { path, schema, table } of wydarzenia_array) {
+  wydarzeniaRoute.put(
+    `/${path}/:id{[0-9]+}`,
+    zValidator("json", schema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
       }
-  
-      return c.json({ success: true, updatedEvent: updateQuery[0] });
-    } catch (error) {
-      console.error("Błąd aktualizacji wydarzenia:", error);
-      return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+
+      try {
+        const updateQuery = await db
+          .update(table)
+          .set(updatedData)
+          .where(eq(table.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] });
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
     }
-  });
+  );
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   wydarzeniaRoute.delete(`/${path}/:id{[0-9]+}`, async (c) => {
     const eventId = Number(c.req.param("id"));
-  
+
     if (isNaN(eventId)) {
       return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
     }
-  
+
     try {
-      const deleteQuery = await db.delete(table).where(eq(table.id, eventId)).returning();
-  
+      const deleteQuery = await db
+        .delete(table)
+        .where(eq(table.id, eventId))
+        .returning();
+
       if (deleteQuery.length === 0) {
         return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
       }
-  
+
       return c.json({ success: true, deletedEvent: deleteQuery[0] });
     } catch (error) {
       console.error("Błąd usuwania wydarzenia:", error);

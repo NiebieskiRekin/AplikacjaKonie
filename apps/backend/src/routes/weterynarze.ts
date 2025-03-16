@@ -9,7 +9,7 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 
-const weterynarzeRoute = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
+const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
 
 weterynarzeRoute.use(authMiddleware);
 
@@ -45,7 +45,10 @@ weterynarzeRoute.get("/:id{[0-9]+}", async (c) => {
         and(
           eq(
             weterynarze.hodowla,
-            db.select({ h: users.hodowla }).from(users).where(eq(users.id, user))
+            db
+              .select({ h: users.hodowla })
+              .from(users)
+              .where(eq(users.id, user))
           ),
           eq(weterynarze.id, Number(c.req.param("id")))
         )
@@ -57,76 +60,83 @@ weterynarzeRoute.get("/:id{[0-9]+}", async (c) => {
   }
 });
 
-weterynarzeRoute.post("/", zValidator("json", weterynarzeInsertSchema), async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-    const { imieINazwisko, numerTelefonu } = c.req.valid("json");
+weterynarzeRoute.post(
+  "/",
+  zValidator("json", weterynarzeInsertSchema),
+  async (c) => {
+    try {
+      const userId = getUserFromContext(c);
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
+      const hodowla = await db
+        .select({ hodowlaId: users.hodowla })
+        .from(users)
+        .where(eq(users.id, userId))
+        .then((res) => res[0]);
 
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      if (!hodowla) {
+        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      }
+
+      const newWeterynarz = {
+        imieINazwisko,
+        numerTelefonu,
+        hodowla: Number(hodowla.hodowlaId),
+      };
+
+      const result = await db
+        .insert(weterynarze)
+        .values(newWeterynarz)
+        .returning()
+        .then((res) => res[0]);
+
+      c.status(201);
+      return c.json(result);
+    } catch {
+      return c.json({ error: "Błąd dodania weterynarza" }, 500);
     }
-
-    const newWeterynarz = {
-      imieINazwisko,
-      numerTelefonu,
-      hodowla: Number(hodowla.hodowlaId),
-    };
-
-    const result = await db
-      .insert(weterynarze)
-      .values(newWeterynarz)
-      .returning()
-      .then((res) => res[0]);
-
-    c.status(201);
-    return c.json(result);
-  } catch {
-    return c.json({ error: "Błąd dodania weterynarza" }, 500);
   }
-});
+);
 
-weterynarzeRoute.put("/:id{[0-9]+}", zValidator("json", weterynarzeInsertSchema), async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-    const { imieINazwisko, numerTelefonu } = c.req.valid("json");
+weterynarzeRoute.put(
+  "/:id{[0-9]+}",
+  zValidator("json", weterynarzeInsertSchema),
+  async (c) => {
+    try {
+      const userId = getUserFromContext(c);
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
+      const hodowla = await db
+        .select({ hodowlaId: users.hodowla })
+        .from(users)
+        .where(eq(users.id, userId))
+        .then((res) => res[0]);
 
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      if (!hodowla) {
+        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      }
+
+      const newWeterynarz = {
+        imieINazwisko,
+        numerTelefonu,
+        hodowla: Number(hodowla.hodowlaId),
+      };
+
+      const result = await db
+        .update(weterynarze)
+        .set(newWeterynarz)
+        .where(eq(weterynarze.id, Number(c.req.param("id"))))
+        .returning();
+
+      c.status(201);
+      return c.json(result);
+    } catch (error) {
+      return c.json({ error: "Błąd dodania weterynarza" }, 500);
     }
-
-    const newWeterynarz = {
-      imieINazwisko,
-      numerTelefonu,
-      hodowla: Number(hodowla.hodowlaId),
-    };
-
-    const result = await db
-      .update(weterynarze)
-      .set(newWeterynarz)
-      .where(eq(weterynarze.id, Number(c.req.param("id"))))
-      .returning()
-
-    c.status(201);
-    return c.json(result);
-  } catch (error) {
-    return c.json({ error: "Błąd dodania weterynarza" }, 500);
   }
-});
-
+);
 
 weterynarzeRoute.delete("/:id{[0-9]+}", async (c) => {
   try {
@@ -138,20 +148,24 @@ weterynarzeRoute.delete("/:id{[0-9]+}", async (c) => {
     }
 
     const hodowla = await db
-    .select({ hodowlaId: users.hodowla })
-    .from(users)
-    .where(eq(users.id, userId))
-    .then((res) => res[0]);
+      .select({ hodowlaId: users.hodowla })
+      .from(users)
+      .where(eq(users.id, userId))
+      .then((res) => res[0]);
 
     if (!hodowla) {
       return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
     }
 
-    await db.delete(weterynarze)
-    .where(and(
-      eq(weterynarze.id, eventId),
-      eq(weterynarze.hodowla, Number(hodowla.hodowlaId))
-    )).returning();
+    await db
+      .delete(weterynarze)
+      .where(
+        and(
+          eq(weterynarze.id, eventId),
+          eq(weterynarze.hodowla, Number(hodowla.hodowlaId))
+        )
+      )
+      .returning();
 
     return c.json({ success: "Koń został usunięty" });
   } catch (error) {

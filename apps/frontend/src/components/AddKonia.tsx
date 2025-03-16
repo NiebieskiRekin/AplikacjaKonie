@@ -72,16 +72,19 @@ function AddKonia() {
       setPlec("");
       // setFile(null);
 
-
-      if (file){
-        const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
-        if (!response_image_url_upload.ok) throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
+      if (file) {
+        const response_image_url_upload = await fetch(
+          `/api/images/upload/${data.image_uuid.id!}`
+        );
+        if (!response_image_url_upload.ok)
+          throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
         const imaage_url_upload = await response_image_url_upload.json();
         const response_uploaded_image = await fetch(imaage_url_upload.url, {
           method: "PUT",
-          body: file
+          body: file,
         });
-        if (!response_uploaded_image.ok) throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
+        if (!response_uploaded_image.ok)
+          throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
       }
     } catch (err) {
       setError((err as Error).message);

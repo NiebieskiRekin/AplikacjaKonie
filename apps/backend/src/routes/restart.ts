@@ -25,7 +25,7 @@ const passwordResetSchema = z
     path: ["confirmNewPassword"],
   });
 
-const restartRoutes = new Hono<{ Variables: { jwtPayload:UserPayload} }>();
+const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
 
 restartRoutes.use(authMiddleware);
 

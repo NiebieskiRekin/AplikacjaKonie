@@ -17,7 +17,8 @@ function Weterynarze() {
       try {
         const response = await fetch("/api/weterynarze");
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
+        if (!response.ok)
+          throw new Error(data.error || "Błąd pobierania danych");
         setweterynarze(data);
       } catch (err) {
         setError((err as Error).message);
@@ -28,8 +29,10 @@ function Weterynarze() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-      <h2 className="text-3xl font-bold text-white mb-6">👨‍⚕️ Lista Weterynarzy</h2>
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+      <h2 className="mb-6 text-3xl font-bold text-white">
+        👨‍⚕️ Lista Weterynarzy
+      </h2>
 
       {error && <p className="text-red-600">{error}</p>}
 
@@ -40,24 +43,42 @@ function Weterynarze() {
         ➕ Dodaj weterynarza
       </button>
 
-      <div className="w-full max-w-4xl bg-white p-4 md:p-6 rounded-lg shadow-lg overflow-x-auto">
+      <div className="w-full max-w-4xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-4 py-2 w-12">✏️ Edytuj</th>
-              <th className="border border-gray-300 px-4 py-2">👤 Imię i nazwisko</th>
-              <th className="border border-gray-300 px-4 py-2">📞 Numer telefonu</th>
+              <th className="w-12 border border-gray-300 px-4 py-2">
+                ✏️ Edytuj
+              </th>
+              <th className="border border-gray-300 px-4 py-2">
+                👤 Imię i nazwisko
+              </th>
+              <th className="border border-gray-300 px-4 py-2">
+                📞 Numer telefonu
+              </th>
             </tr>
           </thead>
           <tbody>
             {weterynarze.length > 0 ? (
               weterynarze.map((wet) => (
-                <tr key={wet.id} className="text-center transition hover:bg-gray-100">
+                <tr
+                  key={wet.id}
+                  className="text-center transition hover:bg-gray-100"
+                >
                   <td className="border border-gray-300 px-4 py-2">
-                    <Link to={`/weterynarze/edit/${wet.id}`} className="text-blue-600 hover:underline">✍🏻</Link>
+                    <Link
+                      to={`/weterynarze/edit/${wet.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      ✍🏻
+                    </Link>
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">{wet.imieINazwisko}</td>
-                  <td className="border border-gray-300 px-4 py-2">{wet.numerTelefonu || "Brak danych"}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {wet.imieINazwisko}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {wet.numerTelefonu || "Brak danych"}
+                  </td>
                 </tr>
               ))
             ) : (
