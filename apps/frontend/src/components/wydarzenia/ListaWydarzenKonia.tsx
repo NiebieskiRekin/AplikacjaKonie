@@ -1,6 +1,8 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router";
+import { useParams, Link, redirect } from "react-router";
 
+// TODO: consider a type that is anything more than undefined
 type Event = {
   id: number;
   _id: number;
@@ -17,25 +19,27 @@ type Event = {
 };
 
 function HorseEventList({ type }: { type: string }) {
-  const { id } = useParams(); // Pobieramy ID konia z URL
+  const { id } = useParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`/api/wydarzenia/${id}/${type}`);
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-        setEvents(data);
-        console.log(response);
+        const response = await APIClient.wydarzenia[":id{[0-9]+}"][
+          ":type{[A-Za-z_]+}"
+        ].$get({ param: { id: id!, type: type } });
+        if (response.ok) {
+          const data = (await response.json()) as Event[];
+          setEvents(data);
+        } else {
+          throw new Error("Błąd pobierania danych");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
-    fetchEvents();
+    void fetchEvents();
   }, [id, type]);
 
   return (
@@ -51,7 +55,7 @@ function HorseEventList({ type }: { type: string }) {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => navigate(`/wydarzenia/add/${id}/${type}`)}
+        onClick={() => redirect(`/wydarzenia/add/${id}/${type}`)}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj nowe wydarzenie
