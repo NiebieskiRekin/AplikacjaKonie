@@ -1,5 +1,6 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { redirect, useParams } from "react-router";
 
 type EventType =
   | "rozrody"
@@ -70,7 +71,6 @@ const eventTypes: Record<
   },
 };
 function AddHorseEvent() {
-  const navigate = useNavigate();
   const { id, type } = useParams<{ id: string; type: EventType }>();
   const [horseType, setHorseType] = useState("");
   const [formData, setFormData] = useState<{
@@ -100,13 +100,40 @@ function AddHorseEvent() {
 
     const fetchPeople = async () => {
       try {
-        const response = await fetch(
-          type === "podkucia" ? "/api/kowale" : "/api/weterynarze"
-        ); // można to zoptymalizować, żeby np. dla choroby nie pobierać.
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-        setPeople(data);
+        if (type === "podkucia") {
+          const response = await APIClient.kowale.$get();
+          if (response.ok) {
+            const data = await response.json();
+            setPeople(
+              data.map((val) => {
+                return {
+                  id: val.id.toString(),
+                  imieINazwisko: val.imieINazwisko,
+                };
+              })
+            );
+          } else {
+            const data = await response.json();
+            throw new Error(data.error || "Błąd pobierania danych");
+          }
+        } else {
+          // można to zoptymalizować, żeby np. dla choroby nie pobierać.
+          const response = await APIClient.weterynarze.$get();
+          if (response.ok) {
+            const data = await response.json();
+            setPeople(
+              data.map((val) => {
+                return {
+                  id: val.id.toString(),
+                  imieINazwisko: val.imieINazwisko,
+                };
+              })
+            );
+          } else {
+            const data = await response.json();
+            throw new Error(data.error || "Błąd pobierania danych");
+          }
+        }
       } catch (err) {
         setError((err as Error).message);
       }
@@ -115,11 +142,22 @@ function AddHorseEvent() {
     const fetchChoroba = async () => {
       if (type === "leczenia") {
         try {
-          const response = await fetch(`/api/konie/choroby/${id}`);
-          const data = await response.json();
-          if (!response.ok)
-            throw new Error(data.error || "Błąd pobierania danych");
-          setChoroba(data);
+          const response = await APIClient.konie.choroby[":id{[0-9]+}"].$get({
+            param: { id: id! },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setChoroba(
+              data.map((val) => {
+                return {
+                  id: val.id.toString(),
+                  opisZdarzenia: val.opisZdarzenia ?? "",
+                };
+              })
+            );
+          } else {
+            throw new Error("Błąd pobierania danych");
+          }
         } catch (err) {
           setError((err as Error).message);
         }
@@ -128,21 +166,25 @@ function AddHorseEvent() {
 
     const fetchHorseType = async () => {
       try {
-        const response = await fetch(`/api/konie/${id}`);
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-        setHorseType(data.rodzajKonia);
+        // TODO: no need to query for image url, add an optional flag
+        const response = await APIClient.konie[":id{[0-9]+}"].$get({
+          param: { id: id! },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setHorseType(data.rodzajKonia);
+        } else {
+          throw new Error("Błąd pobierania danych");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchPeople();
-    fetchChoroba();
-    fetchHorseType();
-  }, [type, id]);
+    void Promise.allSettled([fetchPeople(), fetchChoroba(), fetchHorseType()]);
+  }, [type, id, formData.dataZdarzenia]);
 
+  // TODO: extract all calculations to a different file
   const getExpirationDate = (eventType: string) => {
     const baseDate = new Date();
     const expirationRules: Record<string, number> = {
@@ -194,7 +236,7 @@ function AddHorseEvent() {
         dataWaznosci: getExpirationDate(formData.rodzajZdarzenia as string),
       }));
     }
-  }, [formData.rodzajZdarzenia, type]);
+  }, [formData.rodzajZdarzenia, getExpirationDate, type]);
 
   useEffect(() => {
     if (type === "podkucia" && !formData.dataWaznosci) {
@@ -203,7 +245,7 @@ function AddHorseEvent() {
         dataWaznosci: getExpirationDate(""),
       }));
     }
-  }, [formData.kon, type]);
+  }, [formData.dataWaznosci, formData.kon, getExpirationDate, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,7 +291,7 @@ function AddHorseEvent() {
       setSuccess("Zdarzenie zostało dodane!");
       const redirectType =
         type === "zdarzenia_profilaktyczne" ? "profilaktyczne" : type;
-      setTimeout(() => navigate(`/wydarzenia/${id}/${redirectType}`), 1500); // Przekierowanie
+      setTimeout(() => redirect(`/wydarzenia/${id}/${redirectType}`), 1500); // Przekierowanie
     } catch (err) {
       setError((err as Error).message);
     }
@@ -269,7 +311,7 @@ function AddHorseEvent() {
       {success && <p className="text-green-500">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         {fields.includes("weterynarz") && (
