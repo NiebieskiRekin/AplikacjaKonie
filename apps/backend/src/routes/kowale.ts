@@ -29,7 +29,7 @@ const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
               .where(eq(users.id, user))
           )
         );
-      return c.json(allKowale);
+      return c.json(allKowale, 200);
     } catch {
       return c.json({ error: "Błąd pobierania kowali" }, 500);
     }

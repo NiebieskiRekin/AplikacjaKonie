@@ -1,3 +1,6 @@
+import APIClient from "@/frontend/lib/api-client";
+import formatApiError from "@/frontend/lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -21,20 +24,16 @@ function AddKowal() {
     setSuccess("");
 
     try {
-      const response = await fetch("/api/kowale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await APIClient.kowale.$post({ json: formData });
 
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd dodawania weterynarza");
-
-      setSuccess("Kowal został dodany!");
-      setTimeout(() => navigate("/kowale"), 1500);
+      if (response.ok) {
+        setSuccess("Kowal został dodany!");
+        setTimeout(() => void navigate("/kowale"), 1500);
+      } else {
+        throw new Error("Błąd dodawania weterynarza");
+      }
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
     }
   };
 
@@ -46,7 +45,7 @@ function AddKowal() {
       {success && <p className="text-green-500">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="block text-gray-700">👤 Imię i nazwisko:</label>
