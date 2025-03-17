@@ -92,7 +92,7 @@ function StajniaEvents() {
       (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (differenceInDays <= 0) return "text-red-500 ";
+    if (differenceInDays <= 0) return "text-red-500 font-bold";
     if (differenceInDays <= 7) return "text-yellow-400";
     return "";
   };
