@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
-import { IoMdCloseCircle } from "react-icons/io";
 import APIClient from "../../lib/api-client";
 import formatApiError from "../../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import Kon from "../components/Kon";
+import BigImageOverlay from "../components/BigImageOverlay";
 
 type Horse = {
   id: number;
@@ -90,26 +90,10 @@ function Konie() {
           <p className="text-center text-lg text-white">Brak wyników.</p>
         )}
       </div>
-      {selectedImage && (
-        <div
-          className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative w-full max-w-3xl">
-            <button
-              className="absolute top-4 right-4 rounded-full bg-red-500 px-4 py-2 text-2xl text-white"
-              onClick={() => setSelectedImage(null)}
-            >
-              <IoMdCloseCircle />
-            </button>
-            <img
-              src={selectedImage}
-              alt="Powiększone zdjęcie"
-              className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
-            />
-          </div>
-        </div>
-      )}
+      <BigImageOverlay
+        selectedImage={selectedImage}
+        setSelectedImage={setSelectedImage}
+      ></BigImageOverlay>
     </div>
   );
 }
