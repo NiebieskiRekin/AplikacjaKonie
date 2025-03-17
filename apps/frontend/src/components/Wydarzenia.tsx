@@ -83,6 +83,20 @@ function StajniaEvents() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentEvents = filteredEvents.slice(startIndex, endIndex);
 
+  const getRowClass = (dataWaznosci: string) => {
+    if (!dataWaznosci) return "";
+
+    const today = new Date();
+    const expirationDate = new Date(dataWaznosci);
+    const differenceInDays = Math.ceil(
+      (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (differenceInDays <= 0) return "text-red-500 ";
+    if (differenceInDays <= 7) return "text-yellow-400";
+    return "";
+  };
+
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
       <h2 className="mb-6 text-center text-3xl font-bold text-white">
@@ -165,7 +179,7 @@ function StajniaEvents() {
               currentEvents.map((event, index) => (
                 <tr
                   key={index}
-                  className="text-center transition hover:bg-gray-100"
+                  className={`text-center transition hover:bg-gray-100 ${getRowClass(event.dataWaznosci)}`}
                 >
                   <td className="border border-gray-300 px-2 py-2 md:px-4">
                     {event.date}
