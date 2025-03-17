@@ -51,7 +51,7 @@ const login = new Hono().post(
       setCookie(c, ACCESS_TOKEN, tokens.accessToken, access_cookie_opts);
       setCookie(c, REFRESH_TOKEN, tokens.refreshToken, refresh_cookie_opts);
 
-      return c.json({ status: "Logowanie poprawne" });
+      return c.json({ status: "Logowanie poprawne" }, 200);
     } catch (error) {
       console.log(error);
       return c.json({ error: "Błąd podczas logowania" }, 500);

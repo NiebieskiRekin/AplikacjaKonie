@@ -1,4 +1,4 @@
-import HorseEventList from "../HorseEventList";
+import HorseEventList from "./ListaWydarzenKonia";
 function Profilaktyczne() {
   return <HorseEventList type="zdarzenia_profilaktyczne" />;
 }

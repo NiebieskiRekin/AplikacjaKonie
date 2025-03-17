@@ -1,6 +1,8 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router";
+import { useParams, Link, redirect } from "react-router";
 
+// TODO: consider a type that is anything more than undefined
 type Event = {
   id: number;
   _id: number;
@@ -17,25 +19,27 @@ type Event = {
 };
 
 function HorseEventList({ type }: { type: string }) {
-  const { id } = useParams(); // Pobieramy ID konia z URL
+  const { id } = useParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`/api/wydarzenia/${id}/${type}`);
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-        setEvents(data);
-        console.log(response);
+        const response = await APIClient.wydarzenia[":id{[0-9]+}"][
+          ":type{[A-Za-z_]+}"
+        ].$get({ param: { id: id!, type: type } });
+        if (response.ok) {
+          const data = (await response.json()) as Event[];
+          setEvents(data);
+        } else {
+          throw new Error("Błąd pobierania danych");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
-    fetchEvents();
+    void fetchEvents();
   }, [id, type]);
 
   return (
@@ -51,7 +55,7 @@ function HorseEventList({ type }: { type: string }) {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => navigate(`/wydarzenia/add/${id}/${type}`)}
+        onClick={() => redirect(`/wydarzenia/add/${id}/${type}`)}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj nowe wydarzenie
@@ -61,7 +65,7 @@ function HorseEventList({ type }: { type: string }) {
         <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-4 py-2 w-12">
+              <th className="w-12 border border-gray-300 px-4 py-2">
                 ✏️ Edytuj
               </th>
               <th className="border border-gray-300 px-4 py-2">
@@ -115,7 +119,13 @@ function HorseEventList({ type }: { type: string }) {
                   className="text-center transition hover:bg-gray-100"
                 >
                   <td className="border border-gray-300 px-4 py-2">
-                    {["rozrody", "podkucia", "leczenia", "zdarzenia_profilaktyczne", "choroby"].includes(type) ? (
+                    {[
+                      "rozrody",
+                      "podkucia",
+                      "leczenia",
+                      "zdarzenia_profilaktyczne",
+                      "choroby",
+                    ].includes(type) ? (
                       <Link
                         to={`/wydarzenia/${id}/${type}/${event._id}/edit`}
                         className="text-blue-600 hover:underline"
@@ -143,7 +153,9 @@ function HorseEventList({ type }: { type: string }) {
                       {event.dataZakonczenia ? (
                         event.dataZakonczenia
                       ) : (
-                        <span className="text-red-600 font-bold">Niewyleczona</span>
+                        <span className="font-bold text-red-600">
+                          Niewyleczona
+                        </span>
                       )}
                     </td>
                   )}
@@ -151,17 +163,28 @@ function HorseEventList({ type }: { type: string }) {
                     <td className="border border-gray-300 px-4 py-2">
                       {(() => {
                         const today = new Date();
-                        const expirationDate = event.dataWaznosci ? new Date(event.dataWaznosci) : null;
+                        const expirationDate = event.dataWaznosci
+                          ? new Date(event.dataWaznosci)
+                          : null;
 
                         let textColor = "text-green-600"; // Domyślnie zielony
 
                         if (!expirationDate || expirationDate <= today) {
                           textColor = "text-red-600 font-bold";
-                        } else if (expirationDate && (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) <= 7) {
+                        } else if (
+                          expirationDate &&
+                          (expirationDate.getTime() - today.getTime()) /
+                            (1000 * 60 * 60 * 24) <=
+                            7
+                        ) {
                           textColor = "text-orange-400 font-bold";
                         }
 
-                        return <span className={textColor}>{event.dataWaznosci || "Brak danych"}</span>;
+                        return (
+                          <span className={textColor}>
+                            {event.dataWaznosci || "Brak danych"}
+                          </span>
+                        );
                       })()}
                     </td>
                   )}

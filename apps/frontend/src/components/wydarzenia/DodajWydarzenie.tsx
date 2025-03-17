@@ -1,5 +1,8 @@
+import APIClient from "@/frontend/lib/api-client";
+import type { BackendTypes } from "@aplikacja-konie/api-client";
+import type { RodzajKonia } from "@aplikacja-konie/backend/schema";
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, redirect } from "react-router";
 
 const eventTypes = {
   podkucie: "Podkucie",
@@ -9,6 +12,8 @@ const eventTypes = {
   dentysta: "Dentysta",
 };
 
+type EventType = keyof typeof eventTypes;
+
 const singularHorseTypes: Record<string, string> = {
   "Konie hodowlane": "Koń hodowlany",
   "Konie rekreacyjne": "Koń rekreacyjny",
@@ -16,12 +21,11 @@ const singularHorseTypes: Record<string, string> = {
   "Konie sportowe": "Koń sportowy",
 };
 
-type Horse = { id: number; nazwa: string; rodzajKonia: string };
+type Horse = { id: number; nazwa: string; rodzajKonia: RodzajKonia };
 type Person = { id: number; imieINazwisko: string };
 
 function AddEvent() {
   const { type } = useParams();
-  const navigate = useNavigate();
 
   const [horses, setHorses] = useState<Horse[]>([]);
   const [selectedHorses, setSelectedHorses] = useState<number[]>([]);
@@ -39,34 +43,50 @@ function AddEvent() {
     }
   }, [type]);
 
+  // TODO: why fetch all horses and people to just add an event???
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const horsesRes = await fetch("/api/konie");
-        const horsesData = await horsesRes.json();
-        if (!horsesRes.ok)
-          throw new Error(horsesData.error || "Błąd pobierania koni");
+        const response1 = await APIClient.konie.$get();
 
-        setHorses(horsesData);
+        if (response1.ok) {
+          const horsesData = await response1.json();
+          setHorses(horsesData.data);
+        } else {
+          throw new Error("Błąd pobierania koni");
+        }
 
-        const peopleType = type === "podkucie" ? "kowale" : "weterynarze";
-        const peopleRes = await fetch(`/api/${peopleType}`);
-        const peopleData = await peopleRes.json();
-        if (!peopleRes.ok)
-          throw new Error(peopleData.error || "Błąd pobierania osób");
-
-        setPeople(peopleData);
+        if (type === "podkucie") {
+          const peopleRes = await APIClient.kowale.$get();
+          if (peopleRes.ok) {
+            const peopleData = await peopleRes.json();
+            setPeople(peopleData);
+          } else {
+            const peopleData = await peopleRes.json();
+            throw new Error(peopleData.error || "Błąd pobierania kowali");
+          }
+        } else {
+          const peopleRes = await APIClient.weterynarze.$get();
+          if (peopleRes.ok) {
+            const peopleData = await peopleRes.json();
+            setPeople(peopleData);
+          } else {
+            const peopleData = await peopleRes.json();
+            throw new Error(peopleData.error || "Błąd pobierania weterynarzy");
+          }
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [type]);
 
   useEffect(() => {
     let calculatedValidity = "";
 
+    // TODO: refactor duration of events to another, external function
     if (type === "szczepienia") {
       calculatedValidity = "6 miesięcy - Sportowe\n12 miesięcy - Pozostałe";
     } else if (type === "dentysta") {
@@ -105,50 +125,51 @@ function AddEvent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
-        konieId: selectedHorses,
-        dataZdarzenia: date,
-        ...(type === "podkucie"
-          ? { kowal: Number(selectedPerson) }
-          : {
-              weterynarz: Number(selectedPerson),
-              opisZdarzenia: description,
-              rodzajZdarzenia: eventTypes[type as keyof typeof eventTypes],
-            }),
-      };
+      if (type === "podkucia") {
+        const payload = {
+          konieId: selectedHorses,
+          dataZdarzenia: date,
+          kowal: Number(selectedPerson),
+        };
 
-      const singularTypes: Record<string, string> = {
-        podkucia: "podkucie",
-        "zdarzenie-profilaktyczne": "zdarzenie-profilaktyczne",
-        dentysta: "zdarzenie-profilaktyczne",
-        "podanie-witamin": "zdarzenie-profilaktyczne",
-        szczepienia: "zdarzenie-profilaktyczne",
-        odrobaczanie: "zdarzenie-profilaktyczne",
-      };
+        const response = await APIClient.wydarzenia.podkucie.$post({
+          json: payload,
+        });
 
-      const correctedType =
-        type && singularTypes[type] ? singularTypes[type] : type;
+        if (response.ok) {
+          alert("Zdarzenie zostało dodane!");
+          redirect("/wydarzenia");
+        } else {
+          throw new Error("Błąd dodawania zdarzenia");
+        }
+      } else {
+        const payload = {
+          konieId: selectedHorses,
+          dataZdarzenia: date,
+          weterynarz: Number(selectedPerson),
+          opisZdarzenia: description,
+          rodzajZdarzenia: eventTypes[
+            type as EventType
+          ] as BackendTypes.RodzajZdarzeniaProfilaktycznego,
+        };
 
-      const response = await fetch(`/api/wydarzenia/${correctedType}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+        const response = await APIClient.wydarzenia[
+          "zdarzenie-profilaktyczne"
+        ].$post({ json: payload });
 
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd dodawania zdarzenia");
-
-      alert("Zdarzenie zostało dodane!");
-      navigate("/wydarzenia");
+        if (response.ok) {
+          alert("Zdarzenie zostało dodane!");
+          redirect("/wydarzenia");
+        } else {
+          throw new Error("Błąd dodawania zdarzenia");
+        }
+      }
     } catch (err) {
       setError((err as Error).message);
     }
   };
 
-  const getButtonColor = (rodzaj: string): [string, string] => {
+  const getButtonColor = (rodzaj: RodzajKonia): [string, string] => {
     switch (rodzaj) {
       case "Konie hodowlane":
         return ["#ff8c00", "#ff4500"];
@@ -171,7 +192,7 @@ function AddEvent() {
       {error && <p className="text-red-600">{error}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="mb-2 block text-gray-700">🐴 Wybierz konie:</label>

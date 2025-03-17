@@ -1,3 +1,4 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 
 type Event = {
@@ -21,20 +22,21 @@ function StajniaEvents() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("/api/wydarzenia");
+        const response = await APIClient.wydarzenia.$get();
 
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania wydarzeń");
-
-        setEvents(data);
-        setFilteredEvents(data);
+        if (response.ok) {
+          const data = (await response.json()) as Event[];
+          setEvents(data);
+          setFilteredEvents(data);
+        } else {
+          throw new Error("Błąd pobierania wydarzeń");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchEvents();
+    void fetchEvents();
   }, []);
 
   useEffect(() => {

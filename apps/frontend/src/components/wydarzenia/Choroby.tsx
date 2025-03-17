@@ -1,4 +1,4 @@
-import HorseEventList from "../HorseEventList";
+import HorseEventList from "./ListaWydarzenKonia";
 function Choroby() {
   return <HorseEventList type="choroby" />;
 }

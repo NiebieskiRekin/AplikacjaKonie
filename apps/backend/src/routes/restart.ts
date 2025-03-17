@@ -25,65 +25,69 @@ const passwordResetSchema = z
     path: ["confirmNewPassword"],
   });
 
-const restartRoutes = new Hono<{ Variables: UserPayload }>();
+const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
+  .use(authMiddleware)
+  .post("/", zValidator("json", passwordResetSchema), async (c) => {
+    try {
+      console.log("Otrzymano żądanie zmiany hasła");
 
-restartRoutes.use(authMiddleware);
+      const user = getUserFromContext(c);
+      if (!user) {
+        console.log("Błąd autoryzacji");
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+      }
 
-restartRoutes.post("/", zValidator("json", passwordResetSchema), async (c) => {
-  try {
-    console.log("Otrzymano żądanie zmiany hasła");
+      const { oldPassword, newPassword } = c.req.valid("json");
 
-    const user = getUserFromContext(c);
-    if (!user) {
-      console.log("Błąd autoryzacji");
-      return c.json({ error: "Błąd autoryzacji" }, 401);
+      const dbUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user))
+        .then((res) => res[0]);
+
+      if (!dbUser) {
+        console.log("Nie znaleziono użytkownika");
+        return c.json({ error: "Nie znaleziono użytkownika" }, 404);
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        oldPassword,
+        dbUser.password
+      );
+      if (!isPasswordValid) {
+        console.log("Stare hasło jest nieprawidłowe");
+        return c.json({ error: "Stare hasło jest nieprawidłowe" }, 401);
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await db
+        .update(users)
+        .set({
+          password: hashedPassword,
+          refreshTokenVersion: sql`refresh_token_version+1`,
+        })
+        .where(eq(users.id, user));
+
+      deleteCookie(c, ACCESS_TOKEN);
+      deleteCookie(c, REFRESH_TOKEN);
+
+      // const tokens = await createAuthTokens({...dbUser, refreshTokenVersion: version.at(0)?.refreshTokenVersion!})
+      // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
+      // setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
+
+      // console.log("Hasło zostało zmienione!");
+      return c.json({ message: "Hasło zostało zmienione!" }, 200);
+    } catch (error) {
+      console.error("Błąd podczas zmiany hasła:", error);
+      if (error instanceof z.ZodError) {
+        return c.json(
+          { error: { issues: error.issues, name: "ZodError" } },
+          400
+        );
+      }
+      return c.json({ error: "Błąd podczas zmiany hasła" }, 500);
     }
-
-    const { oldPassword, newPassword } = c.req.valid("json");
-
-    const dbUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, user))
-      .then((res) => res[0]);
-
-    if (!dbUser) {
-      console.log("Nie znaleziono użytkownika");
-      return c.json({ error: "Nie znaleziono użytkownika" }, 404);
-    }
-
-    const isPasswordValid = await bcrypt.compare(oldPassword, dbUser.password);
-    if (!isPasswordValid) {
-      console.log("Stare hasło jest nieprawidłowe");
-      return c.json({ error: "Stare hasło jest nieprawidłowe" }, 401);
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await db
-      .update(users)
-      .set({
-        password: hashedPassword,
-        refreshTokenVersion: sql`refresh_token_version+1`,
-      })
-      .where(eq(users.id, user));
-
-    deleteCookie(c, ACCESS_TOKEN);
-    deleteCookie(c, REFRESH_TOKEN);
-
-    // const tokens = await createAuthTokens({...dbUser, refreshTokenVersion: version.at(0)?.refreshTokenVersion!})
-    // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
-    // setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
-
-    // console.log("Hasło zostało zmienione!");
-    return c.json({ message: "Hasło zostało zmienione!" });
-  } catch (error) {
-    console.error("Błąd podczas zmiany hasła:", error);
-    if (error instanceof z.ZodError) {
-      return c.json({ error: { issues: error.issues, name: "ZodError" } }, 400);
-    }
-    return c.json({ error: "Błąd podczas zmiany hasła" }, 500);
-  }
-});
+  });
 
 export default restartRoutes;

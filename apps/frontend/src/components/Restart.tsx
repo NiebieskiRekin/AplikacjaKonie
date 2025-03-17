@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect } from "react-router";
+import APIClient from "../lib/api-client";
+import formatApiError from "../lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 
 function Restart() {
   const [oldPassword, setOldPassword] = useState("");
@@ -7,7 +10,6 @@ function Restart() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigate = useNavigate();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,29 +20,19 @@ function Restart() {
     }
 
     try {
-      const response = await fetch("/api/restart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ oldPassword, newPassword, confirmNewPassword }),
+      const response = await APIClient.restart.$post({
+        json: { oldPassword, newPassword, confirmNewPassword },
       });
-      console.log(response);
-      const data = await response.json();
-      if (!response.ok) {
-        if (data.error && data.error.issues) {
-          const errorMessages = data.error.issues
-            .map((issue: { message: string }) => `❌ ${issue.message}`)
-            .join("\n");
-          throw new Error(errorMessages);
-        }
-        throw new Error(data.error || "Błąd zmiany hasła");
+
+      if (response.ok) {
+        setSuccess("Hasło zostało zmienione! Zaloguj się ponownie.");
+        setError("");
+        setTimeout(() => void redirect("/login"), 2000);
+      } else {
+        throw new Error("Błąd zmiany hasła");
       }
-      setSuccess("Hasło zostało zmienione! Zaloguj się ponownie.");
-      setError("");
-      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
       setSuccess("");
     }
   };
@@ -53,7 +45,7 @@ function Restart() {
         </h2>
         {error && <p className="text-center text-red-600">{error}</p>}
         {success && <p className="text-center text-green-600">{success}</p>}
-        <form onSubmit={handlePasswordChange} className="mt-4">
+        <form onSubmit={void handlePasswordChange} className="mt-4">
           <label className="mb-2 block">
             <span className="text-gray-700">Stare hasło:</span>
             <input
