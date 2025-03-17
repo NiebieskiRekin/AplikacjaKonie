@@ -64,6 +64,72 @@ const wydarzenia_array = [
   { path: "podkucie", schema: podkuciaUpdateSchema, table: podkucia },
 ];
 
+const put_delete_routes = wydarzenia_array
+  .map(({ path, schema, table }) => {
+    // eslint-disable-next-line drizzle/enforce-delete-with-where
+    return new Hono<{ Variables: { jwtPayload: UserPayload } }>()
+      .put(`/${path}/:id{[0-9]+}`, zValidator("json", schema), async (c) => {
+        const eventId = Number(c.req.param("id"));
+        const updatedData = c.req.valid("json");
+
+        if (isNaN(eventId)) {
+          return c.json(
+            { error: "Nieprawidłowy identyfikator wydarzenia" },
+            400
+          );
+        }
+
+        try {
+          const updateQuery = await db
+            .update(table)
+            .set(updatedData)
+            .where(eq(table.id, eventId))
+            .returning();
+          if (updateQuery.length === 0) {
+            return c.json(
+              { error: "Nie znaleziono wydarzenia do aktualizacji" },
+              404
+            );
+          }
+
+          return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+        } catch (error) {
+          console.error("Błąd aktualizacji wydarzenia:", error);
+          return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+        }
+      })
+      .delete(`/${path}/:id{[0-9]+}`, async (c) => {
+        const eventId = Number(c.req.param("id"));
+
+        if (isNaN(eventId)) {
+          return c.json(
+            { error: "Nieprawidłowy identyfikator wydarzenia" },
+            400
+          );
+        }
+
+        try {
+          const deleteQuery = await db
+            .delete(table)
+            .where(eq(table.id, eventId))
+            .returning();
+
+          if (deleteQuery.length === 0) {
+            return c.json(
+              { error: "Nie znaleziono wydarzenia do usunięcia" },
+              404
+            );
+          }
+
+          return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+        } catch (error) {
+          console.error("Błąd usuwania wydarzenia:", error);
+          return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+        }
+      });
+  })
+  .reduce((app, c) => app.route("/", c));
+
 const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
   .get("/", async (c) => {
@@ -511,64 +577,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       console.error("Błąd pobierania wydarzeń:", error);
       return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
     }
-  });
-
-for (const { path, schema, table } of wydarzenia_array) {
-  wydarzeniaRoute.put(
-    `/${path}/:id{[0-9]+}`,
-    zValidator("json", schema),
-    async (c) => {
-      const eventId = Number(c.req.param("id"));
-      const updatedData = c.req.valid("json");
-
-      if (isNaN(eventId)) {
-        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-      }
-
-      try {
-        const updateQuery = await db
-          .update(table)
-          .set(updatedData)
-          .where(eq(table.id, eventId))
-          .returning();
-        if (updateQuery.length === 0) {
-          return c.json(
-            { error: "Nie znaleziono wydarzenia do aktualizacji" },
-            404
-          );
-        }
-
-        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
-      } catch (error) {
-        console.error("Błąd aktualizacji wydarzenia:", error);
-        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
-      }
-    }
-  );
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  wydarzeniaRoute.delete(`/${path}/:id{[0-9]+}`, async (c) => {
-    const eventId = Number(c.req.param("id"));
-
-    if (isNaN(eventId)) {
-      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-    }
-
-    try {
-      const deleteQuery = await db
-        .delete(table)
-        .where(eq(table.id, eventId))
-        .returning();
-
-      if (deleteQuery.length === 0) {
-        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
-      }
-
-      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
-    } catch (error) {
-      console.error("Błąd usuwania wydarzenia:", error);
-      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
-    }
-  });
-}
+  })
+  .route("/", put_delete_routes);
 
 export default wydarzeniaRoute;
