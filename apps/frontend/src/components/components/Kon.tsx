@@ -27,19 +27,16 @@ function Kon({ horse, setSelectedImage }: KonProps) {
         src={horse.img_url || default_img}
         alt={horse.nazwa}
         onClick={(e) => {
-          e.stopPropagation();
+          e.stopPropagation(); // TODO: restore prevention of double trigger (once on image, once on card)
           setSelectedImage(e.currentTarget.src);
         }}
         onError={(e) => (e.currentTarget.src = default_img)}
         className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
       />
       <div className="p-3">
-        <NavLink
-          className="cursor-pointer text-xl font-bold text-green-900 hover:underline"
-          to={`/konie/${horse.id}`}
-        >
+        <h3 className="cursor-pointer text-xl font-bold text-green-900 hover:underline">
           {horse.nazwa}
-        </NavLink>
+        </h3>
       </div>
     </NavLink>
   );
