@@ -24,10 +24,6 @@ export default [
       index("./components/wydarzenia/Wydarzenia.tsx"),
       route("add/:type", "./components/wydarzenia/DodajWydarzenie.tsx"),
       route(
-        "add/:id/:type",
-        "./components/wydarzenia/DodajWydarzenieKonia.tsx"
-      ),
-      route(
         ":id/:type/:eventId/edit",
         "./components/wydarzenia/EdytujWydarzenie.tsx"
       ),
