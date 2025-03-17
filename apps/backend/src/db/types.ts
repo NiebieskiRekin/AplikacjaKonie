@@ -7,6 +7,7 @@ import {
   choroby,
   leczenia,
   rozrody,
+  plcie,
   zdarzeniaProfilaktyczne,
   weterynarze,
   rodzajeKoni,
@@ -14,6 +15,8 @@ import {
   rodzajeZdarzenRozrodczych,
   users,
   user_permissions,
+  rodzajeNotifications,
+  rodzajeWysylaniaNotifications,
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -23,15 +26,16 @@ import {
 //       "strictNullChecks": true
 // see for more details: https://github.com/drizzle-team/drizzle-orm/issues/2636
 
-export const rodzaje_koni = rodzajeKoni.enumValues;
-export const rodzaje_zdarzen_profilaktycznych =
-  rodzajeZdarzenProfilaktycznych.enumValues;
-export const rodzaje_zdarzen_rozrodczych = rodzajeZdarzenRozrodczych.enumValues;
-
-export type RodzajKonia = typeof rodzaje_koni;
+export type RodzajKonia = (typeof rodzajeKoni.enumValues)[number];
 export type RodzajZdarzeniaProfilaktycznego =
-  typeof rodzaje_zdarzen_profilaktycznych;
-export type RodzajZdarzeniaRozrodczego = typeof rodzaje_zdarzen_rozrodczych;
+  (typeof rodzajeZdarzenProfilaktycznych.enumValues)[number];
+export type RodzajZdarzeniaRozrodczego =
+  (typeof rodzajeZdarzenRozrodczych.enumValues)[number];
+export type Plcie = (typeof plcie.enumValues)[number];
+export type RodzajPowiadomienia =
+  (typeof rodzajeNotifications.enumValues)[number];
+export type RodzajWysylaniaPowiadomienia =
+  (typeof rodzajeWysylaniaNotifications.enumValues)[number];
 
 export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;
 export type InsertHodowcaKoni = typeof hodowcyKoni.$inferInsert;
