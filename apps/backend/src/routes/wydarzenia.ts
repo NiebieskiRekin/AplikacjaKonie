@@ -52,84 +52,7 @@ const zdarzenieProfilaktyczneSchema = z.object({
   opisZdarzenia: z.string().min(5),
 });
 
-const wydarzenia_array = [
-  { path: "rozrody", schema: rozrodyUpdateSchema, table: rozrody },
-  { path: "leczenia", schema: leczeniaUpdateSchema, table: leczenia },
-  { path: "choroby", schema: chorobyUpdateSchema, table: choroby },
-  {
-    path: "zdarzenia-profilaktyczne",
-    schema: zdarzeniaProfilaktyczneUpdateSchema,
-    table: zdarzeniaProfilaktyczne,
-  },
-  { path: "podkucie", schema: podkuciaUpdateSchema, table: podkucia },
-];
-
-const put_delete_routes = wydarzenia_array
-  .map(({ path, schema, table }) => {
-    // eslint-disable-next-line drizzle/enforce-delete-with-where
-    return new Hono<{ Variables: { jwtPayload: UserPayload } }>()
-      .put(`/${path}/:id{[0-9]+}`, zValidator("json", schema), async (c) => {
-        const eventId = Number(c.req.param("id"));
-        const updatedData = c.req.valid("json");
-
-        if (isNaN(eventId)) {
-          return c.json(
-            { error: "Nieprawidłowy identyfikator wydarzenia" },
-            400
-          );
-        }
-
-        try {
-          const updateQuery = await db
-            .update(table)
-            .set(updatedData)
-            .where(eq(table.id, eventId))
-            .returning();
-          if (updateQuery.length === 0) {
-            return c.json(
-              { error: "Nie znaleziono wydarzenia do aktualizacji" },
-              404
-            );
-          }
-
-          return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
-        } catch (error) {
-          console.error("Błąd aktualizacji wydarzenia:", error);
-          return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
-        }
-      })
-      .delete(`/${path}/:id{[0-9]+}`, async (c) => {
-        const eventId = Number(c.req.param("id"));
-
-        if (isNaN(eventId)) {
-          return c.json(
-            { error: "Nieprawidłowy identyfikator wydarzenia" },
-            400
-          );
-        }
-
-        try {
-          const deleteQuery = await db
-            .delete(table)
-            .where(eq(table.id, eventId))
-            .returning();
-
-          if (deleteQuery.length === 0) {
-            return c.json(
-              { error: "Nie znaleziono wydarzenia do usunięcia" },
-              404
-            );
-          }
-
-          return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
-        } catch (error) {
-          console.error("Błąd usuwania wydarzenia:", error);
-          return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
-        }
-      });
-  })
-  .reduce((app, c) => app.route("/", c));
-
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
   .get("/", async (c) => {
@@ -578,6 +501,275 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
     }
   })
-  .route("/", put_delete_routes);
+  .put(
+    "/rozrody/:id{[0-9]+}",
+    zValidator("json", rozrodyUpdateSchema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      try {
+        const updateQuery = await db
+          .update(rozrody)
+          .set(updatedData)
+          .where(eq(rozrody.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
+    }
+  )
+  .delete("/rozrody/:id{[0-9]+}", async (c) => {
+    const eventId = Number(c.req.param("id"));
+
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+    }
+
+    try {
+      const deleteQuery = await db
+        .delete(rozrody)
+        .where(eq(rozrody.id, eventId))
+        .returning();
+
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+
+      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+    }
+  })
+  .put(
+    "/leczenia/:id{[0-9]+}",
+    zValidator("json", leczeniaUpdateSchema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      try {
+        const updateQuery = await db
+          .update(leczenia)
+          .set(updatedData)
+          .where(eq(leczenia.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
+    }
+  )
+  .delete("/leczenia/:id{[0-9]+}", async (c) => {
+    const eventId = Number(c.req.param("id"));
+
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+    }
+
+    try {
+      const deleteQuery = await db
+        .delete(leczenia)
+        .where(eq(leczenia.id, eventId))
+        .returning();
+
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+
+      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+    }
+  })
+  .put(
+    "/choroby/:id{[0-9]+}",
+    zValidator("json", chorobyUpdateSchema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      try {
+        const updateQuery = await db
+          .update(choroby)
+          .set(updatedData)
+          .where(eq(choroby.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
+    }
+  )
+  .delete("/choroby/:id{[0-9]+}", async (c) => {
+    const eventId = Number(c.req.param("id"));
+
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+    }
+
+    try {
+      const deleteQuery = await db
+        .delete(choroby)
+        .where(eq(choroby.id, eventId))
+        .returning();
+
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+
+      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+    }
+  })
+  .put(
+    "/zdarzenia-profilaktyczne/:id{[0-9]+}",
+    zValidator("json", zdarzeniaProfilaktyczneUpdateSchema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      try {
+        const updateQuery = await db
+          .update(zdarzeniaProfilaktyczne)
+          .set(updatedData)
+          .where(eq(zdarzeniaProfilaktyczne.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
+    }
+  )
+  .delete("/zdarzenia-profilaktyczne/:id{[0-9]+}", async (c) => {
+    const eventId = Number(c.req.param("id"));
+
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+    }
+
+    try {
+      const deleteQuery = await db
+        .delete(zdarzeniaProfilaktyczne)
+        .where(eq(zdarzeniaProfilaktyczne.id, eventId))
+        .returning();
+
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+
+      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+    }
+  })
+  .put(
+    "/podkucie/:id{[0-9]+}",
+    zValidator("json", podkuciaUpdateSchema),
+    async (c) => {
+      const eventId = Number(c.req.param("id"));
+      const updatedData = c.req.valid("json");
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      try {
+        const updateQuery = await db
+          .update(podkucia)
+          .set(updatedData)
+          .where(eq(podkucia.id, eventId))
+          .returning();
+        if (updateQuery.length === 0) {
+          return c.json(
+            { error: "Nie znaleziono wydarzenia do aktualizacji" },
+            404
+          );
+        }
+
+        return c.json({ success: true, updatedEvent: updateQuery[0] }, 200);
+      } catch (error) {
+        console.error("Błąd aktualizacji wydarzenia:", error);
+        return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
+      }
+    }
+  )
+  .delete("/podkucie/:id{[0-9]+}", async (c) => {
+    const eventId = Number(c.req.param("id"));
+
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+    }
+
+    try {
+      const deleteQuery = await db
+        .delete(podkucia)
+        .where(eq(podkucia.id, eventId))
+        .returning();
+
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+
+      return c.json({ success: true, deletedEvent: deleteQuery[0] }, 200);
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
+    }
+  });
 
 export default wydarzeniaRoute;
