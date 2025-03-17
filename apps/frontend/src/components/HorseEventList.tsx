@@ -51,8 +51,10 @@ function HorseEventList({ type }: { type: string }) {
 
         <h2 className="text-xl sm:text-3xl font-bold text-white text-center absolute left-1/2 transform -translate-x-1/2 px-4 sm:w-auto">
           📅 {type.charAt(0).toUpperCase() + type.replace("_", " ").slice(1)} Konia:{" "}
-          {events.length > 0
+          {Array.isArray(events) && events.length > 0
             ? events[0].nazwaKonia.charAt(0).toUpperCase() + events[0].nazwaKonia.slice(1)
+            : typeof events === "object" && events.nazwaKonia
+            ? events.nazwaKonia.charAt(0).toUpperCase() + events.nazwaKonia.slice(1)
             : "Brak danych"}
         </h2>
       </div>

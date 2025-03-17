@@ -402,6 +402,16 @@ wydarzeniaRoute.get("/:id{[0-9]+}/:type{[A-Za-z_]+}", async (c) => {
         return c.json({ error: "Nieznany typ zdarzenia" }, 400);
     }
 
+    if (events.length === 0) {
+      const horse = await db
+        .select({ nazwaKonia: konie.nazwa })
+        .from(konie)
+        .where(eq(konie.id, horseId))
+        .then((res) => res[0]);
+    
+      return c.json(horse || { error: "Koń nie znaleziony" }, horse ? 200 : 404);
+    }
+
     return c.json(events);
   } catch (error) {
     console.error("Błąd pobierania wydarzeń:", error);
