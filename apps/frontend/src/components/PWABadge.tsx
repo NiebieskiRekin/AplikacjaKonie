@@ -32,19 +32,17 @@ function PWABadge() {
       {needRefresh && (
         <div className="PWABadge-toast">
           <div className="PWABadge-message">
-            <span id="toast-message">
-              New content available, click on reload button to update.
-            </span>
+            <span id="toast-message">Dostępna jest aktualizacja strony.</span>
           </div>
           <div className="PWABadge-buttons">
             <button
               className="PWABadge-toast-button"
-              onClick={() => updateServiceWorker(true)}
+              onClick={() => void updateServiceWorker(true)}
             >
-              Reload
+              Zaktualizuj
             </button>
             <button className="PWABadge-toast-button" onClick={() => close()}>
-              Close
+              Zamknij
             </button>
           </div>
         </div>
@@ -65,17 +63,19 @@ function registerPeriodicSync(
 ) {
   if (period <= 0) return;
 
-  setInterval(async () => {
+  setInterval(() => {
     if ("onLine" in navigator && !navigator.onLine) return;
 
-    const resp = await fetch(swUrl, {
+    fetch(swUrl, {
       cache: "no-store",
       headers: {
         cache: "no-store",
         "cache-control": "no-cache",
       },
-    });
-
-    if (resp?.status === 200) await r.update();
+    })
+      .then(async (resp) => {
+        if (resp?.status === 200) await r.update();
+      })
+      .catch(() => {});
   }, period);
 }
