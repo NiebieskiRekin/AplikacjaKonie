@@ -1,18 +1,21 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, redirect } from "react-router";
+import { BackendTypes } from "@aplikacja-konie/api-client";
 
 function EditKonia() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [nazwa, setNazwa] = useState("");
   const [numerPrzyzyciowy, setNumerPrzyzyciowy] = useState("");
   const [numerChipa, setNumerChipa] = useState("");
-  const [rocznikUrodzenia, setRocznikUrodzenia] = useState("2025");
+  const [rocznikUrodzenia, setRocznikUrodzenia] = useState("");
   const [dataPrzybycia, setDataPrzybycia] = useState("");
   const [dataOdejscia, setDataOdejscia] = useState("");
-  const [rodzajKonia, setRodzajKonia] = useState("");
-  const [plec, setPlec] = useState("");
+  const [rodzajKonia, setRodzajKonia] = useState<BackendTypes.RodzajKonia>(
+    BackendTypes.RodzajeKoni[0]
+  );
+  const [plec, setPlec] = useState<BackendTypes.Plec>(BackendTypes.Plcie[0]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -20,26 +23,29 @@ function EditKonia() {
   useEffect(() => {
     const fetchHorseDetails = async () => {
       try {
-        const response = await fetch(`/api/konie/${id}`);
+        const response = await APIClient.konie[":id{[0-9]+}"].$get({
+          param: { id: id! },
+        });
+
+        if (!response.ok) throw new Error("Błąd pobierania danych konia");
 
         const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych konia");
-
         setNazwa(data.nazwa);
         setNumerPrzyzyciowy(data.numerPrzyzyciowy);
         setNumerChipa(data.numerChipa);
-        setRocznikUrodzenia(data.rocznikUrodzenia);
+        setRocznikUrodzenia((data.rocznikUrodzenia ?? 2025).toString());
         setDataPrzybycia(data.dataPrzybyciaDoStajni || "");
         setDataOdejscia(data.dataOdejsciaZeStajni || "");
         setRodzajKonia(data.rodzajKonia);
-        setPlec(data.plec);
+        setPlec(data.plec!);
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchHorseDetails();
+    fetchHorseDetails()
+      .then(() => {})
+      .catch(() => {});
   }, [id]);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -59,30 +65,26 @@ function EditKonia() {
       return;
     }
 
-    const requestData = JSON.stringify({
+    const requestData = {
       nazwa,
       numerPrzyzyciowy,
       numerChipa,
-      rocznikUrodzenia,
-      dataPrzybycia,
-      dataOdejscia,
+      rocznikUrodzenia: Number(rocznikUrodzenia),
+      dataPrzybyciaDoStajni: dataPrzybycia,
+      dataOdejsciaZeStajni: dataOdejscia,
       rodzajKonia,
       plec,
-    });
+    };
 
     try {
-      const response = await fetch(`/api/konie/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: requestData,
+      const response = await APIClient.konie[":id{[0-9]+}"].$put({
+        param: { id: id! },
+        json: requestData,
       });
 
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd aktualizacji konia");
+      if (!response.ok) throw new Error("Błąd aktualizacji konia");
 
+      await response.json();
       setSuccess("Dane konia zostały zaktualizowane!");
       setShowPopup(true);
     } catch (err) {
@@ -92,7 +94,7 @@ function EditKonia() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate(`/konie/${id}`);
+    redirect(`/konie/${id}`);
   };
 
   return (
@@ -103,7 +105,7 @@ function EditKonia() {
       {success && <p className="text-green-400">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit}
         className="w-96 rounded-lg bg-white p-6 shadow-md"
       >
         <label className="mb-2 block">

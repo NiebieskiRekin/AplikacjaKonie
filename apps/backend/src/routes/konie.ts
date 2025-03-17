@@ -189,40 +189,51 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       }
     }
   )
-  .put("/:id{[0-9]+}", zValidator("json", konieUpdateSchema), async (c) => {
-    // TODO: check if object can be edited by this user
-    // const userId = getUserFromContext(c);
+  .put(
+    "/:id{[0-9]+}",
+    zValidator(
+      "json",
+      konieUpdateSchema.omit({
+        id: true,
+        hodowla: true,
+        active: true,
+      })
+    ),
+    async (c) => {
+      // TODO: check if object can be edited by this user
+      // const userId = getUserFromContext(c);
 
-    const horseId = Number(c.req.param("id"));
-    if (isNaN(horseId)) {
-      return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
-    }
-
-    try {
-      const d = c.req.valid("json");
-
-      const updatedHorse = await db
-        .update(konie)
-        .set(d)
-        .where(eq(konie.id, horseId))
-        .returning();
-
-      if (!updatedHorse) {
-        return c.json(
-          { error: "Nie udało się zaktualizować danych konia" },
-          500
-        );
+      const horseId = Number(c.req.param("id"));
+      if (isNaN(horseId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
       }
 
-      return c.json({
-        success: "Dane konia zostały zaktualizowane",
-        horse: updatedHorse,
-      });
-    } catch (error) {
-      console.error("Błąd aktualizacji konia:", error);
-      return c.json({ error: "Błąd aktualizacji konia" }, 500);
+      try {
+        const d = c.req.valid("json");
+
+        const updatedHorse = await db
+          .update(konie)
+          .set(d)
+          .where(eq(konie.id, horseId))
+          .returning();
+
+        if (!updatedHorse) {
+          return c.json(
+            { error: "Nie udało się zaktualizować danych konia" },
+            500
+          );
+        }
+
+        return c.json({
+          success: "Dane konia zostały zaktualizowane",
+          horse: updatedHorse,
+        });
+      } catch (error) {
+        console.error("Błąd aktualizacji konia:", error);
+        return c.json({ error: "Błąd aktualizacji konia" }, 500);
+      }
     }
-  })
+  )
   .delete("/:id{[0-9]+}", async (c) => {
     try {
       const userId = getUserFromContext(c);
