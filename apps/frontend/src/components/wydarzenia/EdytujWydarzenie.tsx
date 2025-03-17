@@ -1,5 +1,6 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { redirect, useParams } from "react-router";
 
 type EventType =
   | "rozrody"
@@ -71,7 +72,6 @@ const eventTypes: Record<
 };
 
 function EditHorseEvent() {
-  const navigate = useNavigate();
   const { id, type, eventId } = useParams<{
     id: string;
     type: EventType;
@@ -101,6 +101,9 @@ function EditHorseEvent() {
         const response = await fetch(
           type === "podkucia" ? "/api/kowale" : "/api/weterynarze"
         );
+
+        const re = await APIClient.wydarzenia.choroby[":id{[0-9]+}"].$delete;
+
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.error || "Błąd pobierania danych");
@@ -223,7 +226,7 @@ function EditHorseEvent() {
         throw new Error(data.error || "Błąd aktualizacji wydarzenia");
 
       setSuccess("Zdarzenie zostało zaktualizowane!");
-      setTimeout(() => navigate(`/wydarzenia/${id}/${type}`), 1500);
+      setTimeout(() => redirect(`/wydarzenia/${id}/${type}`), 1500);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -242,7 +245,7 @@ function EditHorseEvent() {
         throw new Error(data.error || "Błąd usuwania wydarzenia");
 
       setSuccess("Wydarzenie zostało usunięte!");
-      setTimeout(() => navigate(`/wydarzenia/${id}/${type}`), 1500);
+      setTimeout(() => redirect(`/wydarzenia/${id}/${type}`), 1500);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -415,7 +418,7 @@ function EditHorseEvent() {
           ✅ Zapisz zmiany
         </button>
         <button
-          onClick={() => handleDelete(Number(eventId))}
+          onClick={() => void handleDelete(Number(eventId))}
           className="w-full rounded-lg bg-gradient-to-r from-red-300 to-red-700 py-3 text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
         >
           ❌ Usuń wydarzenie
