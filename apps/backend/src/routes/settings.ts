@@ -8,23 +8,11 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { eq, and, asc } from "drizzle-orm";
-import { z } from "zod";
-
-const common_settings = z.object({
-  days: z.number().int().nonnegative(),
-  time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
-  active: z.boolean(),
-  rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
-});
-
-export const notificationsInsertSchema = z.object({
-  Podkucia: common_settings,
-  Odrobaczanie: common_settings,
-  "Podanie suplementów": common_settings,
-  Szczepienie: common_settings,
-  Dentysta: common_settings,
-  Inne: common_settings,
-});
+import {
+  notificationsInsertSchema,
+  RodzajPowiadomienia,
+  RodzajWysylaniaPowiadomienia,
+} from "../db/types";
 
 const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
@@ -39,23 +27,25 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         .where(eq(notifications.userId, userId))
         .orderBy(asc(notifications.rodzajZdarzenia));
 
+      type pow = RodzajWysylaniaPowiadomienia;
+
       const formattedSettings = settings.reduce(
         (acc, setting) => {
           acc[setting.rodzajZdarzenia] = {
             days: setting.days,
             time: setting.time.slice(0, 5),
             active: setting.active,
-            notify: setting.rodzajWysylania,
+            rodzajWysylania: setting.rodzajWysylania,
           };
           return acc;
         },
         {} as Record<
-          string,
-          { days: number; time: string; active: boolean; notify: string }
+          RodzajPowiadomienia,
+          { days: number; time: string; active: boolean; rodzajWysylania: pow }
         >
       );
 
-      return c.json(formattedSettings);
+      return c.json(formattedSettings, 200);
     } catch (error) {
       console.error("Błąd pobierania ustawień:", error);
       return c.json({ error: "Błąd pobierania ustawień" }, 500);
@@ -68,6 +58,7 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
 
       const settingsObject = c.req.valid("json");
 
+      // TODO: refactor
       await Promise.all(
         Object.entries(settingsObject).map(
           async ([rodzajZdarzenia, values]) => {
@@ -135,10 +126,13 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         )
       );
 
-      return c.json({
-        success: true,
-        message: "Ustawienia zostały zaktualizowane!",
-      });
+      return c.json(
+        {
+          success: true,
+          message: "Ustawienia zostały zaktualizowane!",
+        },
+        200
+      );
     } catch (error) {
       console.error("Błąd aktualizacji ustawień:", error);
       return c.json({ error: "Błąd aktualizacji ustawień" }, 500);

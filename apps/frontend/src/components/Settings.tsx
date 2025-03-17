@@ -1,43 +1,51 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, redirect } from "react-router";
+import APIClient from "../lib/api-client";
+import formatApiError from "../lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
+import { BackendTypes } from "@aplikacja-konie/api-client";
+
+const default_setting_value = {
+  active: true,
+  days: 7,
+  time: "09:00",
+  rodzajWysylania: BackendTypes.RodzajeWysylaniaPowiadomien[3],
+};
 
 function Settings() {
-  const navigate = useNavigate();
-
-  const [settings, setSettings] = useState({
-    Podkucia: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-    Odrobaczanie: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-    "Podanie suplementów": {
-      active: true,
-      days: 7,
-      time: "09:00",
-      notify: "Żadne",
-    },
-    Szczepienie: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-    Dentysta: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-    Inne: { active: true, days: 7, time: "09:00", notify: "Żadne" },
+  const [settings, setSettings] = useState<BackendTypes.Setting>({
+    Podkucia: default_setting_value,
+    Odrobaczanie: default_setting_value,
+    "Podanie suplementów": default_setting_value,
+    Szczepienie: default_setting_value,
+    Dentysta: default_setting_value,
+    Inne: default_setting_value,
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
-  // TODO
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch("/api/ustawienia");
-        const data = await response.json();
-        if (!response.ok)
+        const response = await APIClient.ustawienia.$get();
+
+        if (response.status === 200) {
+          const data = await response.json();
+          setSettings(data);
+        } else {
+          const data = await response.json();
           throw new Error(data.error || "Błąd pobierania ustawień");
-        setSettings(data);
+        }
       } catch (err) {
-        // setError((err as Error).message);
+        setError(formatApiError(err as ErrorSchema));
       }
     };
-    fetchSettings();
+    void fetchSettings();
   }, []);
 
+  // TODO: wtf, split
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     field: string,
@@ -60,36 +68,20 @@ function Settings() {
     }));
   };
 
-  // TODO
   const handleSaveSettings = async () => {
     setError("");
     setSuccess("");
 
-    const formattedSettings = Object.fromEntries(
-      Object.entries(settings).map(([eventType, values]) => [
-        eventType.charAt(0).toUpperCase() + eventType.slice(1),
-        {
-          days: values.days,
-          time: values.time,
-          active: values.active,
-          rodzajWysylania: values.notify,
-        },
-      ])
-    );
-
     try {
-      const response = await fetch("/api/ustawienia", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedSettings),
-      });
+      const response = await APIClient.ustawienia.$put({ json: settings });
 
-      const data = await response.json();
-      if (!response.ok)
+      if (response.status === 200) {
+        setSuccess("✅ Ustawienia zostały zapisane!");
+        setShowPopup(true);
+      } else if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || "Błąd zapisywania ustawień");
-
-      setSuccess("✅ Ustawienia zostały zapisane!");
-      setShowPopup(true);
+      }
     } catch (err) {
       setError((err as Error).message);
     }
@@ -97,7 +89,7 @@ function Settings() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate("/konie"); // Przekierowanie po zamknięciu popupu
+    redirect("/konie"); // Przekierowanie po zamknięciu popupu
   };
 
   return (
@@ -148,7 +140,7 @@ function Settings() {
               <select
                 name={`${key}-notify`}
                 className="w-1/4 rounded border p-2"
-                value={value.notify}
+                value={value.rodzajWysylania}
                 onChange={(e) => handleInputChange(e, key, "notify")}
                 disabled={!value.active}
               >
@@ -162,7 +154,7 @@ function Settings() {
         ))}
 
         <button
-          onClick={handleSaveSettings}
+          onClick={void handleSaveSettings}
           className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
         >
           💾 Zapisz ustawienia

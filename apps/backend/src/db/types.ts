@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   hodowcyKoni,
   konie,
@@ -71,3 +72,22 @@ export type SelectUser = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUserPermissions = typeof user_permissions.$inferSelect;
 export type InsertUserPermissions = typeof user_permissions.$inferInsert;
+
+const common_settings = z.object({
+  days: z.number().int().nonnegative(),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
+  active: z.boolean(),
+  rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
+});
+
+export const notificationsInsertSchema = z.object({
+  // TODO convert to record
+  Podkucia: common_settings,
+  Odrobaczanie: common_settings,
+  "Podanie suplementów": common_settings,
+  Szczepienie: common_settings,
+  Dentysta: common_settings,
+  Inne: common_settings,
+});
+
+export type Setting = z.infer<typeof notificationsInsertSchema>;
