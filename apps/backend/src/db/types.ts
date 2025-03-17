@@ -26,16 +26,24 @@ import {
 //       "strictNullChecks": true
 // see for more details: https://github.com/drizzle-team/drizzle-orm/issues/2636
 
-export type RodzajKonia = (typeof rodzajeKoni.enumValues)[number];
+export const RodzajeKoni = rodzajeKoni.enumValues;
+export const RodzajeZdarzenProfilaktycznych =
+  rodzajeZdarzenProfilaktycznych.enumValues;
+export const RodzajeZdarzenRozrodczych = rodzajeZdarzenRozrodczych.enumValues;
+export const Plcie = plcie.enumValues;
+export const RodzajePowiadomien = rodzajeNotifications.enumValues;
+export const RodzajeWysylaniaPowiadomien =
+  rodzajeWysylaniaNotifications.enumValues;
+
+export type RodzajKonia = (typeof RodzajeKoni)[number];
 export type RodzajZdarzeniaProfilaktycznego =
-  (typeof rodzajeZdarzenProfilaktycznych.enumValues)[number];
+  (typeof RodzajeZdarzenProfilaktycznych)[number];
 export type RodzajZdarzeniaRozrodczego =
-  (typeof rodzajeZdarzenRozrodczych.enumValues)[number];
-export type Plcie = (typeof plcie.enumValues)[number];
-export type RodzajPowiadomienia =
-  (typeof rodzajeNotifications.enumValues)[number];
+  (typeof RodzajeZdarzenRozrodczych)[number];
+export type Plec = (typeof Plcie)[number];
+export type RodzajPowiadomienia = (typeof RodzajePowiadomien)[number];
 export type RodzajWysylaniaPowiadomienia =
-  (typeof rodzajeWysylaniaNotifications.enumValues)[number];
+  (typeof RodzajeWysylaniaPowiadomien)[number];
 
 export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;
 export type InsertHodowcaKoni = typeof hodowcyKoni.$inferInsert;
