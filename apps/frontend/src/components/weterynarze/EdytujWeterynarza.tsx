@@ -1,8 +1,10 @@
+import APIClient from "@/frontend/lib/api-client";
+import formatApiError from "@/frontend/lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import { redirect, useParams } from "react-router";
 
 function EditWeterynarz() {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [formData, setFormData] = useState({
     imieINazwisko: "",
@@ -17,22 +19,26 @@ function EditWeterynarz() {
   useEffect(() => {
     const fetchWeterynarz = async () => {
       try {
-        const response = await fetch(`/api/weterynarze/${id}`);
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-
-        setFormData({
-          imieINazwisko: data.imieINazwisko || "",
-          numerTelefonu: data.numerTelefonu || "",
-          hodowla: data.hodowla || 0,
+        const response = await APIClient.weterynarze[":id{[0-9]+}"].$get({
+          param: { id: id! },
         });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFormData({
+            imieINazwisko: data.imieINazwisko || "",
+            numerTelefonu: data.numerTelefonu || "",
+            hodowla: data.hodowla || 0,
+          });
+        } else {
+          throw new Error("Błąd pobierania danych");
+        }
       } catch (err) {
-        setError((err as Error).message);
+        setError(formatApiError(err as ErrorSchema));
       }
     };
 
-    fetchWeterynarz();
+    void fetchWeterynarz();
   }, [id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,36 +51,35 @@ function EditWeterynarz() {
     setSuccess("");
 
     try {
-      const response = await fetch(`/api/weterynarze/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const response = await APIClient.weterynarze[":id{[0-9]+}"].$put({
+        param: { id: id! },
+        json: formData,
       });
 
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd edycji weterynarza");
-
-      setSuccess("Dane weterynarza zostały zaktualizowane!");
-      setTimeout(() => navigate("/weterynarze"), 1500);
+      if (response.ok) {
+        setSuccess("Dane weterynarza zostały zaktualizowane!");
+        setTimeout(() => redirect("/weterynarze"), 1500);
+      } else {
+        throw new Error("Błąd edycji weterynarza");
+      }
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
     }
   };
 
   const handleDelete = async () => {
     setDeleteError("");
     try {
-      const response = await fetch(`/api/weterynarze/${id}`, {
-        method: "DELETE",
+      const response = await APIClient.weterynarze[":id{[0-9]+}"].$delete({
+        param: { id: id! },
       });
 
       if (!response.ok) throw new Error("Błąd usuwania weterynarza");
 
       setIsDeletePopupOpen(false);
-      navigate("/weterynarze");
+      redirect("/weterynarze");
     } catch (err) {
-      setDeleteError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
     }
   };
 
@@ -89,7 +94,7 @@ function EditWeterynarz() {
       {deleteError && <p className="text-red-600">{deleteError}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="block text-gray-700">👤 Imię i nazwisko:</label>
@@ -138,7 +143,7 @@ function EditWeterynarz() {
             <div className="flex justify-center gap-4">
               <button
                 className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                onClick={handleDelete}
+                onClick={void handleDelete}
               >
                 Usuń
               </button>

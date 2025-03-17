@@ -1,8 +1,10 @@
+import APIClient from "@/frontend/lib/api-client";
+import formatApiError from "@/frontend/lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect } from "react-router";
 
 function AddWeterynarz() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     imieINazwisko: "",
     numerTelefonu: "",
@@ -21,20 +23,16 @@ function AddWeterynarz() {
     setSuccess("");
 
     try {
-      const response = await fetch("/api/weterynarze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await APIClient.weterynarze.$post({ json: formData });
 
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd dodawania weterynarza");
-
-      setSuccess("Weterynarz został dodany!");
-      setTimeout(() => navigate("/weterynarze"), 1500);
+      if (response.ok) {
+        setSuccess("Weterynarz został dodany!");
+        setTimeout(() => redirect("/weterynarze"), 1500);
+      } else {
+        throw new Error("Błąd dodawania weterynarza");
+      }
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
     }
   };
 
@@ -48,7 +46,7 @@ function AddWeterynarz() {
       {success && <p className="text-green-500">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="block text-gray-700">👤 Imię i nazwisko:</label>

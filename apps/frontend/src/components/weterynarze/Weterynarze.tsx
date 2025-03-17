@@ -1,31 +1,34 @@
+import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { Link, redirect } from "react-router";
 
 type Weterynarz = {
   id: number;
   imieINazwisko: string;
-  numerTelefonu?: string;
+  numerTelefonu: string | null;
 };
 
 function Weterynarze() {
   const [weterynarze, setweterynarze] = useState<Weterynarz[]>([]);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWeterynarze = async () => {
       try {
-        const response = await fetch("/api/weterynarze");
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych");
-        setweterynarze(data);
+        const response = await APIClient.weterynarze.$get();
+
+        if (response.ok) {
+          const data = await response.json();
+          setweterynarze(data);
+        } else {
+          throw new Error("Błąd pobierania danych");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchWeterynarze();
+    void fetchWeterynarze();
   }, []);
 
   return (
@@ -37,7 +40,7 @@ function Weterynarze() {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => navigate("/weterynarze/add")}
+        onClick={() => redirect("/weterynarze/add")}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj weterynarza

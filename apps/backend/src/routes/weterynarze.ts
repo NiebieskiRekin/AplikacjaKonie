@@ -29,7 +29,7 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
               .where(eq(users.id, user))
           )
         );
-      return c.json(allWeterynarze);
+      return c.json(allWeterynarze, 200);
     } catch {
       return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
     }
@@ -55,7 +55,7 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           )
         )
         .then((res) => res[0]);
-      return c.json(weterynarz);
+      return c.json(weterynarz, 200);
     } catch {
       return c.json({ error: "Błąd pobierania weterynarzy" }, 500);
     }
@@ -88,8 +88,7 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         .returning()
         .then((res) => res[0]);
 
-      c.status(201);
-      return c.json(result);
+      return c.json(result, 201);
     } catch {
       return c.json({ error: "Błąd dodania weterynarza" }, 500);
     }
@@ -128,8 +127,7 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           .where(eq(weterynarze.id, Number(c.req.param("id"))))
           .returning();
 
-        c.status(201);
-        return c.json(result);
+        return c.json(result, 201);
       } catch {
         return c.json({ error: "Błąd dodania weterynarza" }, 500);
       }
@@ -164,7 +162,7 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         )
         .returning();
 
-      return c.json({ success: "Koń został usunięty" });
+      return c.json({ success: "Koń został usunięty" }, 201);
     } catch (error) {
       console.error("Błąd podczas usuwania konia:", error);
       return c.json({ error: "Błąd podczas usuwania konia" }, 500);
