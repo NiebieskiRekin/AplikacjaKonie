@@ -1,3 +1,6 @@
+import APIClient from "@/frontend/lib/api-client";
+import formatApiError from "@/frontend/lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -40,25 +43,23 @@ function AddKonia() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("nazwa", nazwa);
-    formData.append("numerPrzyzyciowy", numerPrzyzyciowy);
-    formData.append("numerChipa", numerChipa);
-    formData.append("rocznikUrodzenia", rocznikUrodzenia);
-    formData.append("dataPrzybyciaDoStajni", dataPrzybycia);
-    formData.append("dataOdejsciaZeStajni", dataOdejscia);
-    formData.append("rodzajKonia", rodzajKonia);
-    formData.append("plec", plec);
-    // formData.append("file", file);
-
     try {
-      const response = await fetch("/api/konie", {
-        method: "POST",
-        body: formData,
+      const response = await APIClient.konie.$post({
+        form: {
+          nazwa,
+          numerPrzyzyciowy,
+          numerChipa,
+          rocznikUrodzenia,
+          dataPrzybyciaDoStajni: dataPrzybycia,
+          dataOdejsciaZeStajni: dataOdejscia,
+          rodzajKonia,
+          plec,
+        },
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Błąd dodawania konia");
+      if (!response.ok) {
+        return;
+      }
 
       setSuccess("Koń został dodany!");
       setShowPopup(true);
@@ -73,27 +74,30 @@ function AddKonia() {
       // setFile(null);
 
       if (file) {
-        const response_image_url_upload = await fetch(
-          `/api/images/upload/${data.image_uuid.id!}`
-        );
+        const data = await response.json();
+        const response_image_url_upload = await APIClient.images.upload[
+          ":filename"
+        ].$get({
+          param: { filename: data.image_uuid.id },
+        });
         if (!response_image_url_upload.ok)
-          throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
-        const imaage_url_upload = await response_image_url_upload.json();
-        const response_uploaded_image = await fetch(imaage_url_upload.url, {
+          throw new Error(data.message || "Błąd przy przesyłaniu zdjęcia");
+        const image_url_upload = await response_image_url_upload.json();
+        const response_uploaded_image = await fetch(image_url_upload.url, {
           method: "PUT",
           body: file,
         });
         if (!response_uploaded_image.ok)
-          throw new Error(data.error || "Błąd przy przesyłaniu zdjęcia");
+          throw new Error("Błąd przy przesyłaniu zdjęcia");
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
     }
   };
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    navigate("/konie");
+    return navigate("/konie");
   };
 
   return (
@@ -104,7 +108,7 @@ function AddKonia() {
       {success && <p className="text-green-400">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit}
         className="w-96 rounded-lg bg-white p-6 shadow-md"
       >
         <label className="mb-2 block">
@@ -219,7 +223,7 @@ function AddKonia() {
               Koń został dodany!
             </p>
             <button
-              onClick={handleClosePopup}
+              onClick={() => handleClosePopup}
               className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
             >
               OK

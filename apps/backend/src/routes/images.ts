@@ -25,8 +25,6 @@ import { z } from "zod";
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { ProcessEnv } from "../env";
 
-const images = new Hono<{ Variables: { jwtPayload: UserPayload } }>();
-
 const key_schema = z.object({
   type: z.string(),
   project_id: z.string(),
@@ -49,7 +47,6 @@ const storage = new Storage({
   projectId: "aplikacjakonie",
   credentials: key,
 });
-images.use(authMiddleware);
 
 const bucketName = "aplikacjakonie-zdjecia-koni";
 
@@ -74,16 +71,6 @@ export async function generateV4UploadSignedUrl(filename: string) {
   return url;
 }
 
-images.get("/upload/:filename", async (c) => {
-  // Creates a client
-  const filename = c.req.param("filename");
-  const signed_url = await generateV4UploadSignedUrl(filename);
-
-  return c.json({
-    url: signed_url,
-  });
-});
-
 // https://github.com/googleapis/nodejs-storage/blob/main/samples/generateV4ReadSignedUrl.js
 export async function generateV4ReadSignedUrl(filename: string) {
   // These options will allow temporary read access to the file
@@ -102,14 +89,25 @@ export async function generateV4ReadSignedUrl(filename: string) {
   return url;
 }
 
-images.get("/read/:filename", async (c) => {
-  // Creates a client
-  const filename = c.req.param("filename");
-  const signed_url = await generateV4ReadSignedUrl(filename);
+const images = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
+  .use(authMiddleware)
+  .get("/upload/:filename", async (c) => {
+    // Creates a client
+    const filename = c.req.param("filename");
+    const signed_url = await generateV4UploadSignedUrl(filename);
 
-  return c.json({
-    url: signed_url,
+    return c.json({
+      url: signed_url,
+    });
+  })
+  .get("/read/:filename", async (c) => {
+    // Creates a client
+    const filename = c.req.param("filename");
+    const signed_url = await generateV4ReadSignedUrl(filename);
+
+    return c.json({
+      url: signed_url,
+    });
   });
-});
 
 export default images;
