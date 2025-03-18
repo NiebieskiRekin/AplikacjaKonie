@@ -25,6 +25,11 @@ resource "google_compute_instance" "default" {
     device_name = google_compute_disk.postgres_database.name
   }
 
+  attached_disk {
+    source      = google_compute_disk.postgres_backup.id
+    device_name = google_compute_disk.postgres_backup.name
+  }
+
   # Ignore changes for persistent disk attachments
   lifecycle {
     ignore_changes = [attached_disk]
