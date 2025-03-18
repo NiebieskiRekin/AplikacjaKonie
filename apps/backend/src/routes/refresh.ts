@@ -45,7 +45,7 @@ const refresh = new Hono().get("/", async (c) => {
       return c.redirect(where_to);
     }
     // Invalid refreshToken, clear cookie and send to login
-  } catch (err) {
+  } catch {
     console.log("Refresh token invalid");
     deleteCookie(c, REFRESH_TOKEN);
     return c.json({ error: "Należy zalogować się ponownie" }, 403);
