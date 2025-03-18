@@ -1,0 +1,61 @@
+- name: Setup an external volume on GCP
+  become: true
+  hosts: main
+  vars:
+    volumes: [
+      {
+        disk_device: "{{ postgres_disk_device_name }}",
+        mount_point: "/mnt/disks/pg_data"
+      },
+      {
+        disk_device: "{{ backup_disk_device_name }}",
+        mount_point: "/mnt/disks/pg_backup"
+      }
+    ]
+  tasks:
+    - name: Setup disk {{ item }}
+      loop: "{{ volumes }}"
+      block:
+      - name: Determine Disk Device
+        ansible.builtin.set_fact:
+          disk_device_path: "/dev/disk/by-id/{{ disk_device }}"
+
+      - name: Format disk
+        community.general.filesystem:
+          fstype: ext4
+          dev: "{{ disk_device_path }}"
+          opts: -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard
+        notify: remount disk
+
+      - name: Create Mount Point
+        ansible.builtin.file:
+          path: "{{ mount_point }}"
+          state: directory
+          mode: '0777'
+
+      # - name: Get UUID
+      #   ansible.builtin.command: lsblk -no UUID {{ disk_device_path }}
+      #   register: uuid
+
+      - name: Get UUID
+        ansible.builtin.set_fact:
+          disk_uuid: "{{ (ansible_facts.mounts | selectattr('device', '==', '{{ disk_device_path }}') | first)['uuid'] }}"
+
+      - name: Mount using fstab
+        ansible.posix.mount:
+          path: "{{ mount_point }}"
+          src: "UUID={{ disk_uuid }}"
+          fstype: ext4
+          opts: discard,defaults,nofail
+          state: mounted
+
+      - name: Set Permissions
+        ansible.builtin.file:
+          path: "{{ mount_point }}"
+          mode: '0777'
+
+  handlers:
+    - name: Remount disk
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        state: remounted
