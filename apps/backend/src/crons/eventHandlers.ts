@@ -22,8 +22,14 @@ export async function fetchUserEvents() {
     .from(notifications)
     .where(or(eq(notifications.rodzajWysylania, "Email"), eq(notifications.rodzajWysylania, "Oba")));
 
-  const userNotifications: Record<string, { rodzajKonia: string; wydarzenia: Record<string, string[]> }> = {};
-
+    const userNotifications: Record<
+    string,
+    {
+      wydarzenia: Record<string, { nazwaKonia: string; rodzajKonia: string; dataWaznosci: string }[]>;
+    }
+  > = {};
+// Tutaj na pewno jest do pomyślenia, żeby to zoptymalizować, 
+// jak mi zaczeło działać to nie chciałem w tym grzebać, bo trochę z tym się bawiłem...
   for (const setting of _notifications) {
     const { userId, rodzajZdarzenia } = setting;
     let events = [];
@@ -34,9 +40,11 @@ export async function fetchUserEvents() {
       .where(eq(users.id, userId))
       .then((res) => res[0]);
 
+    if (!hodowla) continue;
+
     if (rodzajZdarzenia === "Podkucia") {
       events = await db
-        .select({
+        .selectDistinct({
           id: podkucia.id,
           dataWaznosci: podkucia.dataWaznosci,
           rodzajZdarzenia: sql<string>`'Podkucia'`.as("rodzajZdarzenia"),
@@ -51,12 +59,15 @@ export async function fetchUserEvents() {
           and(
             eq(konie.hodowla, hodowla.hodowlaId),
             lte(podkucia.dataWaznosci, addDays(today, Number(setting.days))),
-            gte(sql`${setting.time}`, currentHour)
+            gte(sql`${setting.time}`, currentHour),
+            sql`${konie.dataOdejsciaZeStajni} IS NULL`,
+            sql`${podkucia.dataWaznosci} IS NOT NULL`,
           )
-        );
+        )
+        .orderBy(konie.nazwa, podkucia.dataWaznosci);
     } else {
       events = await db
-        .select({
+        .selectDistinct({
           id: zdarzeniaProfilaktyczne.id,
           dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
           rodzajZdarzenia: zdarzeniaProfilaktyczne.rodzajZdarzenia,
@@ -72,22 +83,28 @@ export async function fetchUserEvents() {
             eq(zdarzeniaProfilaktyczne.rodzajZdarzenia, rodzajZdarzenia),
             eq(konie.hodowla, hodowla.hodowlaId),
             lte(zdarzeniaProfilaktyczne.dataWaznosci, addDays(today, Number(setting.days))),
-            gte(notifications.time, currentHour)
+            gte(sql`${setting.time}`, currentHour),
+            sql`${konie.dataOdejsciaZeStajni} IS NULL`,
+            sql`${zdarzeniaProfilaktyczne.dataWaznosci} IS NOT NULL`,
           )
-        );
+        )
+        .orderBy(konie.nazwa, zdarzeniaProfilaktyczne.dataWaznosci);
     }
 
-    // Grupowanie zdarzeń dla użytkownika
     for (const event of events) {
       if (!userNotifications[event.email]) {
-        userNotifications[event.email] = { rodzajKonia: event.rodzajKonia, wydarzenia: {} };
+        userNotifications[event.email] = { wydarzenia: {} };
       }
 
       if (!userNotifications[event.email].wydarzenia[event.rodzajZdarzenia]) {
         userNotifications[event.email].wydarzenia[event.rodzajZdarzenia] = [];
       }
 
-      userNotifications[event.email].wydarzenia[event.rodzajZdarzenia].push(event.nazwaKonia);
+      userNotifications[event.email].wydarzenia[event.rodzajZdarzenia].push({
+        nazwaKonia: event.nazwaKonia,
+        rodzajKonia: event.rodzajKonia,
+        dataWaznosci: event.dataWaznosci ?? "",
+      });
     }
   }
 
