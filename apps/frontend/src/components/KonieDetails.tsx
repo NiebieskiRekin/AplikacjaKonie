@@ -36,6 +36,8 @@ const EVENT_TYPES = [
   "Dentysta",
 ];
 
+const default_img = "/horses/default.png";
+
 function KonieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,10 +59,9 @@ function KonieDetails() {
         if (!response.ok)
           throw new Error(data.error || "Błąd pobierania danych konia");
 
-        // tutaj będziesz trzeba pobierać wszystkie zdjęcia dla danego konia z db
         setHorse({
           ...data,
-          imageUrls: [`/horses/${data.id}-1.jpg`, `/horses/${data.id}-2.jpg`],
+          imageUrls: data.images_signed_urls || [],
         });
       } catch (err) {
         setError((err as Error).message);
@@ -251,7 +252,7 @@ function KonieDetails() {
           <img
             src={horse.imageUrls?.[currentImageIndex]}
             alt={horse.nazwa}
-            onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
+            onError={(e) => (e.currentTarget.src = default_img)}
             onClick={() => setIsImageModalOpen(true)}
             className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
           />

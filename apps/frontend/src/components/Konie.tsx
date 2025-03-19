@@ -7,8 +7,11 @@ type Horse = {
   nazwa: string;
   numerPrzyzyciowy: string;
   rodzajKonia: string;
-  imageUrl?: string;
+  img_url: string | null;
+  imageId: string | null;
 };
+
+const default_img = "/horses/default.png";
 
 function Konie() {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -20,20 +23,22 @@ function Konie() {
   const navigate = useNavigate();
 
   useEffect(() => {
+
     const fetchHorses = async () => {
       try {
-        const response = await fetch("/api/konie");
+        
+        const horses = await fetch("/api/konie");
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Błąd pobierania koni");
+        const data: Horse[] = await horses.json();
+        console.log(data);
+        if (!horses.ok) throw new Error(data.error || "Błąd pobierania koni");
 
-        const horeseWithImages = data.map((horse: Horse) => ({
-          ...horse,
-          imageUrl: `${import.meta.env.BASE_URL}horses/${horse.id}.jpg`,
-        }));
+        data.forEach(element => {
+          element.img_url = element.img_url ?? default_img;
+        });
 
-        setHorses(horeseWithImages);
-        setFilteredHorses(horeseWithImages);
+        setHorses(data);
+        setFilteredHorses(data);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -81,13 +86,13 @@ function Konie() {
               onClick={() => navigate(`/konie/${horse.id}`)}
             >
               <img
-                src={horse.imageUrl}
+                src={horse.img_url || default_img}
                 alt={horse.nazwa}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedImage(horse.imageUrl!);
+                  setSelectedImage(e.currentTarget.src);
                 }}
-                onError={(e) => (e.currentTarget.src = "/horses/default.jpg")}
+                onError={(e)=>e.currentTarget.src = default_img}
                 className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
               />
               <div className="p-3">

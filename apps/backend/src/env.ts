@@ -42,9 +42,11 @@ const ServeEnv = z.object({
 
   ADMIN_PASSWORD_BCRYPT: z.string(),
 
+
   EMAIL_USER: z.string().email(),
   EMAIL_PASS: z.string(),
-
+  
+  GOOGLE_API_KEY_BASE64: z.string().base64()
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
