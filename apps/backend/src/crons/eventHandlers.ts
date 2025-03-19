@@ -3,7 +3,7 @@ import { and, eq, lte, gte, sql, or } from "drizzle-orm";
 import { notifications, podkucia, konie, users, zdarzeniaProfilaktyczne } from "../db/schema";
 
 
-export function addDays(dateStr: string, days: number): string {
+export function subtractDays(dateStr: string, days: number): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() - days);
   return date.toISOString().split("T")[0];
@@ -58,7 +58,7 @@ export async function fetchUserEvents() {
         .where(
           and(
             eq(konie.hodowla, hodowla.hodowlaId),
-            lte(podkucia.dataWaznosci, addDays(today, Number(setting.days))),
+            lte(podkucia.dataWaznosci, subtractDays(today, Number(setting.days))),
             gte(sql`${setting.time}`, currentHour),
             sql`${konie.dataOdejsciaZeStajni} IS NULL`,
             sql`${podkucia.dataWaznosci} IS NOT NULL`,
@@ -82,7 +82,7 @@ export async function fetchUserEvents() {
           and(
             eq(zdarzeniaProfilaktyczne.rodzajZdarzenia, rodzajZdarzenia),
             eq(konie.hodowla, hodowla.hodowlaId),
-            lte(zdarzeniaProfilaktyczne.dataWaznosci, addDays(today, Number(setting.days))),
+            lte(zdarzeniaProfilaktyczne.dataWaznosci, subtractDays(today, Number(setting.days))),
             gte(sql`${setting.time}`, currentHour),
             sql`${konie.dataOdejsciaZeStajni} IS NULL`,
             sql`${zdarzeniaProfilaktyczne.dataWaznosci} IS NOT NULL`,
