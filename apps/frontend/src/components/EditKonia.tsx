@@ -9,8 +9,8 @@ function EditKonia() {
   const [numerPrzyzyciowy, setNumerPrzyzyciowy] = useState("");
   const [numerChipa, setNumerChipa] = useState("");
   const [rocznikUrodzenia, setRocznikUrodzenia] = useState("2025");
-  const [dataPrzybycia, setDataPrzybycia] = useState("");
-  const [dataOdejscia, setDataOdejscia] = useState("");
+  const [dataPrzybyciaDoStajni, setDataPrzybycia] = useState("");
+  const [dataOdejsciaZeStajni, setDataOdejscia] = useState("");
   const [rodzajKonia, setRodzajKonia] = useState("");
   const [plec, setPlec] = useState("");
   const [error, setError] = useState("");
@@ -27,8 +27,8 @@ function EditKonia() {
           throw new Error(data.error || "Błąd pobierania danych konia");
 
         setNazwa(data.nazwa);
-        setNumerPrzyzyciowy(data.numerPrzyzyciowy);
-        setNumerChipa(data.numerChipa);
+        setNumerPrzyzyciowy(data.numerPrzyzyciowy || "");
+        setNumerChipa(data.numerChipa || "");
         setRocznikUrodzenia(data.rocznikUrodzenia);
         setDataPrzybycia(data.dataPrzybyciaDoStajni || "");
         setDataOdejscia(data.dataOdejsciaZeStajni || "");
@@ -49,8 +49,6 @@ function EditKonia() {
 
     if (
       !nazwa ||
-      !numerPrzyzyciowy ||
-      !numerChipa ||
       !rocznikUrodzenia ||
       !rodzajKonia ||
       !plec
@@ -64,8 +62,8 @@ function EditKonia() {
       numerPrzyzyciowy,
       numerChipa,
       rocznikUrodzenia,
-      dataPrzybycia,
-      dataOdejscia,
+      dataPrzybyciaDoStajni,
+      dataOdejsciaZeStajni,
       rodzajKonia,
       plec,
     });
@@ -150,7 +148,7 @@ function EditKonia() {
           Data przybycia do stajni:
           <input
             type="date"
-            value={dataPrzybycia}
+            value={dataPrzybyciaDoStajni}
             onChange={(e) => setDataPrzybycia(e.target.value)}
             className="w-full rounded-lg border p-2"
           />
@@ -160,7 +158,7 @@ function EditKonia() {
           Data odejścia ze stajni:
           <input
             type="date"
-            value={dataOdejscia}
+            value={dataOdejsciaZeStajni}
             onChange={(e) => setDataOdejscia(e.target.value)}
             className="w-full rounded-lg border p-2"
           />

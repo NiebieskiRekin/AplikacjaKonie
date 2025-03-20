@@ -191,7 +191,16 @@ horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
 
     const updatedHorse = await db
       .update(konie)
-      .set(d)
+      .set({
+        nazwa: d.nazwa,
+        numerPrzyzyciowy: d.numerPrzyzyciowy,
+        numerChipa: d.numerChipa,
+        rocznikUrodzenia: d.rocznikUrodzenia,
+        dataPrzybyciaDoStajni: d.dataPrzybyciaDoStajni,
+        dataOdejsciaZeStajni: d.dataOdejsciaZeStajni,
+        hodowla: d.hodowla,
+        rodzajKonia: d.rodzajKonia
+      })
       .where(eq(konie.id, horseId))
       .returning();
 
