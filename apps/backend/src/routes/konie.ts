@@ -458,7 +458,7 @@ horses.get("/choroby/:id{[0-9]+}", async (c) => {
   const chorobaList = await db
     .select()
     .from(choroby)
-    .where(eq(choroby.kon, horseId));
+    .where(and(eq(choroby.kon, horseId), isNull(choroby.dataZakonczenia)));
 
   return c.json(chorobaList);
 });
