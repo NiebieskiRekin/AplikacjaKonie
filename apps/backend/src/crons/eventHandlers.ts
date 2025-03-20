@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { and, eq, lte, gte, sql, or, isNull, isNotNull } from "drizzle-orm";
+import { and, eq, gte, sql, or, isNull, isNotNull, lte } from "drizzle-orm";
 import { notifications, podkucia, konie, users, zdarzeniaProfilaktyczne } from "../db/schema";
 
 
@@ -58,7 +58,10 @@ export async function fetchUserEvents() {
         .where(
           and(
             eq(konie.hodowla, hodowla.hodowlaId),
-            lte(podkucia.dataWaznosci, subtractDays(today, Number(setting.days))),
+            or(
+              gte(podkucia.dataWaznosci, subtractDays(today, Number(setting.days))),
+              lte(podkucia.dataWaznosci, today)
+            ),
             gte(sql`${setting.time}`, currentHour),
             isNull(konie.dataOdejsciaZeStajni),
             isNotNull(podkucia.dataWaznosci),
@@ -82,7 +85,10 @@ export async function fetchUserEvents() {
           and(
             eq(zdarzeniaProfilaktyczne.rodzajZdarzenia, rodzajZdarzenia),
             eq(konie.hodowla, hodowla.hodowlaId),
-            lte(zdarzeniaProfilaktyczne.dataWaznosci, subtractDays(today, Number(setting.days))),
+            or(
+              gte(zdarzeniaProfilaktyczne.dataWaznosci, subtractDays(today, Number(setting.days))),
+              lte(zdarzeniaProfilaktyczne.dataWaznosci, today)
+            ),
             gte(sql`${setting.time}`, currentHour),
             isNull(konie.dataOdejsciaZeStajni),
             isNotNull(zdarzeniaProfilaktyczne.dataWaznosci),
