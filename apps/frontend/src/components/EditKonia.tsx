@@ -165,6 +165,35 @@ function EditKonia() {
             className="w-full rounded-lg border p-2"
           />
         </label>
+        
+        <label className="mb-2 block">
+          Rodzaj konia:
+          <select
+            value={rodzajKonia}
+            onChange={(e) => setRodzajKonia(e.target.value)}
+            className="w-full rounded-lg border p-2"
+          >
+            <option value="">Wybierz...</option>
+            <option value="Konie hodowlane">Koń hodowlany</option>
+            <option value="Konie rekreacyjne">Koń rekreacyjny</option>
+            <option value="Źrebaki">Źrebak</option>
+            <option value="Konie sportowe">Koń sportowy</option>
+          </select>
+        </label>
+
+        <label className="mb-2 block">
+          Płeć:
+          <select
+            value={plec}
+            onChange={(e) => setPlec(e.target.value)}
+            className="w-full rounded-lg border p-2"
+          >
+            <option value="">Wybierz...</option>
+            <option value="klacz">Klacz</option>
+            <option value="ogier">Ogier</option>
+            <option value="wałach">Wałach</option>
+          </select>
+        </label>
 
         <button
           type="submit"

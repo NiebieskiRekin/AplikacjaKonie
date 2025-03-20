@@ -58,7 +58,7 @@ export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania
   "Push", "Email", "Oba", "Żadne"
 ]);
 
-export const plcie = hodowlakoni.enum("plcie", ["samiec", "samica"]);
+export const plcie = hodowlakoni.enum("plcie", ["klacz", "ogier", "wałach"]);
 
 export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
   id: serial("id").primaryKey(),
@@ -83,10 +83,8 @@ export const konie = hodowlakoni.table(
   {
     id: serial("id").primaryKey(),
     nazwa: varchar("nazwa").notNull(),
-    numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 })
-      .notNull()
-      .unique(),
-    numerChipa: varchar("numer_chipa", { length: 15 }).notNull().unique(),
+    numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 }), // Mogą być null'e, ale też mają być unique 
+    numerChipa: varchar("numer_chipa", { length: 15 }), // Mogą być null'e, ale też mają być unique
     rocznikUrodzenia: integer("rocznik_urodzenia").default(
       sql`extract(year from CURRENT_DATE)`
     ),
