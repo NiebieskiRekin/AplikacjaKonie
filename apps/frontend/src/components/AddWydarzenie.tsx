@@ -207,7 +207,7 @@ function AddEvent() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             {selectedHorses.length > 0
-              ? `Wybrano ${selectedHorses.length} koni`
+              ? `Liczba wybranych Koni: ${selectedHorses.length}`
               : "Kliknij, aby wybrać konie"}
           </button>
 
@@ -293,7 +293,12 @@ function AddEvent() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700"
+          className={`w-full rounded-lg py-3 text-white transition ${
+            selectedHorses.length > 0
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+          disabled={selectedHorses.length <= 0}
         >
           ✅ Dodaj zdarzenie
         </button>
