@@ -18,8 +18,16 @@ export async function fetchUserEvents() {
   const currentHour = now.getHours().toString().padStart(2, "0") + ":00";
 
   const _notifications = await db
-    .select()
+    .select({
+      userId: users.id,
+      hodowlaId: users.hodowla,
+      rodzajZdarzenia: notifications.rodzajZdarzenia,
+      rodzajWysylania: notifications.rodzajWysylania,
+      time: notifications.time,
+      days: notifications.days,
+    })
     .from(notifications)
+    .innerJoin(users, eq(notifications.userId, users.id))
     .where(or(eq(notifications.rodzajWysylania, "Email"), eq(notifications.rodzajWysylania, "Oba")));
 
     const userNotifications: Record<
@@ -31,16 +39,8 @@ export async function fetchUserEvents() {
 // Tutaj na pewno jest do pomyślenia, żeby to zoptymalizować, 
 // jak mi zaczeło działać to nie chciałem w tym grzebać, bo trochę z tym się bawiłem...
   for (const setting of _notifications) {
-    const { userId, rodzajZdarzenia } = setting;
+    const { rodzajZdarzenia, hodowlaId } = setting;
     let events = [];
-
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
-
-    if (!hodowla) continue;
 
     if (rodzajZdarzenia === "Podkucia") {
       events = await db
@@ -57,7 +57,7 @@ export async function fetchUserEvents() {
         .innerJoin(users, eq(konie.hodowla, users.hodowla))
         .where(
           and(
-            eq(konie.hodowla, hodowla.hodowlaId),
+            eq(konie.hodowla, hodowlaId),
             or(
               gte(podkucia.dataWaznosci, subtractDays(today, Number(setting.days))),
               lte(podkucia.dataWaznosci, today)
@@ -84,7 +84,7 @@ export async function fetchUserEvents() {
         .where(
           and(
             eq(zdarzeniaProfilaktyczne.rodzajZdarzenia, rodzajZdarzenia),
-            eq(konie.hodowla, hodowla.hodowlaId),
+            eq(konie.hodowla, hodowlaId),
             or(
               gte(zdarzeniaProfilaktyczne.dataWaznosci, subtractDays(today, Number(setting.days))),
               lte(zdarzeniaProfilaktyczne.dataWaznosci, today)
