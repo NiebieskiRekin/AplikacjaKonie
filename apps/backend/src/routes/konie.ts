@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, isNull } from "drizzle-orm";
 import {
   konie,
   users,
@@ -461,6 +461,45 @@ horses.get("/choroby/:id{[0-9]+}", async (c) => {
     .where(eq(choroby.kon, horseId));
 
   return c.json(chorobaList);
+});
+
+
+horses.get("/wydarzenia", async (c) => {
+  const userId = getUserFromContext(c);
+
+  try {
+    const user = db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .as("user_hodowla");
+
+    // Pobieramy konie tylko tej samej hodowli
+
+    const horsesList = await db
+      .select({
+        id: konie.id,
+        nazwa: konie.nazwa,
+        // numerPrzyzyciowy: konie.numerPrzyzyciowy,
+        // numerChipa: konie.numerChipa,
+        // rocznikUrodzenia: konie.rocznikUrodzenia,
+        // dataPrzybyciaDoStajni:konie.dataPrzybyciaDoStajni,
+        // dataOdejsciaZeStajni: konie.dataOdejsciaZeStajni,
+        // hodowla:konie.hodowla,
+        rodzajKonia: konie.rodzajKonia,
+        // plec: konie.plec,
+      })
+      .from(user)
+      .innerJoin(
+        konie,
+        and(eq(user.hodowla, konie.hodowla), eq(konie.active, true), isNull(konie.dataOdejsciaZeStajni))
+      )
+      .orderBy(sql`LOWER(${konie.nazwa})`);
+    
+    return c.json(horsesList.map((k)=>{return {...k}}));
+  } catch {
+    return c.json({ error: "Błąd zapytania" });
+  }
 });
 
 export default horses;
