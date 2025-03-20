@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
+import { GoArrowLeft } from "react-icons/go";
 
 type Event = {
   id: number;
@@ -40,24 +41,33 @@ function HorseEventList({ type }: { type: string }) {
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
-      <h2 className="mb-6 text-3xl font-bold text-white">
-        📅 {type.charAt(0).toUpperCase() + type.replace("_", " ").slice(1)}{" "}
-        Konia:{" "}
-        {events.length > 0
-          ? events[0].nazwaKonia.charAt(0).toUpperCase() +
-            events[0].nazwaKonia.slice(1)
-          : "Brak danych"}
-      </h2>
+      <div className="flex w-full max-w-7xl items-center justify-center relative mt-12 sm:mt-0 mb-16 sm:mb-10 px-6">
+        <button
+          onClick={() => navigate(`/konie/${id}`)}
+          className="absolute left-0 sm:relative sm:mr-auto flex items-center gap-2 text-white bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 rounded-lg transition"
+        >
+          <GoArrowLeft className="text-xl" />
+        </button>
+
+        <h2 className="text-xl sm:text-3xl font-bold text-white text-center absolute left-1/2 transform -translate-x-1/2 px-4 sm:w-auto">
+          📅 {type.charAt(0).toUpperCase() + type.replace("_", " ").slice(1)} Konia:{" "}
+          {Array.isArray(events) && events.length > 0
+            ? events[0].nazwaKonia.charAt(0).toUpperCase() + events[0].nazwaKonia.slice(1)
+            : typeof events === "object" && events.nazwaKonia
+            ? events.nazwaKonia.charAt(0).toUpperCase() + events.nazwaKonia.slice(1)
+            : "Brak danych"}
+        </h2>
+      </div>
       {error && <p className="text-red-600">{error}</p>}
 
       <button
         onClick={() => navigate(`/wydarzenia/add/${id}/${type}`)}
-        className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
+        className="mb-6 sm:mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj nowe wydarzenie
       </button>
 
-      <div className="w-full max-w-5xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
+      <div className="w-full max-w-7xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
         <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">

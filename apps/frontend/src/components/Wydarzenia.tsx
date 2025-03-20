@@ -18,6 +18,20 @@ function StajniaEvents() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Event | null; direction: "asc" | "desc" }>({
+    key: null,
+    direction: "asc",
+  });
+
+  const [filters, setFilters] = useState({
+    horse: "",
+    date: "",
+    rodzajZdarzenia: "",
+    dataWaznosci: "",
+    osobaImieNazwisko: "",
+    opisZdarzenia: "",
+  });
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -37,6 +51,22 @@ function StajniaEvents() {
     fetchEvents();
   }, []);
 
+  const handleSort = (key: keyof Event) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+
+    const sortedData = [...filteredEvents].sort((a, b) => {
+      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredEvents(sortedData);
+    setSortConfig({ key, direction });
+  };
+
   useEffect(() => {
     const filtered = events.filter(
       (event) =>
@@ -52,6 +82,20 @@ function StajniaEvents() {
   const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentEvents = filteredEvents.slice(startIndex, endIndex);
+
+  const getRowClass = (dataWaznosci: string) => {
+    if (!dataWaznosci) return "";
+
+    const today = new Date();
+    const expirationDate = new Date(dataWaznosci);
+    const differenceInDays = Math.ceil(
+      (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (differenceInDays <= 0) return "text-red-500 font-bold";
+    if (differenceInDays <= 7) return "text-yellow-400";
+    return "";
+  };
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
@@ -79,7 +123,7 @@ function StajniaEvents() {
           }
           className="w-full rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-yellow-600 hover:to-yellow-800 sm:w-auto sm:px-6 sm:py-3"
         >
-          ➕ Podanie Witamin
+          ➕ Podanie Suplementów
         </button>
         <button
           onClick={() => (window.location.href = "/wydarzenia/add/szczepienia")}
@@ -107,28 +151,27 @@ function StajniaEvents() {
         />
       </div>
 
-      <div className="w-full max-w-5xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
+      <div className="w-full max-w-7xl overflow-x-auto rounded-lg bg-white p-4 shadow-lg md:p-6">
         <table className="w-full min-w-[700px] border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                📅 Data
-              </th>
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                🐎 Koń
-              </th>
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                🔍 Rodzaj zdarzenia
-              </th>
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                ⏳ Ważne do
-              </th>
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                👤 Weterynarz / Kowal
-              </th>
-              <th className="border border-gray-300 px-2 py-2 md:px-4">
-                📝 Opis
-              </th>
+              {[
+                { key: "date", label: "📅 Data" },
+                { key: "horse", label: "🐎 Koń" },
+                { key: "rodzajZdarzenia", label: "🔍 Rodzaj zdarzenia" },
+                { key: "dataWaznosci", label: "⏳ Ważne do" },
+                { key: "osobaImieNazwisko", label: "👤 Weterynarz / Kowal" },
+                { key: "opisZdarzenia", label: "📝 Opis" },
+              ].map(({ key, label }) => (
+                <th
+                  key={key}
+                  className="border border-gray-300 px-2 py-2 md:px-4 cursor-pointer hover:bg-gray-300"
+                  onClick={() => handleSort(key as keyof Event)}
+                >
+                  {label}{" "}
+                  {sortConfig.key === key ? (sortConfig.direction === "asc" ? "▲" : "▼") : "⇅"}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -136,7 +179,7 @@ function StajniaEvents() {
               currentEvents.map((event, index) => (
                 <tr
                   key={index}
-                  className="text-center transition hover:bg-gray-100"
+                  className={`text-center transition hover:bg-gray-100 ${getRowClass(event.dataWaznosci)}`}
                 >
                   <td className="border border-gray-300 px-2 py-2 md:px-4">
                     {event.date}
