@@ -3,9 +3,8 @@ import { ProcessEnv } from "../env";
 import { generateEmailTemplate } from "./emailTemplate";
 
 export const transporter = nodemailer.createTransport({
-  host: "stmp.gmail.com",
+  host: "smtp.gmail.com",
   port: 587,
-  secure: false, // do pomyślenia czy chcemy to zmienić na secure, nw czy nie wystaczy po prostu zmienić portu i dać true szczerze mówiąc
   service: "gmail",
   auth: {
     user: ProcessEnv.EMAIL_USER,
