@@ -9,7 +9,15 @@ export function generateEmailTemplate(wydarzenia: Record<string, { nazwaKonia: s
             .map(([rodzajKonia, listaKoni]) => `
               <h4 style="color: #5a5a5a;">🐴 ${rodzajKonia}</h4>
               <ul>
-                ${listaKoni.map(({ nazwaKonia, dataWaznosci }) => `<li><strong>${nazwaKonia}</strong>: ${dataWaznosci}</li>`).join("")}
+                ${listaKoni.map(({ nazwaKonia, dataWaznosci }) => {
+                  const daysLeft = Math.ceil((new Date(dataWaznosci).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  if (daysLeft < 0) {
+                    const _daysLeft = Math.abs(daysLeft);
+                    return `<li><strong>${nazwaKonia}</strong>: ${dataWaznosci} - ${_daysLeft} dni po terminie</li>`;
+                  } else {
+                  return `<li><strong>${nazwaKonia}</strong>: ${dataWaznosci} - masz jeszcze ${daysLeft} dni</li>`;
+                  }
+                }).join("")}
               </ul>
             `)
             .join("")}
