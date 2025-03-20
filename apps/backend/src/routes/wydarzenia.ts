@@ -19,6 +19,11 @@ import {
   rozrodyInsertSchema,
   chorobyInsertSchema,
   leczeniaInsertSchema,
+  chorobyUpdateSchema,
+  leczeniaUpdateSchema,
+  rozrodyUpdateSchema,
+  zdarzeniaProfilaktyczneUpdateSchema,
+  podkuciaUpdateSchema,
 } from "../db/schema";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -26,6 +31,8 @@ import { zValidator } from "@hono/zod-validator";
 const wydarzeniaRoute = new Hono<{ Variables: UserPayload }>();
 
 wydarzeniaRoute.use(authMiddleware);
+
+// const eventTypes = z.enum(["choroby", "leczenia", "rozrody", "zdarzenia-profilaktyczne","podkucie"])
 
 wydarzeniaRoute.get("/", async (c) => {
   const user = getUserFromContext(c);
@@ -503,144 +510,59 @@ wydarzeniaRoute.get("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
   }
 });
 
-wydarzeniaRoute.put("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
-  const eventId = Number(c.req.param("id"));
-  const eventType = c.req.param("type").toLowerCase();
-  const updatedData = await c.req.json();
-
-  if (isNaN(eventId)) {
-    return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-  }
-
-  try {
-    let updateQuery;
-
-    switch (eventType) {
-      case "choroby":
-        updateQuery = await db
-          .update(choroby)
-          .set({
-            dataRozpoczecia: updatedData.dataRozpoczecia,
-            dataZakonczenia: updatedData.dataZakonczenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
-          .where(eq(choroby.id, eventId))
-          .returning();
-        break;
-
-      case "leczenia":
-        updateQuery = await db
-          .update(leczenia)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            weterynarz: updatedData.weterynarz,
-            choroba: updatedData.choroba,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
-          .where(eq(leczenia.id, eventId))
-          .returning();
-        break;
-
-      case "rozrody":
-        updateQuery = await db
-          .update(rozrody)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            weterynarz: updatedData.weterynarz,
-            rodzajZdarzenia: updatedData.rodzajZdarzenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
-          .where(eq(rozrody.id, eventId))
-          .returning();
-        break;
-
-      case "zdarzenia-profilaktyczne":
-        updateQuery = await db
-          .update(zdarzeniaProfilaktyczne)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            dataWaznosci: updatedData.dataWaznosci,
-            weterynarz: updatedData.weterynarz,
-            rodzajZdarzenia: updatedData.rodzajZdarzenia,
-            opisZdarzenia: updatedData.opisZdarzenia,
-          })
-          .where(eq(zdarzeniaProfilaktyczne.id, eventId))
-          .returning();
-        break;
-
-      case "podkucie":
-        updateQuery = await db
-          .update(podkucia)
-          .set({
-            dataZdarzenia: updatedData.dataZdarzenia,
-            dataWaznosci: updatedData.dataWaznosci,
-            kowal: updatedData.kowal,
-          })
-          .where(eq(podkucia.id, eventId))
-          .returning();
-        break;
-
-      default:
-        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+const wydarzenia_array = [
+  {path: "rozrody", schema: rozrodyUpdateSchema, table: rozrody},
+  {path: "leczenia", schema: leczeniaUpdateSchema, table: leczenia},
+  {path: "choroby", schema: chorobyUpdateSchema, table: choroby},
+  {path: "zdarzenia-profilaktyczne", schema: zdarzeniaProfilaktyczneUpdateSchema, table: zdarzeniaProfilaktyczne},
+  {path: "podkucie", schema: podkuciaUpdateSchema, table: podkucia}
+]
+for (const {path, schema, table} of wydarzenia_array){
+  wydarzeniaRoute.put(`/${path}/:id{[0-9]+}`, zValidator("json",schema), async (c) => {
+    const eventId = Number(c.req.param("id"));
+    const updatedData = c.req.valid("json");
+  
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
     }
-
-    if (updateQuery.length === 0) {
-      return c.json({ error: "Nie znaleziono wydarzenia do aktualizacji" }, 404);
+  
+    try {
+      const updateQuery = await db
+      .update(table)
+      .set(updatedData)
+      .where(eq(table.id, eventId))
+      .returning();
+      if (updateQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do aktualizacji" }, 404);
+      }
+  
+      return c.json({ success: true, updatedEvent: updateQuery[0] });
+    } catch (error) {
+      console.error("Błąd aktualizacji wydarzenia:", error);
+      return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
     }
-
-    return c.json({ success: true, updatedEvent: updateQuery[0] });
-  } catch (error) {
-    console.error("Błąd aktualizacji wydarzenia:", error);
-    return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
-  }
-});
-
-wydarzeniaRoute.delete("/:type{[A-Za-z_-]+}/:id{[0-9]+}", async (c) => {
-  const eventId = Number(c.req.param("id"));
-  const eventType = c.req.param("type").toLowerCase();
-
-  if (isNaN(eventId)) {
-    return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-  }
-
-  try {
-    let deleteQuery;
-
-    switch (eventType) {
-      case "choroby":
-        deleteQuery = await db.delete(choroby).where(eq(choroby.id, eventId)).returning();
-        break;
-
-      case "leczenia":
-        deleteQuery = await db.delete(leczenia).where(eq(leczenia.id, eventId)).returning();
-        break;
-
-      case "rozrody":
-        deleteQuery = await db.delete(rozrody).where(eq(rozrody.id, eventId)).returning();
-        break;
-
-      case "zdarzenia-rofilaktyczne":
-        deleteQuery = await db.delete(zdarzeniaProfilaktyczne).where(eq(zdarzeniaProfilaktyczne.id, eventId)).returning();
-        break;
-
-      case "podkucie":
-        deleteQuery = await db.delete(podkucia).where(eq(podkucia.id, eventId)).returning();
-        break;
-
-      default:
-        return c.json({ error: "Nieznany typ zdarzenia" }, 400);
+  });
+  // eslint-disable-next-line drizzle/enforce-delete-with-where
+  wydarzeniaRoute.delete(`/${path}/:id{[0-9]+}`, async (c) => {
+    const eventId = Number(c.req.param("id"));
+  
+    if (isNaN(eventId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
     }
-
-    if (deleteQuery.length === 0) {
-      return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+  
+    try {
+      const deleteQuery = await db.delete(table).where(eq(table.id, eventId)).returning();
+  
+      if (deleteQuery.length === 0) {
+        return c.json({ error: "Nie znaleziono wydarzenia do usunięcia" }, 404);
+      }
+  
+      return c.json({ success: true, deletedEvent: deleteQuery[0] });
+    } catch (error) {
+      console.error("Błąd usuwania wydarzenia:", error);
+      return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
     }
-
-    return c.json({ success: true, deletedEvent: deleteQuery[0] });
-  } catch (error) {
-    console.error("Błąd usuwania wydarzenia:", error);
-    return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
-  }
-});
-
+  });
+}
 
 export default wydarzeniaRoute;

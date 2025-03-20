@@ -8,6 +8,8 @@ import { hodowcyKoniRoute } from "./hodowcykoni";
 import refresh from "./refresh";
 import kowaleRoute from "./kowale";
 import weterynarzeRoute from "./weterynarze";
+import settingsRoute from "./settings";
+import images from "./images";
 
 export function registerRoutes(app: Hono) {
   return app
@@ -20,7 +22,9 @@ export function registerRoutes(app: Hono) {
     .route("/wydarzenia", wydarzeniaRoute)
     .route("/hodowcykoni", hodowcyKoniRoute)
     .route("/kowale", kowaleRoute)
-    .route("/weterynarze", weterynarzeRoute);
+    .route("/weterynarze", weterynarzeRoute)
+    .route("/ustawienia", settingsRoute)
+    .route("/images", images);
 }
 export const apiRoutes = registerRoutes(new Hono());
 
