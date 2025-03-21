@@ -4,6 +4,7 @@ import {
   users,
   userPermissionsInsertSchema,
   user_permissions,
+  notifications,
 } from "../db/schema";
 import { ProcessEnv } from "../env";
 import { db } from "../db";
@@ -43,6 +44,21 @@ const register = new Hono()
         if (!added_user) {
           return c.json({ error: "Błąd dodawania użytkownika." }, 401);
         }
+
+        const eventTypes = ["Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"];
+        const eventPromises = eventTypes.map(async (eventType) => {
+          await db.insert(notifications)
+          .values({
+            userId: added_user.id,
+            rodzajZdarzenia: eventType as "Podkucia" | "Odrobaczanie" | "Podanie suplementów" | "Szczepienie" | "Dentysta" | "Inne",
+            days: 7,
+            time: "09:00",
+            active: true,
+            rodzajWysylania: "Żadne",
+          });
+        });
+
+        await Promise.all(eventPromises);
 
         return c.json({ added_user });
       } catch (error) {
