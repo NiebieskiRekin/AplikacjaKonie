@@ -163,7 +163,7 @@ function AddHorseEvent() {
         if (formattedData.weterynarz) formattedData.weterynarz = Number(formattedData.weterynarz);
         if (formattedData.kowal) formattedData.kowal = Number(formattedData.kowal);
         if (formattedData.choroba) formattedData.choroba = Number(formattedData.choroba);
-        if (formattedData.dataZakonczenia) formattedData.dataZakonczenia = null;
+        if (formattedData.dataZakonczenia) formattedData.dataZakonczenia = new Date().toISOString().split("T")[0];
         if (formattedData.dataZdarzenia) formattedData.dataZdarzenia = new Date().toISOString().split("T")[0];
         if (formattedData.kon && (type === "zdarzenia_profilaktyczne" || type === "podkucia")) formattedData.konieId = [Number(formattedData.kon)];
 

@@ -30,8 +30,6 @@ function AddKonia() {
 
     if (
       !nazwa ||
-      !numerPrzyzyciowy ||
-      !numerChipa ||
       !rocznikUrodzenia ||
       !rodzajKonia ||
       !plec
@@ -42,8 +40,12 @@ function AddKonia() {
 
     const formData = new FormData();
     formData.append("nazwa", nazwa);
-    formData.append("numerPrzyzyciowy", numerPrzyzyciowy);
+    if (numerPrzyzyciowy) {
+      formData.append("numerPrzyzyciowy", numerPrzyzyciowy);
+    }
+    if (numerChipa) {  
     formData.append("numerChipa", numerChipa);
+    }
     formData.append("rocznikUrodzenia", rocznikUrodzenia);
     formData.append("dataPrzybyciaDoStajni", dataPrzybycia);
     formData.append("dataOdejsciaZeStajni", dataOdejscia);
@@ -188,8 +190,9 @@ function AddKonia() {
             className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
-            <option value="samiec">Klacz</option>
-            <option value="samica">Ogier</option>
+            <option value="klacz">Klacz</option>
+            <option value="ogier">Ogier</option>
+            <option value="wałach">Wałach</option>
           </select>
         </label>
 

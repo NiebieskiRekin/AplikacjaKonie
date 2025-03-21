@@ -42,7 +42,7 @@ function AddEvent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const horsesRes = await fetch("/api/konie");
+        const horsesRes = await fetch("/api/konie/wydarzenia");
         const horsesData = await horsesRes.json();
         if (!horsesRes.ok)
           throw new Error(horsesData.error || "Błąd pobierania koni");

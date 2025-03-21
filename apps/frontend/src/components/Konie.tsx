@@ -97,7 +97,7 @@ function Konie() {
               />
               <div className="p-3">
                 <h3
-                  className="cursor-pointer text-xl font-bold text-green-900 hover:underline"
+                  className="cursor-pointer text-xl font-bold text-green-900 hover:underline text-center"
                   onClick={(e) => {
                     e.stopPropagation(); // Zatrzymuje propagację eventu, aby nie przechodziło podwójnie
                     navigate(`/konie/${horse.id}`);
