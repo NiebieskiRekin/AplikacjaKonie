@@ -50,24 +50,24 @@ function KonieDetails() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
+  const fetchHorseDetails = async () => {
+    try {
+      const response = await fetch(`/api/konie/${id}`);
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || "Błąd pobierania danych konia");
+
+      setHorse({
+        ...data,
+        imageUrls: data.images_signed_urls || [],
+      });
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   useEffect(() => {
-    const fetchHorseDetails = async () => {
-      try {
-        const response = await fetch(`/api/konie/${id}`);
-
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych konia");
-
-        setHorse({
-          ...data,
-          imageUrls: data.images_signed_urls || [],
-        });
-      } catch (err) {
-        setError((err as Error).message);
-      }
-    };
-
     const fetchHorseEvents = async () => {
       try {
         // Pobieramy ostatnie 5 zdarzeń
@@ -185,8 +185,7 @@ function KonieDetails() {
   
     try {
       const response = await fetch(`/api/konie/${id}/upload`, {
-        method: 'POST',
-        body: formData,
+        method: 'POST'
       });
   
       const data = await response.json();
@@ -194,7 +193,7 @@ function KonieDetails() {
       if (!response.ok) throw new Error(data.error || 'Błąd przesyłania zdjęcia');
 
         const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
-        if (!response_image_url_upload.ok) throw new Error('Błąd przy pobieraniu URL do uploadu');
+        if (!response_image_url_upload.ok) throw new Error('Błąd przy generowaniu odnośnika do przesłania zdjęcia');
         const image_url_upload = await response_image_url_upload.json();
     
         const response_uploaded_image = await fetch(image_url_upload.url, {
@@ -206,7 +205,7 @@ function KonieDetails() {
   
   
       alert('Zdjęcie dodane pomyślnie!');
-      window.location.reload();
+      void await fetchHorseDetails();
     } catch (err) {
       setError((err as Error).message);
     }

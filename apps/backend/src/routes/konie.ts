@@ -483,7 +483,7 @@ horses.post(
         .values(img)
         .returning({ id: zdjeciaKoni.id });
 
-      return c.json({ message: "Koń został dodany!", image_uuid: uuid_of_image[0]});
+      return c.json({ message: "Dodano nowe zdjęcie konia", image_uuid: uuid_of_image[0]}, 200);
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
