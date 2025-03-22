@@ -4,15 +4,11 @@ import { sendEmailNotifications } from "./mailer"
 
 console.log("⏳ CRON rozpoczął działanie...");
 
-cron.schedule("0 * * * *", async () => { // Co każdą pełną godzinę
-    // Takie consol logi dot. cronów nie wiem czy nie chciałbym mieć 
-    // w jakimś osobnym pliku na serwerze lub w tabeli w db (z tego co kojarzę mamy mało miejsca,
-    // więc raczje odpada, ale częste czyszczenie).
-    console.log("CRON odpalił o", new Date().toLocaleTimeString()); 
-
-    try {
-        const rawUserNotifications = await fetchUserEvents();
-
+cron.schedule("0 * * * *", (time) => { 
+    // Co każdą pełną godzinę
+    console.log("CRON odpalił o", time); 
+    fetchUserEvents().then(async (rawUserNotifications)=>{
+        console.log("Raw user notifications: ", rawUserNotifications);
         const userNotifications = Object.fromEntries(
             Object.entries(rawUserNotifications).map(([email, { wydarzenia }]) => [
                 email,
@@ -39,15 +35,16 @@ cron.schedule("0 * * * *", async () => { // Co każdą pełną godzinę
             ])
         );
 
+        console.log("userNotifications: ", JSON.stringify(userNotifications, null, 2));
+
         if (Object.keys(userNotifications).length === 0) {
             console.log("Brak aktywnych powiadomień e-mail.");
             return;
         }
 
-        console.log(JSON.stringify(userNotifications, null, 2));
-
-        await sendEmailNotifications(userNotifications);
-    } catch (error) {
+        void await sendEmailNotifications(userNotifications);
+ 
+    }).catch(error => {
         console.error(error);
-    }
+    })
 });

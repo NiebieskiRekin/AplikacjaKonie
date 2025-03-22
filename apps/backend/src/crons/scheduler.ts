@@ -3,21 +3,19 @@ import { fetchUserEvents } from "./eventHandlers";
 import { sendEmailNotifications } from "./mailer";
 
 /**
- * Zadanie cykliczne uruchamiane codziennie o godzinę
+ * Zadanie cykliczne uruchamiane codziennie co godzinę
  */
-cron.schedule("* * * * * *", async () => {
+cron.schedule("0 * * * *", () => {
   console.log("CRON: Uruchamiam harmonogram powiadomień");
 
-  try {
-    const userNotifications = await fetchUserEvents();
-
+  fetchUserEvents().then(async (userNotifications)=>{
     if (Object.keys(userNotifications).length === 0) {
       console.log("Brak aktywnych powiadomień.");
       return;
     }
 
-    await sendEmailNotifications(userNotifications);
-  } catch (error) {
-    console.error("Błąd CRON:", error);
-  }
+    void await sendEmailNotifications(userNotifications);
+  }).catch(
+    (error)=>{console.error("Błąd CRON:", error);}
+  )
 });
