@@ -19,8 +19,8 @@ export async function fetchUserEvents() {
     .from(notifications)
     .innerJoin(users, eq(notifications.userId, users.id))
     .where(or(
-      eq(notifications.rodzajWysylania, "Email"),
-      eq(notifications.rodzajWysylania, "Oba"),
+      eq(notifications.rodzajWysylania, sql`'Email'`),
+      eq(notifications.rodzajWysylania, sql`'Oba'`),
     ))
 
   console.log(await n1)
@@ -37,7 +37,7 @@ export async function fetchUserEvents() {
           db.select({
             id: zdarzeniaProfilaktyczne.id,
             dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
-            rodzajZdarzenia: sql<string>`"rodzaj_zdarzenia"::TEXT`,
+            rodzajZdarzenia: sql<string>`${zdarzeniaProfilaktyczne.rodzajZdarzenia}::TEXT`,
             kon: zdarzeniaProfilaktyczne.kon
           }).from(zdarzeniaProfilaktyczne)
         )
@@ -55,7 +55,7 @@ export async function fetchUserEvents() {
           email: _notifications.email,
       }).from(_events)
       .innerJoin(konie, eq(_events.kon, konie.id))
-      .innerJoin(_notifications, eq(konie.hodowla, _notifications.hodowlaId))
+      .innerJoin(_notifications, and(eq(konie.hodowla, _notifications.hodowlaId),eq(_events.rodzajZdarzenia,sql`${_notifications.rodzajZdarzenia}::TEXT`)))
       .where(
         and(
           or(
