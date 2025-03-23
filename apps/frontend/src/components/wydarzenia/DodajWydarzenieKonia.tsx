@@ -1,20 +1,21 @@
 import { useParams } from "react-router";
 import BaseHorseEventForm, { eventTypes } from "./BaseHorseEventForm";
 
-const EditHorseEvent = () => {
-  const { id, type, eventId } = useParams<{
-    id: string;
-    type: string;
-    eventId: string;
-  }>();
+const AddHorseEvent = () => {
+  const { id, type } = useParams<{ id: string; type: string }>();
 
   const formAction = async (formData: any) => {
-    if (!type || !eventTypes[type]) throw new Error("Invalid event type");
+    if (!type || !eventTypes[type]) {
+      throw new Error("Invalid or missing event type");
+    }
 
+    // Tutaj inny endpoint niż na backendzie...
+    if (eventTypes[type].apiEndpoint == "zdarzenia-profilaktyczne")
+      eventTypes[type].apiEndpoint = "zdarzenie-profilaktyczne";
     const response = await fetch(
-      `/api/wydarzenia/${eventTypes[type].apiEndpoint}/${eventId}`,
+      `/api/wydarzenia/${eventTypes[type].apiEndpoint}`,
       {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       }
@@ -22,7 +23,7 @@ const EditHorseEvent = () => {
 
     const data = await response.json();
     if (!response.ok)
-      throw new Error(data.error || "Błąd aktualizacji wydarzenia");
+      throw new Error(data.error || "Błąd dodawania wydarzenia");
   };
 
   if (!id) throw new Error("Błąd id");
@@ -32,12 +33,12 @@ const EditHorseEvent = () => {
     <BaseHorseEventForm
       id={id}
       type={type}
-      eventId={eventId}
+      eventId={undefined}
       eventTypes={eventTypes}
       formAction={formAction}
-      edit={true}
+      edit={false}
     />
   );
 };
 
-export default EditHorseEvent;
+export default AddHorseEvent;
