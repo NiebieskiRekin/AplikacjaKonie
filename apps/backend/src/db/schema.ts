@@ -8,10 +8,9 @@ import {
   uuid,
   customType,
   boolean,
-  time, 
-  pgMaterializedView
+  time
 } from "drizzle-orm/pg-core";
-import { relations, sql, eq } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   createSelectSchema,
   createInsertSchema,
