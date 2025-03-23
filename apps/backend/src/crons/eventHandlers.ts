@@ -23,8 +23,6 @@ export async function fetchUserEvents() {
       eq(notifications.rodzajWysylania, sql`'Oba'`),
     ))
 
-  console.log(await n1)
-
   const _notifications = db.$with('users_notifications').as(n1);
 
   const e1 = db.select({
@@ -42,8 +40,7 @@ export async function fetchUserEvents() {
           }).from(zdarzeniaProfilaktyczne)
         )
 
-  console.log(await e1)
-
+  // Consider adding another table, ekhm message queue, to handle missing/late sends due to outages
   const _events = db.$with('events').as(e1);
 
       const _upcoming_events = await db.with(_events,_notifications).selectDistinct({
@@ -59,10 +56,10 @@ export async function fetchUserEvents() {
       .where(
         and(
           or(
-            gte(_events.dataWaznosci, sql`CURRENT_DATE - ${_notifications.days}`),
+            gte(sql`CURRENT_DATE`, sql`${_events.dataWaznosci} - ${_notifications.days}`),
             lte(_events.dataWaznosci, sql`CURRENT_DATE`),
           ),
-          gte(_notifications.time, sql`DATE_TRUNC('hour',CURRENT_TIMESTAMP)::time`),
+          eq(sql`${_notifications.time} AT TIME ZONE 'UTC'`,  sql`DATE_TRUNC('hour',CURRENT_TIMESTAMP)::timetz AT TIME ZONE 'UTC'`),
           isNull(konie.dataOdejsciaZeStajni),
           isNotNull(_events.dataWaznosci),
         )
