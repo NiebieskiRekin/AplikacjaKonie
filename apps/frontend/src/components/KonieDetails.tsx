@@ -306,6 +306,14 @@ function KonieDetails() {
             ➕ Dodaj zdjęcie
             <input type="file" className="hidden" onChange={handleImageUpload}/>
           </label>
+          <div className="flex-grow" />
+
+            <button
+              className="mt-6 w-50 self-center rounded-md bg-purple-600 px-4 py-2 text-white shadow-md transition hover:bg-purple-700"
+              onClick={() => navigate(`/konie/${horse.id}/stworz-raport`)}
+            >
+              📤 Stwórz raport
+            </button>
         </div>
 
         {isImageModalOpen && (
