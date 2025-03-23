@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { ProcessEnv } from "./env";
 import { registerRoutes } from "./routes";
 import { log } from "./logs/logger";
+import "./crons/index";
 
 const app = registerRoutes(new Hono());
 

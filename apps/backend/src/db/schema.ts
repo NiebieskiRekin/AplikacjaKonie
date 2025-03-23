@@ -8,9 +8,10 @@ import {
   uuid,
   customType,
   boolean,
-  time 
+  time, 
+  pgMaterializedView
 } from "drizzle-orm/pg-core";
-import { relations, sql } from "drizzle-orm";
+import { relations, sql, eq } from "drizzle-orm";
 import {
   createSelectSchema,
   createInsertSchema,
@@ -434,3 +435,18 @@ export const notificationsInsertSchema = createInsertSchema(notifications);
 // TODO
 // export const notificationsRelations = 
 // }));
+
+export const longest_notices_notification_preferences_per_farm =
+  pgMaterializedView(
+    "longest_notices_notification_preferences_per_farm"
+  ).as((qb) =>
+    qb
+      .select({
+        rodzaj: notifications.rodzajZdarzenia,
+        dni: notifications.days,
+        hodowla: users.hodowla,
+      })
+      .from(notifications)
+      .innerJoin(users, eq(notifications.userId, users.id))
+      .groupBy(users.hodowla, notifications.rodzajZdarzenia)
+  );
