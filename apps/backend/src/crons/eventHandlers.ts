@@ -6,8 +6,8 @@ import { notifications, podkucia, konie, users, zdarzeniaProfilaktyczne } from "
  * Pobiera wydarzenia użytkownika na podstawie ustawień powiadomień
  */
 export async function fetchUserEvents() {
-  const _notifications = db.$with('users_notifications').as(
-    db.select({
+
+  const n1 = db.select({
       userId: users.id,
       hodowlaId: users.hodowla,
       rodzajZdarzenia: notifications.rodzajZdarzenia,
@@ -21,22 +21,30 @@ export async function fetchUserEvents() {
     .where(or(
       eq(notifications.rodzajWysylania, "Email"),
       eq(notifications.rodzajWysylania, "Oba"),
-    )));
+    ))
 
-  const _events = db.$with('events').as(db.select({
+  console.log(await n1)
+
+  const _notifications = db.$with('users_notifications').as(n1);
+
+  const e1 = db.select({
           id: podkucia.id, 
           dataWaznosci: podkucia.dataWaznosci,
-          rodzajZdarzenia: sql<string>`'Podkucia'`.as("rodzajZdarzenia"),
+          rodzajZdarzenia: sql<string>`'Podkucia'`.as("rodzaj_zdarzenia"),
           kon: podkucia.kon
         }).from(podkucia)
         .union(
           db.select({
             id: zdarzeniaProfilaktyczne.id,
             dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
-            rodzajZdarzenia: zdarzeniaProfilaktyczne.rodzajZdarzenia,
+            rodzajZdarzenia: sql<string>`"rodzaj_zdarzenia"::TEXT`,
             kon: zdarzeniaProfilaktyczne.kon
           }).from(zdarzeniaProfilaktyczne)
-        ));
+        )
+
+  console.log(await e1)
+
+  const _events = db.$with('events').as(e1);
 
       const _upcoming_events = await db.with(_events,_notifications).selectDistinct({
           id: _events.id,
@@ -44,7 +52,7 @@ export async function fetchUserEvents() {
           rodzajZdarzenia: _events.rodzajZdarzenia,
           nazwaKonia: konie.nazwa,
           rodzajKonia: konie.rodzajKonia,
-          email: users.email,
+          email: _notifications.email,
       }).from(_events)
       .innerJoin(konie, eq(_events.kon, konie.id))
       .innerJoin(_notifications, eq(konie.hodowla, _notifications.hodowlaId))
@@ -56,7 +64,7 @@ export async function fetchUserEvents() {
           ),
           gte(_notifications.time, sql`DATE_TRUNC('hour',CURRENT_TIMESTAMP)::time`),
           isNull(konie.dataOdejsciaZeStajni),
-          isNotNull(podkucia.dataWaznosci),
+          isNotNull(_events.dataWaznosci),
         )
       ).orderBy(konie.nazwa, _events.dataWaznosci)
     
