@@ -25,14 +25,14 @@ export default [
       "./components/events/Profilaktyczne.tsx"
     ),
     route("/wydarzenia/:id/podkucia", "./components/events/Podkucia.tsx"),
-    route("/wydarzenia/add/:id/:type", "./components/AddHorseEvent.tsx"),
+    route("/wydarzenia/add/:id/:type", "./components/NewAddHorseEvent.tsx"),
     route("/weterynarze", "./components/Weterynarze.tsx"),
     route("/kowale", "./components/Kowale.tsx"),
     route("/weterynarze/add", "./components/AddWeterynarz.tsx"),
     route("/kowale/add", "./components/AddKowal.tsx"),
     route("/weterynarze/edit/:id", "./components/EditWeterynarz.tsx"),
     route("/kowale/edit/:id", "./components/EditKowal.tsx"),
-    route("/wydarzenia/:id/:type/:eventId/edit", "./components/EditHorseEvent.tsx"),
+    route("/wydarzenia/:id/:type/:eventId/edit", "./components/NewEditHorseEvent.tsx"),
     route("/ustawienia", "./components/Settings.tsx"),
   ]),
   // * matches all URLs, the ? makes it optional so it will match / as well
