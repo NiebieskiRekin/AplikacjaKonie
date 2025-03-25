@@ -18,38 +18,16 @@ import {
   // getUserFromContext,
   UserPayload,
 } from "../middleware/auth";
+import { storage, bucketName } from "../services/gcp"
+import { GetSignedUrlConfig } from "@google-cloud/storage";
 // import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
 // import { randomUUID } from "node:crypto";
 // import { imageSize } from "image-size";
-import { GetSignedUrlConfig, Storage,  } from "@google-cloud/storage";
-import { ProcessEnv } from "../env";
 
 const images = new Hono<{ Variables: UserPayload }>();
 
-const key_schema = z.object({
-  "type": z.string(),
-  "project_id": z.string(),
-  "private_key_id": z.string(),
-  "private_key": z.string(),
-  "client_email": z.string().email(),
-  "client_id": z.string(),
-  "auth_uri": z.string().url(),
-  "token_uri": z.string().url(),
-  "auth_provider_x509_cert_url": z.string().url(),
-  "client_x509_cert_url": z.string().url(),
-  "universe_domain": z.string()
-})
-
-const key = key_schema.parse(JSON.parse(Buffer.from(ProcessEnv.GOOGLE_API_KEY_BASE64, 'base64').toString()));
-
-const storage = new Storage({
-  projectId: "aplikacjakonie",
-  credentials: key
-});
 images.use(authMiddleware);
 
-const bucketName = "aplikacjakonie-zdjecia-koni";
 
 // const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 MB
 // const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];

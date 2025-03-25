@@ -434,3 +434,8 @@ export const notificationsInsertSchema = createInsertSchema(notifications);
 // TODO
 // export const notificationsRelations = 
 // }));
+
+export const notificationTokens = hodowlakoni.table("notification_tokens", {
+  token: varchar("token").primaryKey(),
+  user: integer("user").notNull().references(()=>users.id),
+})

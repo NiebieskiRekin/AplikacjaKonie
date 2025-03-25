@@ -47,6 +47,12 @@ const ServeEnv = z.object({
   EMAIL_USER: z.string().email(),
   EMAIL_PASS: z.string(),
 
+  // Only meant to be sent to frontend, literally just a file to be sent to every client just to not store firebase project details in code.
+  // Could just as well be a static file in a bucket
+  FIREBASE_PUBLIC_NOTIFICATIONS_CONFIG_BASE64: z.string().base64(),
+
+  // Very sensitive API keys and project details, backend only
+  FIREBASE_ADMIN_CONFIG_BASE64: z.string().base64(),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
