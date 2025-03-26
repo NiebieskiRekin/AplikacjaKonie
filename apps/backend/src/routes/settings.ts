@@ -9,7 +9,6 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { eq, and, asc } from "drizzle-orm";
 import { z } from "zod";
-import { firebaseNotificationsPublicConfig } from "../services/firebase";
 
 const common_settings = z.object({
     days: z.number().int().nonnegative(),
@@ -112,13 +111,5 @@ settingsRoute.put("/", zValidator("json", notificationsInsertSchema), async (c) 
     }
 });
 
-
-settingsRoute.get("/notifications_config", (c) => {
-    try {
-        return c.json(firebaseNotificationsPublicConfig, 200);
-    } catch {
-        return c.json({ error: "Błąd pobierania configuracji powiadomień" }, 500);
-    }
-})
 
 export default settingsRoute;
