@@ -50,24 +50,24 @@ function KonieDetails() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
+  const fetchHorseDetails = async () => {
+    try {
+      const response = await fetch(`/api/konie/${id}`);
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || "Błąd pobierania danych konia");
+
+      setHorse({
+        ...data,
+        imageUrls: data.images_signed_urls || [],
+      });
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   useEffect(() => {
-    const fetchHorseDetails = async () => {
-      try {
-        const response = await fetch(`/api/konie/${id}`);
-
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania danych konia");
-
-        setHorse({
-          ...data,
-          imageUrls: data.images_signed_urls || [],
-        });
-      } catch (err) {
-        setError((err as Error).message);
-      }
-    };
-
     const fetchHorseEvents = async () => {
       try {
         // Pobieramy ostatnie 5 zdarzeń
@@ -176,6 +176,42 @@ function KonieDetails() {
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('image', file);
+  
+    try {
+      const response = await fetch(`/api/konie/${id}/upload`, {
+        method: 'POST'
+      });
+  
+      const data = await response.json();
+      console.log(data);
+      if (!response.ok) throw new Error(data.error || 'Błąd przesyłania zdjęcia');
+
+        const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
+        if (!response_image_url_upload.ok) throw new Error('Błąd przy generowaniu odnośnika do przesłania zdjęcia');
+        const image_url_upload = await response_image_url_upload.json();
+    
+        const response_uploaded_image = await fetch(image_url_upload.url, {
+          method: 'PUT',
+          body: file,
+        });
+    
+        if (!response_uploaded_image.ok) throw new Error('Błąd przy przesyłaniu zdjęcia');
+  
+  
+      alert('Zdjęcie dodane pomyślnie!');
+      void await fetchHorseDetails();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
       <div className="flex w-full max-w-7xl items-center justify-center relative mb-10 sm:mb-6">
@@ -268,7 +304,7 @@ function KonieDetails() {
           />
           <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
             ➕ Dodaj zdjęcie
-            <input type="file" className="hidden" />
+            <input type="file" className="hidden" onChange={handleImageUpload}/>
           </label>
         </div>
 
