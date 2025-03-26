@@ -233,10 +233,10 @@ function KonieDetails() {
           </h3>
 
           <p className="text-gray-800">
-            <strong>Numer przyżyciowy:</strong> {horse.numerPrzyzyciowy}
+            <strong>Numer przyżyciowy:</strong> {horse.numerPrzyzyciowy || "Nie podano"}
           </p>
           <p className="text-gray-800">
-            <strong>Numer chipa:</strong> {horse.numerChipa}
+            <strong>Numer chipa:</strong> {horse.numerChipa || "Nie podano"}
           </p>
           <p className="text-gray-800">
             <strong>Rocznik urodzenia:</strong> {horse.rocznikUrodzenia}
@@ -245,7 +245,7 @@ function KonieDetails() {
             <strong>Rodzaj:</strong> {horse.rodzajKonia}
           </p>
           <p className="text-gray-800">
-            <strong>Płeć:</strong> {horse.plec}
+            <strong>Płeć:</strong> {horse.plec.charAt(0).toUpperCase() + horse.plec.slice(1)}
           </p>
           <p className="text-gray-800">
             <strong>Data przybycia do stajni:</strong>{" "}

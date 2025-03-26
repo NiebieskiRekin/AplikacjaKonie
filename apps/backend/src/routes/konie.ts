@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, isNull } from "drizzle-orm";
 import {
   konie,
   users,
@@ -191,7 +191,16 @@ horses.put("/:id{[0-9]+}", zValidator("json",konieUpdateSchema), async (c) => {
 
     const updatedHorse = await db
       .update(konie)
-      .set(d)
+      .set({
+        nazwa: d.nazwa,
+        numerPrzyzyciowy: d.numerPrzyzyciowy,
+        numerChipa: d.numerChipa,
+        rocznikUrodzenia: d.rocznikUrodzenia,
+        dataPrzybyciaDoStajni: d.dataPrzybyciaDoStajni,
+        dataOdejsciaZeStajni: d.dataOdejsciaZeStajni,
+        hodowla: d.hodowla,
+        rodzajKonia: d.rodzajKonia
+      })
       .where(eq(konie.id, horseId))
       .returning();
 
@@ -449,9 +458,47 @@ horses.get("/choroby/:id{[0-9]+}", async (c) => {
   const chorobaList = await db
     .select()
     .from(choroby)
-    .where(eq(choroby.kon, horseId));
+    .where(and(eq(choroby.kon, horseId), isNull(choroby.dataZakonczenia)));
 
   return c.json(chorobaList);
+});
+
+horses.get("/wydarzenia", async (c) => {
+  const userId = getUserFromContext(c);
+
+  try {
+    const user = db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .as("user_hodowla");
+
+    // Pobieramy konie tylko tej samej hodowli
+
+    const horsesList = await db
+      .select({
+        id: konie.id,
+        nazwa: konie.nazwa,
+        // numerPrzyzyciowy: konie.numerPrzyzyciowy,
+        // numerChipa: konie.numerChipa,
+        // rocznikUrodzenia: konie.rocznikUrodzenia,
+        // dataPrzybyciaDoStajni:konie.dataPrzybyciaDoStajni,
+        // dataOdejsciaZeStajni: konie.dataOdejsciaZeStajni,
+        // hodowla:konie.hodowla,
+        rodzajKonia: konie.rodzajKonia,
+        // plec: konie.plec,
+      })
+      .from(user)
+      .innerJoin(
+        konie,
+        and(eq(user.hodowla, konie.hodowla), eq(konie.active, true), isNull(konie.dataOdejsciaZeStajni))
+      )
+      .orderBy(sql`LOWER(${konie.nazwa})`);
+    
+    return c.json(horsesList.map((k)=>{return {...k}}));
+  } catch {
+    return c.json({ error: "Błąd zapytania" });
+  }
 });
 
 horses.post(

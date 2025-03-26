@@ -5,12 +5,12 @@ function Settings() {
     const navigate = useNavigate();
 
     const [settings, setSettings] = useState({
-        Podkucia: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-        Odrobaczanie: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-        "Podanie suplementów": { active: true, days: 7, time: "09:00", notify: "Żadne" },
-        Szczepienie: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-        Dentysta: { active: true, days: 7, time: "09:00", notify: "Żadne" },
-        Inne: { active: true, days: 7, time: "09:00", notify: "Żadne" },
+        Podkucia: { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        Odrobaczanie: { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        "Podanie suplementów": { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        Szczepienie: { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        Dentysta: { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        Inne: { active: false, days: 7, time: "09:00", notify: "Żadne" },
     });
 
     const [error, setError] = useState("");
@@ -24,7 +24,9 @@ function Settings() {
                 const response = await fetch("/api/ustawienia");
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || "Błąd pobierania ustawień");
-                setSettings(data);
+                if (Object.keys(data).length !== 0) {
+                    setSettings(data);
+                }
             } catch (err) {
                 // setError((err as Error).message);
             }
