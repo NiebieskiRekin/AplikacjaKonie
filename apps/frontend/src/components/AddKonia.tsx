@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { konie_plec_enum } from '../types/types';
 
 function AddKonia() {
   const navigate = useNavigate();
@@ -190,9 +191,11 @@ function AddKonia() {
             className="w-full rounded-lg border p-2"
           >
             <option value="">Wybierz...</option>
-            <option value="klacz">Klacz</option>
-            <option value="ogier">Ogier</option>
-            <option value="wałach">Wałach</option>
+            {Object.values(konie_plec_enum).map(value => (
+              <option value={value} key={value}>
+                  {value.charAt(0).toUpperCase() + value.slice(1)}
+              </option>
+            ))}
           </select>
         </label>
 
