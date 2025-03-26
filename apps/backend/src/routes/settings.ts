@@ -112,5 +112,4 @@ settingsRoute.put("/", zValidator("json", notificationsInsertSchema), async (c) 
 });
 
 
-
 export default settingsRoute;
