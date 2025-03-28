@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 type EventType = {
   name: string;
@@ -24,6 +24,7 @@ const eventTypes = [
 function CreateReport() {
   const navigate = useNavigate();
   const [success, setSuccess] = useState("");
+  const { id } = useParams(); 
   const [error, setError] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [events, setEvents] = useState<EventType[]>(eventTypes.map((event) => ({
@@ -98,7 +99,7 @@ function CreateReport() {
     }
 
     try {
-      const response = await fetch("/api/raport", {
+      const response = await fetch(`/api/raport/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
