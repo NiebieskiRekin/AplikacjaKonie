@@ -143,3 +143,11 @@ body,
 .navbar {
   flex-shrink: 0;
 }
+
+@layer utilities {
+  @media print {
+    .page-break {
+      page-break-after: always;
+    }
+  }
+}
