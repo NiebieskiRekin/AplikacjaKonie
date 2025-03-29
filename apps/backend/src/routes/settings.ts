@@ -14,7 +14,7 @@ const common_settings = z.object({
     days: z.number().int().nonnegative(),
     time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
     active: z.boolean(),
-    rodzajWysylania: z.enum(["Push", "Email", "Oba", "Żadne"]),
+    rodzajWysylania: z.enum(["Push", "Email", "Oba"]),
   });
   
   export const notificationsInsertSchema = z.object({

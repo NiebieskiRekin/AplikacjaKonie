@@ -5,12 +5,12 @@ function Settings() {
     const navigate = useNavigate();
 
     const [settings, setSettings] = useState({
-        Podkucia: { active: false, days: 7, time: "09:00", notify: "Żadne" },
-        Odrobaczanie: { active: false, days: 7, time: "09:00", notify: "Żadne" },
-        "Podanie suplementów": { active: false, days: 7, time: "09:00", notify: "Żadne" },
-        Szczepienie: { active: false, days: 7, time: "09:00", notify: "Żadne" },
-        Dentysta: { active: false, days: 7, time: "09:00", notify: "Żadne" },
-        Inne: { active: false, days: 7, time: "09:00", notify: "Żadne" },
+        Podkucia: { active: false, days: 7, time: "09:00", notify: "Oba" },
+        Odrobaczanie: { active: false, days: 7, time: "09:00", notify: "Oba" },
+        "Podanie suplementów": { active: false, days: 7, time: "09:00", notify: "Oba" },
+        Szczepienie: { active: false, days: 7, time: "09:00", notify: "Oba" },
+        Dentysta: { active: false, days: 7, time: "09:00", notify: "Oba" },
+        Inne: { active: false, days: 7, time: "09:00", notify: "Oba" },
     });
 
     const [error, setError] = useState("");
