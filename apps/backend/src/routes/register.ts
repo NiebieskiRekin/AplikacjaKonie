@@ -53,8 +53,8 @@ const register = new Hono()
             rodzajZdarzenia: eventType as "Podkucia" | "Odrobaczanie" | "Podanie suplementów" | "Szczepienie" | "Dentysta" | "Inne",
             days: 7,
             time: "09:00",
-            active: true,
-            rodzajWysylania: "Żadne",
+            active: false,
+            rodzajWysylania: "Oba",
           });
         });
 
