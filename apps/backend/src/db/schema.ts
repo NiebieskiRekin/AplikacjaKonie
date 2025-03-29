@@ -55,7 +55,7 @@ export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
 ]);
 
 export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania_notifications", [
-  "Push", "Email", "Oba", "Żadne"
+  "Push", "Email", "Oba"
 ]);
 
 export const plcie = hodowlakoni.enum("plcie", ["klacz", "ogier", "wałach"]);
