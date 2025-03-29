@@ -97,6 +97,7 @@ function CreateReport() {
 
       requestData.push(data);
     }
+    navigate(`/raport/html/${id}?data=${encodeURIComponent(JSON.stringify(requestData))}`);
 
     try {
       const response = await fetch(`/api/raport/${id}`, {

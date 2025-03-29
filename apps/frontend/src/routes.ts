@@ -35,6 +35,7 @@ export default [
     route("/wydarzenia/:id/:type/:eventId/edit", "./components/EditHorseEvent.tsx"),
     route("/ustawienia", "./components/Settings.tsx"),
     route("/konie/:id/stworz-raport", "./components/CreateRaport.tsx"),
+    route("/raport/html/:id", "./components/HorseRaport.tsx"),
   ]),
   // * matches all URLs, the ? makes it optional so it will match / as well
   // route("*?", "catchall.tsx"),
