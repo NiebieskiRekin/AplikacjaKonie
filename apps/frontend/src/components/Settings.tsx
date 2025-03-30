@@ -135,14 +135,21 @@ function Settings() {
                             <span className="text-gray-700">dni</span>
                         </div>
 
-                        <input
-                            type="time"
-                            step="3600"
+                        <select
                             name={`${key}-time`}
                             className="p-2 border rounded text-center w-full"
                             value={value.time}
                             onChange={(e) => handleInputChange(e, key, "time")}
-                        />
+                            >
+                            {Array.from({ length: 24 }, (_, i) => {
+                                const hour = String(i).padStart(2, "0");
+                                return (
+                                <option key={hour} value={`${hour}:00`}>
+                                    {hour}:00
+                                </option>
+                                );
+                            })}
+                        </select>
 
                         <select
                             name={`${key}-notify`}
