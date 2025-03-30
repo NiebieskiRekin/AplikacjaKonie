@@ -322,7 +322,11 @@ function KonieDetails() {
                 <IoMdCloseCircle />
               </button>
               <img
-                src={horse.imageUrls?.[currentImageIndex]}
+                src={
+                  horse.imageUrls && horse.imageUrls.length > 0
+                    ? horse.imageUrls[currentImageIndex]
+                    : default_img
+                }    
                 alt="Powiększone zdjęcie"
                 className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
               />

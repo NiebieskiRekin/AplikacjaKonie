@@ -525,13 +525,19 @@ horses.post(
       .from(users)
       .where(eq(users.id, userId))
       .then((res) => res[0]);
+
       if (!hodowla) {
         return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
       }
-    
+
+      const defaultImage = await db
+        .select()
+        .from(zdjeciaKoni)
+        .where(and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.default, true)));
+      
       const img: InsertZdjecieKonia =  {
         kon: horseId,
-        default: false
+        default: defaultImage.length === 0
       }
 
       const uuid_of_image = await db
