@@ -14,6 +14,7 @@ import {
   rodzajeZdarzenRozrodczych,
   users,
   user_permissions,
+  rodzajeWysylaniaNotifications
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -27,6 +28,7 @@ export const rodzaje_koni = rodzajeKoni.enumValues;
 export const rodzaje_zdarzen_profilaktycznych =
   rodzajeZdarzenProfilaktycznych.enumValues;
 export const rodzaje_zdarzen_rozrodczych = rodzajeZdarzenRozrodczych.enumValues;
+export const rodzaje_wysylania_notifications = rodzajeWysylaniaNotifications.enumValues;
 
 export type RodzajKonia = typeof rodzaje_koni;
 export type RodzajZdarzeniaProfilaktycznego =
