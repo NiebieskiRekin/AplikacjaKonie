@@ -77,41 +77,44 @@ function Konie() {
       </h2>
       {error && <p className="text-red-600">{error}</p>}
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {filteredHorses.length > 0 ? (
-          filteredHorses.map((horse) => (
-            <div
-              key={horse.id}
-              className="cursor-pointer rounded-lg bg-white p-4 shadow-lg transition-transform duration-200 hover:scale-105"
-              onClick={() => navigate(`/konie/${horse.id}`)}
-            >
-              <img
-                src={horse.img_url || default_img}
-                alt={horse.nazwa}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedImage(e.currentTarget.src);
-                }}
-                onError={(e)=>e.currentTarget.src = default_img}
-                className="h-48 w-full cursor-pointer rounded-t-lg object-cover transition-transform duration-200 hover:scale-110"
-              />
-              <div className="p-3">
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          {filteredHorses.length > 0 ? (
+            filteredHorses.map((horse) => (
+              <div
+                key={horse.id}
+                className="cursor-pointer rounded-xl bg-white p-4 shadow-lg transition-transform duration-200 hover:scale-105"
+                onClick={() => navigate(`/konie/${horse.id}`)}
+              >
+                <div className="rounded-md border border-gray-200 overflow-hidden aspect-[4/3] mb-3">
+                  <img
+                    src={horse.img_url || default_img}
+                    alt={horse.nazwa}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImage(e.currentTarget.src);
+                    }}
+                    onError={(e) => (e.currentTarget.src = default_img)}
+                    className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+                  />
+                </div>
                 <h3
-                  className="cursor-pointer text-xl font-bold text-green-900 hover:underline text-center"
+                  className="text-center text-lg font-semibold text-green-900 hover:underline"
                   onClick={(e) => {
-                    e.stopPropagation(); // Zatrzymuje propagację eventu, aby nie przechodziło podwójnie
+                    e.stopPropagation();
                     navigate(`/konie/${horse.id}`);
                   }}
                 >
                   {horse.nazwa}
                 </h3>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-lg text-white">Brak wyników.</p>
-        )}
+            ))
+          ) : (
+            <p className="text-center text-lg text-white col-span-full">Brak wyników.</p>
+          )}
+        </div>
       </div>
+
       {selectedImage && (
         <div
           className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black"
