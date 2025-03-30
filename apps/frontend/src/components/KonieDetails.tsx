@@ -179,31 +179,31 @@ function KonieDetails() {
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append('image', file);
-  
+
     try {
       const response = await fetch(`/api/konie/${id}/upload`, {
         method: 'POST'
       });
-  
+
       const data = await response.json();
       console.log(data);
       if (!response.ok) throw new Error(data.error || 'Błąd przesyłania zdjęcia');
 
-        const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
-        if (!response_image_url_upload.ok) throw new Error('Błąd przy generowaniu odnośnika do przesłania zdjęcia');
-        const image_url_upload = await response_image_url_upload.json();
-    
-        const response_uploaded_image = await fetch(image_url_upload.url, {
-          method: 'PUT',
-          body: file,
-        });
-    
-        if (!response_uploaded_image.ok) throw new Error('Błąd przy przesyłaniu zdjęcia');
-  
-  
+      const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
+      if (!response_image_url_upload.ok) throw new Error('Błąd przy generowaniu odnośnika do przesłania zdjęcia');
+      const image_url_upload = await response_image_url_upload.json();
+
+      const response_uploaded_image = await fetch(image_url_upload.url, {
+        method: 'PUT',
+        body: file,
+      });
+
+      if (!response_uploaded_image.ok) throw new Error('Błąd przy przesyłaniu zdjęcia');
+
+
       alert('Zdjęcie dodane pomyślnie!');
       void await fetchHorseDetails();
     } catch (err) {
@@ -300,16 +300,29 @@ function KonieDetails() {
               horse.imageUrls && horse.imageUrls.length > 0
                 ? horse.imageUrls[currentImageIndex]
                 : default_img
-            }            
+            }
             alt={horse.nazwa}
             onError={(e) => (e.currentTarget.src = default_img)}
             onClick={() => setIsImageModalOpen(true)}
             className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
           />
-          <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
-            ➕ Dodaj zdjęcie
-            <input type="file" className="hidden" onChange={handleImageUpload}/>
-          </label>
+          <div className="mt-2 flex items-center gap-3">
+            <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
+              ➕ Dodaj zdjęcie
+              <input type="file" className="hidden" onChange={handleImageUpload} />
+            </label>
+
+            {horse.imageUrls && horse.imageUrls.length > 0 && (
+              <button
+                type="button"
+                // onClick={handleRemoveImage}
+                className="h-10 w-10 rounded-md bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
+                title="Usuń zdjęcie"
+              >
+                🗑️
+              </button>
+            )}
+          </div>
         </div>
 
         {isImageModalOpen && (
@@ -326,7 +339,7 @@ function KonieDetails() {
                   horse.imageUrls && horse.imageUrls.length > 0
                     ? horse.imageUrls[currentImageIndex]
                     : default_img
-                }    
+                }
                 alt="Powiększone zdjęcie"
                 className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
               />
