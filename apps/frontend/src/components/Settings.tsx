@@ -94,7 +94,7 @@ function Settings() {
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-800 to-brown-600 p-6">
-            <h2 className="text-3xl font-bold text-white mb-6">⚙️ Ustawienia</h2>
+                <h2 className="text-3xl font-bold text-white mb-6 text-center sm:text-left">⚙️ Ustawienia Powiadomień</h2>
 
             {error && <p className="text-red-600">{error}</p>}
             {success && <p className="text-green-500">{success}</p>}
@@ -103,52 +103,61 @@ function Settings() {
                 {Object.entries(settings).map(([key, value]) => (
                     <div
                         key={key}
-                        className={`mb-4 p-3 rounded-md transition ${value.active ? "bg-gray-100" : "bg-gray-300 line-through opacity-60"
-                            }`}
+                        className={`mb-4 p-3 rounded-md transition ${
+                        value.active ? "bg-gray-100" : "bg-gray-300 line-through opacity-60"
+                        }`}
                     >
                         <label className="block text-gray-700 font-semibold capitalize mb-1">
-                            {key.replace("_", " ")}
+                        {key.replace("_", " ")}
                         </label>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="grid max-sm:grid-cols-2 max-sm:gap-3 sm:flex sm:items-center sm:gap-3">
+                        <div className="flex items-center gap-2">
                             <input
-                                type="checkbox"
-                                checked={value.active}
-                                onChange={(e) => handleInputChange(e, key, "active")}
-                                className="w-5 h-5"
+                            type="checkbox"
+                            checked={value.active}
+                            onChange={(e) => handleInputChange(e, key, "active")}
+                            className="w-5 h-5 flex-shrink-0"
                             />
+                            <span className="text-gray-700 text-sm sm:hidden">Aktywne</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
                             <input
-                                type="number"
-                                min="0"
-                                name={`${key}-days`}
-                                placeholder="Ile dni"
-                                className="w-1/4 p-2 border rounded text-center"
-                                value={value.days}
-                                onChange={(e) => handleInputChange(e, key, "days")}
+                            type="number"
+                            min="0"
+                            name={`${key}-days`}
+                            placeholder="Ile dni"
+                            className="w-full p-2 border rounded text-center"
+                            value={value.days}
+                            onChange={(e) => handleInputChange(e, key, "days")}
                             />
-                            <input
-                                type="time"
-                                step="3600"
-                                name={`${key}-time`}
-                                className="w-1/4 p-2 border rounded text-center"
-                                value={value.time}
-                                onChange={(e) => handleInputChange(e, key, "time")}
-                            />
-                            <select
-                                name={`${key}-notify`}
-                                className="w-1/4 p-2 border rounded"
-                                value={value.notify}
-                                onChange={(e) => handleInputChange(e, key, "notify")}
-                                disabled={!value.active}
-                            >
-                                <option value="Oba">Oba</option>
-                                <option value="Push">Push</option>
-                                <option value="Email">Email</option>
-                                <option value="Żadne">Żadne</option>
-                            </select>
+                            <span className="text-gray-700">dni</span>
+                        </div>
+
+                        <input
+                            type="time"
+                            step="3600"
+                            name={`${key}-time`}
+                            className="p-2 border rounded text-center w-full"
+                            value={value.time}
+                            onChange={(e) => handleInputChange(e, key, "time")}
+                        />
+
+                        <select
+                            name={`${key}-notify`}
+                            className="p-2 border rounded w-full"
+                            value={value.notify}
+                            onChange={(e) => handleInputChange(e, key, "notify")}
+                            disabled={!value.active}
+                        >
+                            <option value="Oba">Oba</option>
+                            <option value="Push">Push</option>
+                            <option value="Email">Email</option>
+                        </select>
                         </div>
                     </div>
-                ))}
+                    ))}
 
                 <button
                     onClick={handleSaveSettings}

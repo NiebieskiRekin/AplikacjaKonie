@@ -46,7 +46,7 @@ settingsRoute.get("/", async (c) => {
                 days: setting.days,
                 time: setting.time.slice(0, 5),
                 active: setting.active,
-                notify: setting.rodzajWysylania,
+                notify: setting.rodzajWysylania ?? "",
             };
             return acc;
         }, {} as Record<string, { days: number; time: string; active: boolean; notify: string }>);
