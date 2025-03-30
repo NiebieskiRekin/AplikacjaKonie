@@ -87,6 +87,11 @@ horses.post(
         rocznikUrodzenia: z.number({ coerce: true }),
         dataPrzybyciaDoStajni: z.optional(z.string()),
         dataOdejsciaZeStajni: z.optional(z.string()),
+        file: z.optional(
+          z.custom<File>().refine((file) => file.size <= 5 * 1024 * 1024, {
+            message: "Maksymalny rozmiar pliku wynosi 5MB.",
+          })
+        ),
         // .custom<File | undefined>()
         // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
         //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
@@ -136,39 +141,43 @@ horses.post(
         await db.insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
 
-      // const dimensions = imageSize(await formData.file!.bytes());
-
-      // const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
-      //   id: randomUUID(),
-      //   kon: newHorse.id,
-      //   width: dimensions.width,
-      //   height: dimensions.height,
-      //   file: formData.file?.name!,
-      //   default: true,
-      // });
-
-      // if (!photoValidationResult.success) {
-      //   console.error(
-      //     "Błąd walidacji formatu zdjecia:",
-      //     photoValidationResult.error
-      //   );
-      //   return c.json(
-      //     { success: false, error: photoValidationResult.error.flatten() },
-      //     400
-      //   );
-      // }
-
-      const img: InsertZdjecieKonia =  {
-        kon: newHorse.id,
-        default: true
+      if (formData.file) {
+        // const dimensions = imageSize(await formData.file!.bytes());
+      
+        // const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
+        //   id: randomUUID(),
+        //   kon: newHorse.id,
+        //   width: dimensions.width,
+        //   height: dimensions.height,
+        //   file: formData.file?.name!,
+        //   default: true,
+        // });
+      
+        // if (!photoValidationResult.success) {
+        //   console.error(
+        //     "Błąd walidacji formatu zdjecia:",
+        //     photoValidationResult.error
+        //   );
+        //   return c.json(
+        //     { success: false, error: photoValidationResult.error.flatten() },
+        //     400
+        //   );
+        // }
+      
+        const img: InsertZdjecieKonia = {
+          kon: newHorse.id,
+          default: true
+        };
+      
+        const uuid_of_image = await db
+          .insert(zdjeciaKoni)
+          .values(img)
+          .returning({ id: zdjeciaKoni.id });
+      
+        return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: uuid_of_image[0] });
       }
-
-      const uuid_of_image = await db
-        .insert(zdjeciaKoni)
-        .values(img)
-        .returning({ id: zdjeciaKoni.id });
-
-      return c.json({ message: "Koń został dodany!", horse: newHorse, image_uuid: uuid_of_image[0]});
+      
+      return c.json({ message: "Koń został dodany!", horse: newHorse });
     } catch (error) {
       console.error("Błąd podczas dodawania konia:", error);
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);

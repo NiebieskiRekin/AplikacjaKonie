@@ -296,7 +296,11 @@ function KonieDetails() {
             </>
           )}
           <img
-            src={horse.imageUrls?.[currentImageIndex]}
+            src={
+              horse.imageUrls && horse.imageUrls.length > 0
+                ? horse.imageUrls[currentImageIndex]
+                : default_img
+            }            
             alt={horse.nazwa}
             onError={(e) => (e.currentTarget.src = default_img)}
             onClick={() => setIsImageModalOpen(true)}

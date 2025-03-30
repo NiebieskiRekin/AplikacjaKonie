@@ -53,7 +53,9 @@ function AddKonia() {
     formData.append("rodzajKonia", rodzajKonia);
     formData.append("plec", plec);
 
-    // formData.append("file", file);
+    if (file) {
+      formData.append("file", file);
+    }
 
     try {
       const response = await fetch("/api/konie", {
