@@ -6,7 +6,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-green-900 p-4 text-white shadow-md">
+    <nav className="bg-green-900 p-4 text-white shadow-md print:hidden">
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
         <h1 className="text-xl font-bold">
