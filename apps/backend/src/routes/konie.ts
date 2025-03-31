@@ -297,7 +297,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       images_names.map((img) => generateV4ReadSignedUrl(img.name))
     );
 
-    return c.json({ ...horse, images_signed_urls });
+    return c.json({ ...horse, images_signed_urls }, 200);
   })
   .get("/:id{[0-9]+}/events", async (c) => {
     const horseId = Number(c.req.param("id"));
@@ -449,7 +449,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       .from(choroby)
       .where(eq(choroby.kon, horseId));
 
-    return c.json(chorobaList);
+    return c.json(chorobaList, 200);
   });
 
 // get kon per type

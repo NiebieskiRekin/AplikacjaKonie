@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect } from "react-router";
+import APIClient from "@/frontend/lib/api-client";
 // import { eventTypes } from "@/frontend/types/event-types";
 
 type EventFormProps = {
@@ -15,7 +16,7 @@ type EventFormProps = {
       eventOptions?: string[];
     }
   >;
-  formAction: (formData: any) => Promise<void>;
+  formAction: (formData: string) => Promise<void>;
   edit: boolean;
 };
 
@@ -23,12 +24,19 @@ type EventFormProps = {
 const fetchPeople = async (type: string) => {
   if (type === "choroby") return []; // zeby bezsensownie nie pobierało
   try {
-    const response = await fetch(
-      type === "podkucia" ? "/api/kowale" : "/api/weterynarze"
-    );
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
-    return data;
+    let response;
+    if (type === "podkucia") {
+      response = await APIClient.kowale.$get();
+    } else {
+      response = await APIClient.weterynarze.$get();
+    }
+    if (response.status === 401 || response.status === 500) {
+      const data = await response.json();
+      throw new Error(data.error);
+    } else {
+      const data = await response.json();
+      return data;
+    }
   } catch (err) {
     throw new Error((err as Error).message);
   }
@@ -38,10 +46,16 @@ const fetchPeople = async (type: string) => {
 const fetchChoroba = async (id: string, type: string) => {
   if (type === "leczenia") {
     try {
-      const response = await fetch(`/api/konie/choroby/${id}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
-      return data;
+      const response = await APIClient.konie.choroby[":id{[0-9]+}"].$get({
+        param: { id: id },
+      });
+      if (response.status == 200) {
+        const data = await response.json();
+        return data;
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || "Błąd pobierania danych");
+      }
     } catch (err) {
       throw new Error((err as Error).message);
     }
@@ -52,10 +66,16 @@ const fetchChoroba = async (id: string, type: string) => {
 // Pobiera typ konia, żeby mogło ustawić odpowiednią datę ważności
 const fetchHorseType = async (id: string) => {
   try {
-    const response = await fetch(`/api/konie/${id}`);
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Błąd pobierania danych");
-    return data.rodzajKonia;
+    const response = await APIClient.konie[":id{[0-9]+}"].$get({
+      param: { id: id },
+    });
+    if (response.status == 200) {
+      const data = await response.json();
+      return data.rodzajKonia;
+    } else {
+      const data = await response.json();
+      throw new Error(data.error || "Błąd pobierania danych");
+    }
   } catch (err) {
     throw new Error((err as Error).message);
   }
@@ -107,50 +127,50 @@ const BaseHorseEventForm = ({
   >([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigate = useNavigate();
   const [horseType, setHorseType] = useState<string>("");
 
   useEffect(() => {
     // Pobiera dane wydarzenia, jeśli edytujemy
     const fetchEventData = async (
-      peopleData: { id: string; imieINazwisko: string }[],
-      chorobaData: { id: string; opisZdarzenia: string }[]
+      peopleData: { id: number; imieINazwisko: string }[],
+      chorobaData: { id: number; opisZdarzenia: string }[]
     ) => {
       try {
-        const response = await fetch(
-          `/api/wydarzenia/${eventTypes[type].apiEndpoint}/${eventId}`
-        );
-        const data = await response.json();
+        const response = await APIClient.wydarzenia[":type{[A-Za-z_-]+}"][
+          ":id{[0-9]+}"
+        ].$get({ param: { id: eventId!, type: eventTypes[type].apiEndpoint } });
 
-        if (!response.ok)
+        if (response.status === 200) {
+          const data = await response.json();
+          const eventData = data[0];
+
+          // Tutaj x3 zabawa w id i wyświetlanie nazwy, i opowiednie co wysyłanie
+          if ("weterynarz" in eventData) {
+            const vet = peopleData.find(
+              (person) => person.imieINazwisko === eventData.weterynarz
+            );
+            if (vet) eventData.weterynarz = vet.id.toString();
+          }
+
+          if ("kowal" in eventData) {
+            const kow = peopleData.find(
+              (person) => person.imieINazwisko === eventData.kowal
+            );
+            if (kow) eventData.kowal = kow.id.toString();
+          }
+
+          if ("choroba" in eventData) {
+            const chor = chorobaData.find(
+              (choroba) => choroba.opisZdarzenia === eventData.choroba
+            );
+            if (chor) eventData.choroba = chor.id.toString();
+          }
+
+          setFormData(eventData);
+        } else {
+          const data = await response.json();
           throw new Error(data.error || "Błąd pobierania danych");
-        const eventData = data[0];
-
-        // Tutaj x3 zabawa w id i wyświetlanie nazwy, i opowiednie co wysyłanie
-        if (eventData.weterynarz) {
-          const vet = peopleData.find(
-            (person) => person.imieINazwisko === eventData.weterynarz
-          );
-          if (vet) eventData.vet = vet.id;
-          eventData.weterynarz = eventData.vet;
         }
-
-        if (eventData.kowal) {
-          const kow = peopleData.find(
-            (person) => person.imieINazwisko === eventData.kowal
-          );
-          if (kow) eventData.kow = kow.id;
-          eventData.kowal = eventData.kow;
-        }
-
-        if (eventData.choroba) {
-          const chor = chorobaData.find(
-            (choroba) => choroba.opisZdarzenia === eventData.choroba
-          );
-          if (chor) eventData.choroba = chor.id;
-        }
-
-        setFormData(eventData);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -183,20 +203,32 @@ const BaseHorseEventForm = ({
         const chorobaData = await fetchChoroba(id, type);
         const HorseType = await fetchHorseType(id);
 
+        const chr = chorobaData.map((v) => {
+          return { id: v.id, opisZdarzenia: v.opisZdarzenia || "" };
+        });
         setPeople(peopleData);
-        setChoroba(chorobaData);
+        setChoroba(chr);
         setHorseType(HorseType);
 
         if (edit && eventId) {
-          await fetchEventData(peopleData, chorobaData);
+          await fetchEventData(peopleData, chr);
         }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchData();
-  }, [type, id, eventId, edit]);
+    void fetchData();
+    // TODO: check line below
+  }, [
+    type,
+    id,
+    eventId,
+    edit,
+    eventTypes,
+    formData.dataZdarzenia,
+    formData.dataRozpoczecia,
+  ]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -240,7 +272,7 @@ const BaseHorseEventForm = ({
         dataWaznosci: expirationDate,
       }));
     }
-  }, [formData.kon, type, horseType]);
+  }, [formData.kon, type, horseType, formData.dataWaznosci]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,11 +295,11 @@ const BaseHorseEventForm = ({
       )
         formattedData.konieId = [Number(formattedData.kon)];
 
-      await formAction(formattedData);
+      await formAction(JSON.stringify(formattedData));
       setSuccess("Zdarzenie zostało zaktualizowane!");
       const redirectType =
         type === "zdarzenia_profilaktyczne" ? "profilaktyczne" : type;
-      setTimeout(() => navigate(`/wydarzenia/${id}/${redirectType}`), 1500);
+      setTimeout(() => redirect(`/wydarzenia/${id}/${redirectType}`), 1500);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -283,7 +315,7 @@ const BaseHorseEventForm = ({
       {success && <p className="text-green-500">{success}</p>}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={void handleSubmit}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         {fields.includes("weterynarz") && (
@@ -294,7 +326,7 @@ const BaseHorseEventForm = ({
             <select
               name="weterynarz"
               className="mb-3 w-full rounded border p-2"
-              value={formData.weterynarz || ""}
+              value={formData.weterynarz?.toString() || ""}
               onChange={handleInputChange}
             >
               <option value="">-- Wybierz weterynarza --</option>
@@ -313,7 +345,7 @@ const BaseHorseEventForm = ({
             <select
               name="kowal"
               className="mb-3 w-full rounded border p-2"
-              value={formData.kowal || ""}
+              value={formData.kowal?.toString() || ""}
               onChange={handleInputChange}
             >
               <option value="">-- Wybierz kowala --</option>

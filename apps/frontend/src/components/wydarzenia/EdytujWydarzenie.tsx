@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 import BaseHorseEventForm from "./BaseHorseEventForm";
 import { eventTypes } from "@/frontend/types/event-types";
+import { eventTypesNamesSchema } from "@/frontend/types/event-types";
 
 const EditHorseEvent = () => {
   const { id, type, eventId } = useParams<{
@@ -8,22 +9,36 @@ const EditHorseEvent = () => {
     type: string;
     eventId: string;
   }>();
+  const formAction = async (formData: string) => {
+    try {
+      const okType = eventTypesNamesSchema.parse(type);
+      const response = await fetch(
+        `/api/wydarzenia/${eventTypes[okType].apiEndpoint}/${eventId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: formData,
+        }
+      );
 
-  const formAction = async (formData: any) => {
-    if (!type || !eventTypes[type]) throw new Error("Invalid event type");
-
-    const response = await fetch(
-      `/api/wydarzenia/${eventTypes[type].apiEndpoint}/${eventId}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      if (!response.ok) {
+        const data: unknown = await response.json();
+        if (
+          typeof data == "object" &&
+          data !== null &&
+          "error" in data &&
+          typeof data.error == "string"
+        ) {
+          throw new Error(data.error);
+        } else {
+          throw new Error("Błąd aktualizacji wydarzenia");
+        }
       }
-    );
 
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.error || "Błąd aktualizacji wydarzenia");
+      await response.json();
+    } catch {
+      throw new Error("Invalid event type");
+    }
   };
 
   if (!id) throw new Error("Błąd id");

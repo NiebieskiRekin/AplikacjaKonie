@@ -154,7 +154,7 @@ function AddEvent() {
         };
 
         const response = await APIClient.wydarzenia[
-          "zdarzenie-profilaktyczne"
+          "zdarzenia_profilaktyczne"
         ].$post({ json: payload });
 
         if (response.ok) {

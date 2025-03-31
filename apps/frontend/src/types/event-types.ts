@@ -1,3 +1,13 @@
+import z from "zod";
+
+export const eventTypesNamesSchema = z.enum([
+  "rozrody",
+  "leczenia",
+  "choroby",
+  "zdarzenia_profilaktyczne",
+  "podkucia",
+]);
+
 export const eventTypes: Record<
   string,
   {
@@ -44,7 +54,7 @@ export const eventTypes: Record<
       "rodzajZdarzenia",
       "opisZdarzenia",
     ],
-    apiEndpoint: "zdarzenia-profilaktyczne",
+    apiEndpoint: "zdarzenia_profilaktyczne",
     eventOptions: [
       "Szczepienie",
       "Odrobaczanie",

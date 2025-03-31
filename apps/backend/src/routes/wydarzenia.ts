@@ -28,7 +28,7 @@ import {
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
-// const eventTypes = z.enum(["choroby", "leczenia", "rozrody", "zdarzenia-profilaktyczne","podkucie"])
+// const eventTypes = z.enum(["choroby", "leczenia", "rozrody", "zdarzenia_profilaktyczne","podkucie"])
 
 const podkucieSchema = z.object({
   konieId: z.array(z.number().positive()),
@@ -227,7 +227,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }
   })
   .post(
-    "/zdarzenie-profilaktyczne",
+    "/zdarzenia_profilaktyczne",
     zValidator("json", zdarzenieProfilaktyczneSchema),
     async (c) => {
       try {
@@ -458,7 +458,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
             .innerJoin(konie, eq(rozrody.kon, konie.id))
             .where(eq(rozrody.id, eventId));
           break;
-        case "zdarzenia-profilaktyczne":
+        case "zdarzenia_profilaktyczne":
           events = await db
             .select({
               _id: zdarzeniaProfilaktyczne.id,
@@ -495,7 +495,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           return c.json({ error: "Nieznany typ zdarzenia" }, 400);
       }
 
-      return c.json(events);
+      return c.json(events, 200);
     } catch (error) {
       console.error("Błąd pobierania wydarzeń:", error);
       return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
@@ -664,7 +664,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }
   })
   .put(
-    "/zdarzenia-profilaktyczne/:id{[0-9]+}",
+    "/zdarzenia_profilaktyczne/:id{[0-9]+}",
     zValidator("json", zdarzeniaProfilaktyczneUpdateSchema),
     async (c) => {
       const eventId = Number(c.req.param("id"));
@@ -694,7 +694,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       }
     }
   )
-  .delete("/zdarzenia-profilaktyczne/:id{[0-9]+}", async (c) => {
+  .delete("/zdarzenia_profilaktyczne/:id{[0-9]+}", async (c) => {
     const eventId = Number(c.req.param("id"));
 
     if (isNaN(eventId)) {

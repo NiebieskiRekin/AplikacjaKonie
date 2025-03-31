@@ -5,26 +5,35 @@ import { eventTypes } from "@/frontend/types/event-types";
 const AddHorseEvent = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
 
-  const formAction = async (formData: any) => {
+  const formAction = async (formData: string) => {
     if (!type || !eventTypes[type]) {
       throw new Error("Invalid or missing event type");
     }
 
-    // Tutaj inny endpoint niż na backendzie...
-    if (eventTypes[type].apiEndpoint == "zdarzenia-profilaktyczne")
-      eventTypes[type].apiEndpoint = "zdarzenie-profilaktyczne";
     const response = await fetch(
       `/api/wydarzenia/${eventTypes[type].apiEndpoint}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formData,
       }
     );
 
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.error || "Błąd dodawania wydarzenia");
+    if (!response.ok) {
+      const data: unknown = await response.json();
+      if (
+        typeof data == "object" &&
+        data !== null &&
+        "error" in data &&
+        typeof data.error == "string"
+      ) {
+        throw new Error(data.error);
+      } else {
+        throw new Error("Błąd dodawania wydarzenia");
+      }
+    }
+
+    await response.json();
   };
 
   if (!id) throw new Error("Błąd id");
