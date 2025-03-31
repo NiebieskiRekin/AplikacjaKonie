@@ -128,7 +128,10 @@ function KonieDetails() {
   useEffect(() => {
     setIsImageLoaded(false);
     const loadImage = async () => {
-      if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) return;
+      if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) {
+        setIsImageLoaded(true);
+        return;
+      }
   
       const url = horse.imageUrls[currentImageIndex];
       if (imageDataCache.current[url]) {
@@ -361,7 +364,11 @@ function KonieDetails() {
           )}
           {isImageLoaded ? (
             <img
-              src={imageDataCache.current[horse.imageUrls![currentImageIndex]]}
+              src={
+                horse.imageUrls && horse.imageUrls.length > 0
+                  ? imageDataCache.current[horse.imageUrls[currentImageIndex]] ?? default_img
+                  : default_img
+              }
               alt={horse.nazwa}
               onClick={() => setIsImageModalOpen(true)}
               className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
