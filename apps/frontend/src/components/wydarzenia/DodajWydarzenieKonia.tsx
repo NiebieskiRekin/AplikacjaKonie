@@ -1,5 +1,6 @@
 import { useParams } from "react-router";
-import BaseHorseEventForm, { eventTypes } from "./BaseHorseEventForm";
+import BaseHorseEventForm from "./BaseHorseEventForm";
+import { eventTypes } from "@/frontend/types/event-types";
 
 const AddHorseEvent = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
