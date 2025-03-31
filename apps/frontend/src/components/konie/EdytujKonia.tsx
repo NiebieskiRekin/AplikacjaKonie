@@ -94,7 +94,7 @@ function EditKonia() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    redirect(`/konie/${id}`);
+    return redirect(`/konie/${id}`);
   };
 
   return (

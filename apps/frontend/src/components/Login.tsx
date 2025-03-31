@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { redirect } from "react-router";
+import { useNavigate } from "react-router";
 import APIClient from "../lib/api-client";
 
 function Login() {
@@ -9,6 +9,7 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +22,8 @@ function Login() {
       });
 
       if (response.status === 200) {
-        redirect("/konie");
+        await response.json();
+        await navigate("/konie");
       } else {
         const data = await response.json();
         throw new Error(data.error || "Błąd logowania");
@@ -40,7 +42,12 @@ function Login() {
           Logowanie
         </h2>
         {error && <p className="mt-2 text-center text-red-600">{error}</p>}
-        <form className="mt-6" onSubmit={() => handleLogin}>
+        <form
+          className="mt-6"
+          onSubmit={(event) => {
+            void handleLogin(event);
+          }}
+        >
           <div>
             <label className="block text-sm font-semibold text-gray-700">
               Email

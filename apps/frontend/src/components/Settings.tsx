@@ -45,7 +45,6 @@ function Settings() {
     void fetchSettings();
   }, []);
 
-  // TODO: wtf, split
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     field: string,
@@ -89,7 +88,7 @@ function Settings() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    redirect("/konie"); // Przekierowanie po zamknięciu popupu
+    return redirect("/konie"); // Przekierowanie po zamknięciu popupu
   };
 
   return (

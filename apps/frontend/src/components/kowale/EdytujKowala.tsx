@@ -2,7 +2,7 @@ import APIClient from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
-import { redirect, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function EditKowal() {
   const { id } = useParams();
@@ -15,6 +15,7 @@ function EditKowal() {
   const [success, setSuccess] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchKowal = async () => {
@@ -58,7 +59,7 @@ function EditKowal() {
 
       if (response.ok) {
         setSuccess("Dane kowala zostały zaktualizowane!");
-        setTimeout(() => redirect("/kowale"), 1500);
+        setTimeout(() => void navigate("/kowale"), 1500);
       } else {
         throw new Error("Błąd edycji kowala");
       }
@@ -77,7 +78,7 @@ function EditKowal() {
       if (!response.ok) throw new Error("Błąd usuwania kowala");
 
       setIsDeletePopupOpen(false);
-      redirect("/kowale");
+      await navigate("/kowale");
     } catch (err) {
       setDeleteError((err as Error).message);
     }
@@ -92,7 +93,7 @@ function EditKowal() {
       {deleteError && <p className="text-red-600">{deleteError}</p>}
 
       <form
-        onSubmit={void handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="block text-gray-700">👤 Imię i nazwisko:</label>
@@ -141,7 +142,7 @@ function EditKowal() {
             <div className="flex justify-center gap-4">
               <button
                 className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                onClick={void handleDelete}
+                onClick={() => void handleDelete()}
               >
                 Usuń
               </button>

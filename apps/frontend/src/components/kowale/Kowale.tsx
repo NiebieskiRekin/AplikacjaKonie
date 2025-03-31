@@ -2,7 +2,7 @@ import APIClient from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useEffect, useState } from "react";
-import { Link, redirect } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 type Kowal = {
   id: number;
@@ -13,6 +13,7 @@ type Kowal = {
 function Kowale() {
   const [kowale, setKowale] = useState<Kowal[]>([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchKowali = async () => {
@@ -41,7 +42,7 @@ function Kowale() {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => redirect("/kowale/add")}
+        onClick={() => void navigate("/kowale/add")}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj kowala
