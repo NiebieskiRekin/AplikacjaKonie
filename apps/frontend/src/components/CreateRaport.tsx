@@ -10,7 +10,7 @@ type EventType = {
 };
 
 const eventTypes = [
-  "Podkucie",
+  "Podkucia",
   "Szczepienie",
   "Odrobaczanie",
   "Podanie suplementów",
@@ -23,10 +23,10 @@ const eventTypes = [
 
 function CreateReport() {
   const navigate = useNavigate();
-  const [success, setSuccess] = useState("");
+  // const [success, setSuccess] = useState("");
   const { id } = useParams(); 
-  const [error, setError] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
+  const [,setError] = useState("");
+  // const [showPopup, setShowPopup] = useState(false);
   const [events, setEvents] = useState<EventType[]>(eventTypes.map((event) => ({
     name: event,
     isChecked: true,
@@ -97,7 +97,7 @@ function CreateReport() {
 
       requestData.push(data);
     }
-    navigate(`/raport/html/${id}?data=${encodeURIComponent(JSON.stringify(requestData))}`);
+    await navigate(`/raport/html/${id}?data=${encodeURIComponent(JSON.stringify(requestData))}`);
 
     try {
       const response = await fetch(`/api/raport/${id}`, {
@@ -108,11 +108,18 @@ function CreateReport() {
         body: JSON.stringify({ events: requestData }),
       });
 
-      const data = await response.json();
+      
 
       if (!response.ok) {
-        throw new Error(data.error || "Błąd podczas wysyłania raportu");
+        const data: unknown = await response.json();
+        if (typeof(data) === "object" && data !== null && "error" in data && typeof(data.error) === "string"){
+          throw new Error(data.error)
+        } else {
+          throw new Error("Błąd podczas wysyłania raportu");
+        }
       }
+
+      await response.json();
 
     //   setSuccess("Raport został wysłany!");
     //   setShowPopup(true);
@@ -194,7 +201,7 @@ function CreateReport() {
       ))}
 
       <button
-        onClick={handleSubmit}
+        onClick={(e)=> void handleSubmit(e)}
         className="mt-6 w-full rounded-md bg-purple-600 px-6 py-3 text-white shadow-lg transition duration-300 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
       >
         📤 Stwórz raport

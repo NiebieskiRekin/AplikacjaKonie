@@ -11,10 +11,22 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { generateV4ReadSignedUrl } from "./images";
 
+const eventTypes = z.enum([
+  "Podkucia",
+  "Szczepienie",
+  "Odrobaczanie",
+  "Podanie suplementów",
+  "Dentysta",
+  "Inne",
+  "Choroby",
+  "Leczenia",
+  "Rozrody"
+]);
+
 export const raportSchema = z.object({
     events: z.array(
       z.object({
-        event: z.string(),        // np. "Podkucie", "Szczepienie"
+        event: eventTypes,
         all: z.boolean(),         // true lub false
         from: z.string().nullable(), // ISO string lub null
         to: z.string().nullable(),   // ISO string lub null
@@ -22,11 +34,9 @@ export const raportSchema = z.object({
     )
   });
 
-const raport = new Hono<{ Variables: UserPayload }>();
-
-raport.use(authMiddleware);
-
-raport.post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
+const raport = new Hono<{ Variables: UserPayload }>()
+  .use(authMiddleware)
+  .post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
     try {
       const userId = getUserFromContext(c);
       if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
@@ -44,7 +54,7 @@ raport.post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
         return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
       }
     
-      const eventTableMap: Record<string, { table: any, filterBy?: string }> = {
+      const eventTableMap = {
         // Wspólna tabela z rodzajem zdarzenia
         "Szczepienie": { table: zdarzeniaProfilaktyczne, filterBy: "Szczepienie" },
         "Odrobaczanie": { table: zdarzeniaProfilaktyczne, filterBy: "Odrobaczanie" },
@@ -60,7 +70,7 @@ raport.post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
   
       const result: Record<string, any[]> = {};
 
-      let _query = await db.select().from(konie).where(eq(konie.id, horseId)).then((res) => res[0]);
+      const _query = await db.select().from(konie).where(eq(konie.id, horseId)).then((res) => res[0]);
 
       const images_names = await db
         .select({name: zdjeciaKoni.id})
@@ -79,21 +89,25 @@ raport.post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
   
         const whereClauses = [eq(entry.table.kon, horseId)];
   
-        if (entry.filterBy) {
-          whereClauses.push(eq(entry.table.rodzajZdarzenia, entry.filterBy));
+        if ("filterBy" in entry) {
+          const filter_schema = z.enum(["Szczepienie","Odrobaczanie","Podanie suplementów","Dentysta","Inne"])
+          const f = filter_schema.parse(entry.filterBy)
+          whereClauses.push(eq(entry.table.rodzajZdarzenia, f));
         }
   
         if (!all && from && to) {
           if (event === "Choroby") {
-          whereClauses.push(
-            gte(entry.table.dataRozpoczecia, new Date(from)),
-            lte(entry.table.dataRozpoczecia, new Date(to))
-          );
+            const entry1 = eventTableMap[event];
+            whereClauses.push(
+              gte(entry1.table.dataRozpoczecia, new Date(from).toDateString()),
+              lte(entry1.table.dataRozpoczecia, new Date(to).toDateString())
+            );
           } else {
-          whereClauses.push(
-            gte(entry.table.dataZdarzenia, new Date(from)),
-            lte(entry.table.dataZdarzenia, new Date(to))
-          );
+            const entry1 = eventTableMap[event];
+            whereClauses.push(
+              gte(entry1.table.dataZdarzenia, new Date(from).toDateString()),
+              lte(entry1.table.dataZdarzenia, new Date(to).toDateString())
+            );
           }
         }
   
@@ -160,7 +174,7 @@ raport.post("/:id{[0-9]+}", zValidator("json", raportSchema), async (c) => {
       }
       
   
-      return c.json(result);
+      return c.json(result, 200);
     } catch (e) {
       console.error(e);
       return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
