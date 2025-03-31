@@ -211,6 +211,33 @@ function KonieDetails() {
     }
   };
 
+  const handleRemoveImage = async () => {
+    if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) return;
+  
+    const confirmed = confirm("Czy na pewno chcesz usunąć to zdjęcie?");
+    if (!confirmed) return;
+
+    const imageUrl = horse.imageUrls[currentImageIndex];
+
+    try {
+      const parts = imageUrl.split("/");
+      const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
+      console.log(parts);
+
+      // 2. Usuń zdjęcie
+      const response = await fetch(`/api/konie/${id}/${imageId}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Błąd usuwania zdjęcia");
+  
+      alert("Zdjęcie zostało usunięte!");
+      void await fetchHorseDetails();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
@@ -315,7 +342,7 @@ function KonieDetails() {
             {horse.imageUrls && horse.imageUrls.length > 0 && (
               <button
                 type="button"
-                // onClick={handleRemoveImage}
+                onClick={handleRemoveImage}
                 className="h-10 w-10 rounded-md bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
                 title="Usuń zdjęcie"
               >
