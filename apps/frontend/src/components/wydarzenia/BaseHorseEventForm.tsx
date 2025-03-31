@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { redirect } from "react-router";
+import { useNavigate } from "react-router";
 import APIClient from "@/frontend/lib/api-client";
-// import { eventTypes } from "@/frontend/types/event-types";
 
 type EventFormProps = {
   id: string;
@@ -93,7 +92,7 @@ const getExpirationDate = (eventType: string, horseType: string) => {
         ? 180
         : 365, // +6 miesięcy dla koni sportowych i rekreacyjnych, +1 rok dla innych
   };
-  console.log(horseType, expirationRules[eventType], eventType);
+  // console.log(horseType, expirationRules[eventType], eventType);
   let daysToAdd = 365;
   if (expirationRules[eventType]) {
     daysToAdd = expirationRules[eventType];
@@ -128,6 +127,7 @@ const BaseHorseEventForm = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [horseType, setHorseType] = useState<string>("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Pobiera dane wydarzenia, jeśli edytujemy
@@ -236,7 +236,7 @@ const BaseHorseEventForm = ({
     >
   ) => {
     const { name, value } = e.target;
-    console.log(name, value);
+    // console.log(name, value);
 
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
@@ -299,7 +299,10 @@ const BaseHorseEventForm = ({
       setSuccess("Zdarzenie zostało zaktualizowane!");
       const redirectType =
         type === "zdarzenia_profilaktyczne" ? "profilaktyczne" : type;
-      setTimeout(() => redirect(`/wydarzenia/${id}/${redirectType}`), 1500);
+      setTimeout(
+        () => void navigate(`/wydarzenia/${id}/${redirectType}`),
+        1500
+      );
     } catch (err) {
       setError((err as Error).message);
     }
@@ -315,7 +318,7 @@ const BaseHorseEventForm = ({
       {success && <p className="text-green-500">{success}</p>}
 
       <form
-        onSubmit={void handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         {fields.includes("weterynarz") && (

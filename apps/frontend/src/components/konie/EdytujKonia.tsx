@@ -1,6 +1,6 @@
 import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useParams, redirect } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { BackendTypes } from "@aplikacja-konie/api-client";
 
 function EditKonia() {
@@ -19,6 +19,7 @@ function EditKonia() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHorseDetails = async () => {
@@ -94,7 +95,7 @@ function EditKonia() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    return redirect(`/konie/${id}`);
+    void navigate(`/konie/${id}`);
   };
 
   return (
@@ -105,7 +106,7 @@ function EditKonia() {
       {success && <p className="text-green-400">{success}</p>}
 
       <form
-        onSubmit={() => handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-96 rounded-lg bg-white p-6 shadow-md"
       >
         <label className="mb-2 block">

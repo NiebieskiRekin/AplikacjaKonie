@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirect } from "react-router";
+import { useNavigate } from "react-router";
 import APIClient from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
@@ -10,6 +10,7 @@ function Restart() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +28,7 @@ function Restart() {
       if (response.ok) {
         setSuccess("Hasło zostało zmienione! Zaloguj się ponownie.");
         setError("");
-        setTimeout(() => void redirect("/login"), 2000);
+        setTimeout(() => void navigate("/login"), 2000);
       } else {
         throw new Error("Błąd zmiany hasła");
       }
@@ -45,7 +46,7 @@ function Restart() {
         </h2>
         {error && <p className="text-center text-red-600">{error}</p>}
         {success && <p className="text-center text-green-600">{success}</p>}
-        <form onSubmit={void handlePasswordChange} className="mt-4">
+        <form onSubmit={(e) => void handlePasswordChange(e)} className="mt-4">
           <label className="mb-2 block">
             <span className="text-gray-700">Stare hasło:</span>
             <input

@@ -1,6 +1,6 @@
 import APIClient from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { useParams, Link, redirect } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 
 // TODO: consider a type that is anything more than undefined
 type Event = {
@@ -22,6 +22,7 @@ function HorseEventList({ type }: { type: string }) {
   const { id } = useParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -55,7 +56,7 @@ function HorseEventList({ type }: { type: string }) {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => redirect(`/wydarzenia/add/${id}/${type}`)}
+        onClick={() => void navigate(`/wydarzenia/add/${id}/${type}`)}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj nowe wydarzenie

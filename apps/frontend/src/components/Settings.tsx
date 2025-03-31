@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, redirect } from "react-router";
+import { Link, useNavigate } from "react-router";
 import APIClient from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
@@ -25,6 +25,7 @@ function Settings() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -88,7 +89,7 @@ function Settings() {
 
   const handleClosePopup = () => {
     setShowPopup(false);
-    return redirect("/konie"); // Przekierowanie po zamknięciu popupu
+    void navigate("/konie"); // Przekierowanie po zamknięciu popupu
   };
 
   return (
@@ -153,7 +154,7 @@ function Settings() {
         ))}
 
         <button
-          onClick={void handleSaveSettings}
+          onClick={() => void handleSaveSettings()}
           className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
         >
           💾 Zapisz ustawienia

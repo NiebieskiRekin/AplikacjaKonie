@@ -2,7 +2,7 @@ import APIClient from "@/frontend/lib/api-client";
 import type { BackendTypes } from "@aplikacja-konie/api-client";
 import type { RodzajKonia } from "@aplikacja-konie/backend/schema";
 import { useEffect, useState } from "react";
-import { useParams, redirect } from "react-router";
+import { useParams, useNavigate } from "react-router";
 
 const eventTypes = {
   podkucie: "Podkucie",
@@ -36,6 +36,7 @@ function AddEvent() {
   const [error, setError] = useState("");
   const [validityText, setValidityText] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 🔽 Stan dla rozwijanej listy
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (type === "szczepienia") {
@@ -138,7 +139,7 @@ function AddEvent() {
 
         if (response.ok) {
           alert("Zdarzenie zostało dodane!");
-          redirect("/wydarzenia");
+          await navigate("/wydarzenia");
         } else {
           throw new Error("Błąd dodawania zdarzenia");
         }
@@ -159,7 +160,7 @@ function AddEvent() {
 
         if (response.ok) {
           alert("Zdarzenie zostało dodane!");
-          redirect("/wydarzenia");
+          await navigate("/wydarzenia");
         } else {
           throw new Error("Błąd dodawania zdarzenia");
         }
@@ -192,7 +193,7 @@ function AddEvent() {
       {error && <p className="text-red-600">{error}</p>}
 
       <form
-        onSubmit={void handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="mb-2 block text-gray-700">🐴 Wybierz konie:</label>

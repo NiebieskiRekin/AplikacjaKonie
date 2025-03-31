@@ -95,9 +95,9 @@ function AddKonia() {
     }
   };
 
-  const handleClosePopup = () => {
+  const handleClosePopup = async () => {
     setShowPopup(false);
-    return navigate("/konie");
+    await navigate("/konie");
   };
 
   return (
@@ -108,7 +108,7 @@ function AddKonia() {
       {success && <p className="text-green-400">{success}</p>}
 
       <form
-        onSubmit={() => handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-96 rounded-lg bg-white p-6 shadow-md"
       >
         <label className="mb-2 block">
@@ -223,7 +223,7 @@ function AddKonia() {
               Koń został dodany!
             </p>
             <button
-              onClick={() => handleClosePopup}
+              onClick={() => void handleClosePopup()}
               className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
             >
               OK

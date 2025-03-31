@@ -94,7 +94,7 @@ function EditWeterynarz() {
       {deleteError && <p className="text-red-600">{deleteError}</p>}
 
       <form
-        onSubmit={void handleSubmit}
+        onSubmit={(e) => void handleSubmit(e)}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
       >
         <label className="block text-gray-700">👤 Imię i nazwisko:</label>
