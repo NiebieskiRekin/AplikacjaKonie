@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { GoArrowRight, GoArrowLeft } from "react-icons/go";
 import { IoMdCloseCircle } from "react-icons/io";
+import { FaSpinner } from "react-icons/fa";
 
 type HorseDetails = {
   id: number;
@@ -49,6 +50,8 @@ function KonieDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const imageDataCache = useRef<{ [url: string]: string }>({});
 
   const fetchHorseDetails = async () => {
     try {
@@ -122,6 +125,31 @@ function KonieDetails() {
     fetchHorseEvents();
   }, [id]);
 
+  useEffect(() => {
+    setIsImageLoaded(false);
+    const loadImage = async () => {
+      if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) return;
+  
+      const url = horse.imageUrls[currentImageIndex];
+      if (imageDataCache.current[url]) {
+        setIsImageLoaded(true);
+        return;
+      }
+  
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const dataUrl = await blobToDataURL(blob);
+        imageDataCache.current[url] = dataUrl;
+        setIsImageLoaded(true);
+      } catch (err) {
+        console.error("Błąd ładowania obrazu:", err);
+      }
+    };
+  
+    void loadImage();
+  }, [currentImageIndex, horse]);
+
   if (error) return <p className="text-red-600">{error}</p>;
   if (!horse) return <p className="text-lg text-white">Ładowanie...</p>;
 
@@ -154,6 +182,15 @@ function KonieDetails() {
         ? horse.imageUrls.length - 1
         : prevIndex - 1
     );
+  };
+
+  const blobToDataURL = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   };
 
   const getDateColor = (dataWaznosci: string) => {
@@ -322,17 +359,18 @@ function KonieDetails() {
               </button>
             </>
           )}
-          <img
-            src={
-              horse.imageUrls && horse.imageUrls.length > 0
-                ? horse.imageUrls[currentImageIndex]
-                : default_img
-            }
-            alt={horse.nazwa}
-            onError={(e) => (e.currentTarget.src = default_img)}
-            onClick={() => setIsImageModalOpen(true)}
-            className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
-          />
+          {isImageLoaded ? (
+            <img
+              src={imageDataCache.current[horse.imageUrls![currentImageIndex]]}
+              alt={horse.nazwa}
+              onClick={() => setIsImageModalOpen(true)}
+              className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
+            />
+          ) : (
+            <div className="mb-4 h-64 w-64 flex items-center justify-center rounded-lg bg-gray-200">
+              <FaSpinner className="animate-spin text-4xl text-green-700" />
+            </div>
+          )}
           <div className="mt-2 flex items-center gap-3">
             <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
               ➕ Dodaj zdjęcie
