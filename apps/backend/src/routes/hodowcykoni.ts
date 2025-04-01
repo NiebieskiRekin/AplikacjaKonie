@@ -4,7 +4,9 @@ import { db, eq } from "../db";
 import { hodowcyKoni, hodowcyKoniInsertSchema } from "../db/schema";
 import { authMiddleware, UserPayload } from "../middleware/auth";
 
-export const hodowcyKoniRoute = new Hono<{ Variables: UserPayload }>();
+export const hodowcyKoniRoute = new Hono<{
+  Variables: { jwtPayload: UserPayload };
+}>();
 hodowcyKoniRoute.use(authMiddleware);
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where

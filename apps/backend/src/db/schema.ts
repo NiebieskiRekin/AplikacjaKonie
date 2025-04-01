@@ -8,7 +8,7 @@ import {
   uuid,
   customType,
   boolean,
-  time
+  time,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -51,12 +51,18 @@ export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
 );
 
 export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
-  "Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"
+  "Podkucia",
+  "Odrobaczanie",
+  "Podanie suplementów",
+  "Szczepienie",
+  "Dentysta",
+  "Inne",
 ]);
 
-export const rodzajeWysylaniaNotifications = hodowlakoni.enum("rodzaje_wysylania_notifications", [
-  "Push", "Email", "Oba"
-]);
+export const rodzajeWysylaniaNotifications = hodowlakoni.enum(
+  "rodzaje_wysylania_notifications",
+  ["Push", "Email", "Oba"]
+);
 
 export const plcie = hodowlakoni.enum("plcie", ["klacz", "ogier", "wałach"]);
 
@@ -83,7 +89,7 @@ export const konie = hodowlakoni.table(
   {
     id: serial("id").primaryKey(),
     nazwa: varchar("nazwa").notNull(),
-    numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 }), // Mogą być null'e, ale też mają być unique 
+    numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 }), // Mogą być null'e, ale też mają być unique
     numerChipa: varchar("numer_chipa", { length: 15 }), // Mogą być null'e, ale też mają być unique
     rocznikUrodzenia: integer("rocznik_urodzenia").default(
       sql`extract(year from CURRENT_DATE)`
@@ -422,7 +428,9 @@ export const notifications = hodowlakoni.table("notifications", {
   days: integer("days").notNull(),
   time: time({ precision: 6, withTimezone: true }).notNull(),
   active: boolean("active").notNull().default(true),
-  rodzajWysylania: rodzajeWysylaniaNotifications("rodzaje_wysylania_notifications").notNull(),
+  rodzajWysylania: rodzajeWysylaniaNotifications(
+    "rodzaje_wysylania_notifications"
+  ).notNull(),
 });
 
 export const notificationsSelectSchema = createSelectSchema(notifications);
@@ -430,5 +438,5 @@ export const notificationsUpdateSchema = createUpdateSchema(notifications);
 export const notificationsInsertSchema = createInsertSchema(notifications);
 
 // TODO
-// export const notificationsRelations = 
+// export const notificationsRelations =
 // }));

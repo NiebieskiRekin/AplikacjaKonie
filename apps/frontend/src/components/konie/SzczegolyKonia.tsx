@@ -3,18 +3,19 @@ import { useParams, useNavigate, Link } from "react-router";
 import { GoArrowRight, GoArrowLeft } from "react-icons/go";
 import { IoMdCloseCircle } from "react-icons/io";
 import { FaSpinner } from "react-icons/fa";
+import { APIClient } from "@/frontend/lib/api-client";
 
 type HorseDetails = {
   id: number;
   nazwa: string;
-  numerPrzyzyciowy: string;
-  numerChipa: string;
-  rocznikUrodzenia: number;
+  numerPrzyzyciowy: string | null;
+  numerChipa: string | null;
+  rocznikUrodzenia: number | null;
   rodzajKonia: string;
-  plec: string;
+  plec: string | null;
   dataPrzybyciaDoStajni: string | null;
   dataOdejsciaZeStajni: string | null;
-  imageUrls?: string[];
+  images_signed_urls: string[];
 };
 
 type Event = {
@@ -55,16 +56,15 @@ function KonieDetails() {
 
   const fetchHorseDetails = async () => {
     try {
-      const response = await fetch(`/api/konie/${id}`);
+      const response = await APIClient.api.konie[":id{[0-9]+}"].$get({
+        param: { id: id! },
+      });
+
+      if (!response.ok) throw new Error("Błąd pobierania danych konia");
 
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Błąd pobierania danych konia");
 
-      setHorse({
-        ...data,
-        imageUrls: data.images_signed_urls || [],
-      });
+      setHorse(data);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -74,13 +74,17 @@ function KonieDetails() {
     const fetchHorseEvents = async () => {
       try {
         // Pobieramy ostatnie 5 zdarzeń
-        const response = await fetch(`/api/konie/${id}/events`);
+        const response = await APIClient.api.konie[":id{[0-9]+}"].events.$get({
+          param: { id: id! },
+        });
 
-        const data = await response.json();
-        console.log(data);
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania zdarzeń");
+        if (!response.ok) {
+          const data = await response.json();
+          console.log(data);
+          throw new Error("Błąd pobierania zdarzeń");
+        }
 
+        const data = (await response.json()) as Event[];
         setEvents(data);
       } catch (err) {
         setError((err as Error).message);
@@ -89,56 +93,66 @@ function KonieDetails() {
 
     const fetchActiveEvents = async () => {
       try {
-        const response = await fetch(`/api/konie/${id}/active-events`);
+        const response = await APIClient.api.konie[":id{[0-9]+}"][
+          "active-events"
+        ].$get({ param: { id: id! } });
 
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania aktywnych zdarzeń");
-
-        const formattedEvents: ActiveEvent[] = EVENT_TYPES.map((type) => {
-          if (type === "Podkucie") {
-            return {
-              type,
-              dataZdarzenia: data.podkucie?.dataZdarzenia || "Brak",
-              dataWaznosci: data.podkucie?.dataWaznosci || "-",
-            };
-          } else {
-            const profilaktyczneEvent = data.profilaktyczne.find(
-              (e: any) => e.rodzajZdarzenia === type
-            );
-            return {
-              type,
-              dataZdarzenia: profilaktyczneEvent?.dataZdarzenia || "Brak",
-              dataWaznosci: profilaktyczneEvent?.dataWaznosci || "-",
-            };
-          }
-        });
-
-        setActiveEvents(formattedEvents);
+        if (!response.ok) {
+          throw new Error("Błąd pobierania aktywnych zdarzeń");
+        } else {
+          const data = await response.json();
+          const formattedEvents: ActiveEvent[] = EVENT_TYPES.map((type) => {
+            if (type === "Podkucie") {
+              return {
+                type,
+                dataZdarzenia: data.podkucie?.dataZdarzenia || "Brak",
+                dataWaznosci: data.podkucie?.dataWaznosci || "-",
+              };
+            } else {
+              const profilaktyczneEvent = data.profilaktyczne.find(
+                (e) => e.rodzajZdarzenia === type
+              );
+              return {
+                type,
+                dataZdarzenia: profilaktyczneEvent?.dataZdarzenia || "Brak",
+                dataWaznosci: profilaktyczneEvent?.dataWaznosci || "-",
+              };
+            }
+          });
+          setActiveEvents(formattedEvents);
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchActiveEvents();
-    fetchHorseDetails();
-    fetchHorseEvents();
+    Promise.allSettled([
+      fetchActiveEvents(),
+      fetchHorseDetails(),
+      fetchHorseEvents(),
+    ])
+      .then(() => {})
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
     setIsImageLoaded(false);
     const loadImage = async () => {
-      if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) {
+      if (
+        !horse ||
+        !horse.images_signed_urls ||
+        horse.images_signed_urls.length === 0
+      ) {
         setIsImageLoaded(true);
         return;
       }
-  
-      const url = horse.imageUrls[currentImageIndex];
+
+      const url = horse.images_signed_urls[currentImageIndex];
       if (imageDataCache.current[url]) {
         setIsImageLoaded(true);
         return;
       }
-  
+
       try {
         const response = await fetch(url);
         const blob = await response.blob();
@@ -149,7 +163,7 @@ function KonieDetails() {
         console.error("Błąd ładowania obrazu:", err);
       }
     };
-  
+
     void loadImage();
   }, [currentImageIndex, horse]);
 
@@ -158,8 +172,8 @@ function KonieDetails() {
 
   const handleDeleteHorse = async () => {
     try {
-      const response = await fetch(`/api/konie/${id}`, {
-        method: "DELETE",
+      const response = await APIClient.api.konie[":id{[0-9]+}"].$delete({
+        param: { id: id! },
       });
 
       if (!response.ok) throw new Error("Nie udało się usunąć konia");
@@ -173,7 +187,8 @@ function KonieDetails() {
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      horse.imageUrls && prevIndex === horse.imageUrls.length - 1
+      horse.images_signed_urls &&
+      prevIndex === horse.images_signed_urls.length - 1
         ? 0
         : prevIndex + 1
     );
@@ -181,8 +196,8 @@ function KonieDetails() {
 
   const prevImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      horse.imageUrls && prevIndex === 0
-        ? horse.imageUrls.length - 1
+      horse.images_signed_urls && prevIndex === 0
+        ? horse.images_signed_urls.length - 1
         : prevIndex - 1
     );
   };
@@ -216,80 +231,95 @@ function KonieDetails() {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
     try {
-      const response = await fetch(`/api/konie/${id}/upload`, {
-        method: 'POST'
+      const response = await APIClient.api.konie[":id{[0-9]+}"].upload.$post({
+        param: { id: id! },
       });
 
-      const data = await response.json();
-      console.log(data);
-      if (!response.ok) throw new Error(data.error || 'Błąd przesyłania zdjęcia');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Błąd przesyłania zdjęcia");
+      }
 
-      const response_image_url_upload = await fetch(`/api/images/upload/${data.image_uuid.id!}`);
-      if (!response_image_url_upload.ok) throw new Error('Błąd przy generowaniu odnośnika do przesłania zdjęcia');
+      const data = await response.json();
+      const response_image_url_upload = await APIClient.api.images.upload[
+        ":filename"
+      ].$get({ param: { filename: data.image_uuid.id } });
+      if (!response_image_url_upload.ok)
+        throw new Error(
+          "Błąd przy generowaniu odnośnika do przesłania zdjęcia"
+        );
       const image_url_upload = await response_image_url_upload.json();
 
       const response_uploaded_image = await fetch(image_url_upload.url, {
-        method: 'PUT',
+        method: "PUT",
         body: file,
       });
 
-      if (!response_uploaded_image.ok) throw new Error('Błąd przy przesyłaniu zdjęcia');
+      if (!response_uploaded_image.ok)
+        throw new Error("Błąd przy przesyłaniu zdjęcia");
 
-
-      alert('Zdjęcie dodane pomyślnie!');
-      void await fetchHorseDetails();
+      alert("Zdjęcie dodane pomyślnie!");
+      void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
     }
   };
 
   const handleRemoveImage = async () => {
-    if (!horse || !horse.imageUrls || horse.imageUrls.length === 0) return;
-  
+    if (
+      !horse ||
+      !horse.images_signed_urls ||
+      horse.images_signed_urls.length === 0
+    )
+      return;
+
     const confirmed = confirm("Czy na pewno chcesz usunąć to zdjęcie?");
     if (!confirmed) return;
 
-    const imageUrl = horse.imageUrls[currentImageIndex];
+    const imageUrl = horse.images_signed_urls[currentImageIndex];
 
     try {
       const parts = imageUrl.split("/");
       const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
       console.log(parts);
 
-      // 2. Usuń zdjęcie
-      const response = await fetch(`/api/konie/${id}/${imageId}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Błąd usuwania zdjęcia");
-  
+      const response = await APIClient.api.konie[":id{[0-9]+}"][
+        ":imageId{[A-Za-z0-9-]+}"
+      ].$delete({ param: { id: id!, imageId: imageId } });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Błąd usuwania zdjęcia");
+      }
+
       alert("Zdjęcie zostało usunięte!");
-      void await fetchHorseDetails();
+      void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
     }
   };
 
-
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
-      <div className="flex w-full max-w-7xl items-center justify-center relative mb-10 sm:mb-6">
+      <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
         <button
-          onClick={() => navigate("/konie")}
-          className="absolute left-0 sm:relative sm:mr-auto flex items-center gap-2 text-white bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 rounded-lg transition"
+          onClick={() => void navigate("/konie")}
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
         >
           <GoArrowLeft className="text-xl" />
         </button>
 
-        <h2 className="text-3xl font-bold text-white text-center absolute left-1/2 transform -translate-x-1/2">
+        <h2 className="absolute left-1/2 -translate-x-1/2 transform text-center text-3xl font-bold text-white">
           {horse.nazwa}
         </h2>
       </div>
@@ -300,7 +330,8 @@ function KonieDetails() {
           </h3>
 
           <p className="text-gray-800">
-            <strong>Numer przyżyciowy:</strong> {horse.numerPrzyzyciowy || "Nie podano"}
+            <strong>Numer przyżyciowy:</strong>{" "}
+            {horse.numerPrzyzyciowy || "Nie podano"}
           </p>
           <p className="text-gray-800">
             <strong>Numer chipa:</strong> {horse.numerChipa || "Nie podano"}
@@ -312,7 +343,8 @@ function KonieDetails() {
             <strong>Rodzaj:</strong> {horse.rodzajKonia}
           </p>
           <p className="text-gray-800">
-            <strong>Płeć:</strong> {horse.plec.charAt(0).toUpperCase() + horse.plec.slice(1)}
+            <strong>Płeć:</strong>{" "}
+            {horse.plec!.charAt(0).toUpperCase() + horse.plec!.slice(1)}
           </p>
           <p className="text-gray-800">
             <strong>Data przybycia do stajni:</strong>{" "}
@@ -325,7 +357,7 @@ function KonieDetails() {
 
           <button
             className="mt-4 block w-full rounded-lg bg-yellow-600 px-6 py-3 text-white shadow-md transition hover:bg-yellow-700"
-            onClick={() => navigate(`/konie/${horse.id}/edit`)}
+            onClick={() => void navigate(`/konie/${horse.id}/edit`)}
           >
             ✏️ Edytuj dane
           </button>
@@ -346,7 +378,7 @@ function KonieDetails() {
         </div>
 
         <div className="relative flex flex-1 flex-col items-center">
-          {horse.imageUrls && horse.imageUrls.length > 1 && (
+          {horse.images_signed_urls && horse.images_signed_urls.length > 1 && (
             <>
               <button
                 className="bg-opacity-50 hover:bg-opacity-75 absolute top-1/2 left-3 -translate-y-1/2 transform rounded-full bg-green-700 px-2 py-1 text-3xl font-bold text-white transition"
@@ -365,8 +397,10 @@ function KonieDetails() {
           {isImageLoaded ? (
             <img
               src={
-                horse.imageUrls && horse.imageUrls.length > 0
-                  ? imageDataCache.current[horse.imageUrls[currentImageIndex]] ?? default_img
+                horse.images_signed_urls && horse.images_signed_urls.length > 0
+                  ? (imageDataCache.current[
+                      horse.images_signed_urls[currentImageIndex]
+                    ] ?? default_img)
                   : default_img
               }
               alt={horse.nazwa}
@@ -374,26 +408,31 @@ function KonieDetails() {
               className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
             />
           ) : (
-            <div className="mb-4 h-64 w-64 flex items-center justify-center rounded-lg bg-gray-200">
+            <div className="mb-4 flex h-64 w-64 items-center justify-center rounded-lg bg-gray-200">
               <FaSpinner className="animate-spin text-4xl text-green-700" />
             </div>
           )}
           <div className="mt-2 flex items-center gap-3">
             <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
               ➕ Dodaj zdjęcie
-              <input type="file" className="hidden" onChange={handleImageUpload} />
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => void handleImageUpload(e)}
+              />
             </label>
 
-            {horse.imageUrls && horse.imageUrls.length > 0 && (
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="h-10 w-10 rounded-md bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
-                title="Usuń zdjęcie"
-              >
-                🗑️
-              </button>
-            )}
+            {horse.images_signed_urls &&
+              horse.images_signed_urls.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void handleRemoveImage()}
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-700"
+                  title="Usuń zdjęcie"
+                >
+                  🗑️
+                </button>
+              )}
           </div>
         </div>
 
@@ -408,8 +447,9 @@ function KonieDetails() {
               </button>
               <img
                 src={
-                  horse.imageUrls && horse.imageUrls.length > 0
-                    ? horse.imageUrls[currentImageIndex]
+                  horse.images_signed_urls &&
+                  horse.images_signed_urls.length > 0
+                    ? horse.images_signed_urls[currentImageIndex]
                     : default_img
                 }
                 alt="Powiększone zdjęcie"
@@ -485,7 +525,7 @@ function KonieDetails() {
               </button>
               <button
                 className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                onClick={handleDeleteHorse}
+                onClick={() => handleDeleteHorse}
               >
                 Usuń
               </button>

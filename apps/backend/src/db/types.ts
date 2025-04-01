@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   hodowcyKoni,
   konie,
@@ -7,6 +8,7 @@ import {
   choroby,
   leczenia,
   rozrody,
+  plcie,
   zdarzeniaProfilaktyczne,
   weterynarze,
   rodzajeKoni,
@@ -14,7 +16,8 @@ import {
   rodzajeZdarzenRozrodczych,
   users,
   user_permissions,
-  rodzajeWysylaniaNotifications
+  rodzajeNotifications,
+  rodzajeWysylaniaNotifications,
 } from "./schema";
 
 // NOTE: to use these types in the frontend just hover over the type name and copy the code
@@ -24,16 +27,24 @@ import {
 //       "strictNullChecks": true
 // see for more details: https://github.com/drizzle-team/drizzle-orm/issues/2636
 
-export const rodzaje_koni = rodzajeKoni.enumValues;
-export const rodzaje_zdarzen_profilaktycznych =
+export const RodzajeKoni = rodzajeKoni.enumValues;
+export const RodzajeZdarzenProfilaktycznych =
   rodzajeZdarzenProfilaktycznych.enumValues;
-export const rodzaje_zdarzen_rozrodczych = rodzajeZdarzenRozrodczych.enumValues;
-export const rodzaje_wysylania_notifications = rodzajeWysylaniaNotifications.enumValues;
+export const RodzajeZdarzenRozrodczych = rodzajeZdarzenRozrodczych.enumValues;
+export const Plcie = plcie.enumValues;
+export const RodzajePowiadomien = rodzajeNotifications.enumValues;
+export const RodzajeWysylaniaPowiadomien =
+  rodzajeWysylaniaNotifications.enumValues;
 
-export type RodzajKonia = typeof rodzaje_koni;
+export type RodzajKonia = (typeof RodzajeKoni)[number];
 export type RodzajZdarzeniaProfilaktycznego =
-  typeof rodzaje_zdarzen_profilaktycznych;
-export type RodzajZdarzeniaRozrodczego = typeof rodzaje_zdarzen_rozrodczych;
+  (typeof RodzajeZdarzenProfilaktycznych)[number];
+export type RodzajZdarzeniaRozrodczego =
+  (typeof RodzajeZdarzenRozrodczych)[number];
+export type Plec = (typeof Plcie)[number];
+export type RodzajPowiadomienia = (typeof RodzajePowiadomien)[number];
+export type RodzajWysylaniaPowiadomienia =
+  (typeof RodzajeWysylaniaPowiadomien)[number];
 
 export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;
 export type InsertHodowcaKoni = typeof hodowcyKoni.$inferInsert;
@@ -61,3 +72,22 @@ export type SelectUser = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUserPermissions = typeof user_permissions.$inferSelect;
 export type InsertUserPermissions = typeof user_permissions.$inferInsert;
+
+const common_settings = z.object({
+  days: z.number().int().nonnegative(),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Nieprawidłowy format czasu"),
+  active: z.boolean(),
+  rodzajWysylania: z.enum(RodzajeWysylaniaPowiadomien),
+});
+
+export const notificationsInsertSchema = z.object({
+  // TODO convert to record
+  Podkucia: common_settings,
+  Odrobaczanie: common_settings,
+  "Podanie suplementów": common_settings,
+  Szczepienie: common_settings,
+  Dentysta: common_settings,
+  Inne: common_settings,
+});
+
+export type Setting = z.infer<typeof notificationsInsertSchema>;

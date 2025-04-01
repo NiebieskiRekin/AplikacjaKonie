@@ -5,10 +5,10 @@
   "version": "0.1.0",
   "main": "./dist/index.js",
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "rm -rf dist && tsc",
+    "dev": "tsc --preserveWatchOutput --watch",
+    "build": "rm -rf dist && tsc --preserveWatchOutput",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit --preserveWatchOutput"
   },
   "dependencies": {
     "@aplikacja-konie/backend": "*",

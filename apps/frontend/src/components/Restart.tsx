@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { APIClient } from "../lib/api-client";
+import formatApiError from "../lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Restart() {
@@ -26,29 +29,21 @@ function Restart() {
     }
 
     try {
-      const response = await fetch("/api/restart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ oldPassword, newPassword, confirmNewPassword }),
+      const response = await APIClient.api.restart.$post({
+        json: { oldPassword, newPassword, confirmNewPassword },
       });
-      console.log(response);
-      const data = await response.json();
-      if (!response.ok) {
-        if (data.error && data.error.issues) {
-          const errorMessages = data.error.issues
-            .map((issue: { message: string }) => `❌ ${issue.message}`)
-            .join("\n");
-          throw new Error(errorMessages);
-        }
-        throw new Error(data.error || "Błąd zmiany hasła");
+
+      if (response.ok) {
+        setSuccess(
+          "Hasło zostało zmienione! Wylogowanie nastąpi po 5s. \n Zaloguj się ponownie."
+        );
+        setError("");
+        setTimeout(() => void navigate("/login"), 6000);
+      } else {
+        throw new Error("Błąd zmiany hasła");
       }
-      setSuccess("Hasło zostało zmienione! Wylogowanie nastąpi po 5s. \n Zaloguj się ponownie.");
-      setError("");
-      setTimeout(() => navigate("/login"), 6000);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err as ErrorSchema));
       setSuccess("");
     }
   };
@@ -60,9 +55,11 @@ function Restart() {
           Zmień hasło
         </h2>
         {error && <p className="text-center text-red-600">{error}</p>}
-        {success && <p className="text-center text-green-600 font-bold">{success}</p>}
-        <form onSubmit={handlePasswordChange} className="mt-4">
-          <label className="mb-2 block relative">
+        {success && (
+          <p className="text-center font-bold text-green-600">{success}</p>
+        )}
+        <form onSubmit={(e) => void handlePasswordChange(e)} className="mt-4">
+          <label className="relative mb-2 block">
             <span className="text-gray-700">Stare hasło:</span>
             <input
               type={showOldPassword ? "text" : "password"}
@@ -73,13 +70,13 @@ function Restart() {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 top-7 text-gray-600"
+              className="absolute inset-y-0 top-7 right-3 text-gray-600"
               onClick={() => setShowOldPassword(!showOldPassword)}
             >
               {showOldPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </label>
-          <label className="mb-2 block relative">
+          <label className="relative mb-2 block">
             <span className="text-gray-700">Nowe hasło:</span>
             <input
               type={showNewPassword ? "text" : "password"}
@@ -90,13 +87,13 @@ function Restart() {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 top-7 text-gray-600"
+              className="absolute inset-y-0 top-7 right-3 text-gray-600"
               onClick={() => setShowNewPassword(!showNewPassword)}
             >
               {showNewPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </label>
-          <label className="mb-4 block relative">
+          <label className="relative mb-4 block">
             <span className="text-gray-700">Potwierdź nowe hasło:</span>
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -107,7 +104,7 @@ function Restart() {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 top-7 text-gray-600"
+              className="absolute inset-y-0 top-7 right-3 text-gray-600"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}

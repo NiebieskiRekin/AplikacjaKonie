@@ -1,7 +1,7 @@
 import { useState } from "react";
-import "../index.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
+import { APIClient } from "@/frontend/lib/api-client";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,19 +17,17 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const response = await APIClient.api.login.$post({
+        json: { email, password },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (response.status === 200) {
+        await response.json();
+        await navigate("/konie");
+      } else {
+        const data = await response.json();
         throw new Error(data.error || "Błąd logowania");
       }
-
-      navigate("/konie");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -44,7 +42,12 @@ function Login() {
           Logowanie
         </h2>
         {error && <p className="mt-2 text-center text-red-600">{error}</p>}
-        <form className="mt-6" onSubmit={handleLogin}>
+        <form
+          className="mt-6"
+          onSubmit={(event) => {
+            void handleLogin(event);
+          }}
+        >
           <div>
             <label className="block text-sm font-semibold text-gray-700">
               Email

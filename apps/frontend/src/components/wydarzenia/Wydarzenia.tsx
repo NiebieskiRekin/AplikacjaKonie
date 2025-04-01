@@ -1,3 +1,4 @@
+import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 
 type Event = {
@@ -18,37 +19,41 @@ function StajniaEvents() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Event | null; direction: "asc" | "desc" }>({
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Event | null;
+    direction: "asc" | "desc";
+  }>({
     key: null,
     direction: "asc",
   });
 
-  const [filters, setFilters] = useState({
-    horse: "",
-    date: "",
-    rodzajZdarzenia: "",
-    dataWaznosci: "",
-    osobaImieNazwisko: "",
-    opisZdarzenia: "",
-  });
+  // const [filters, setFilters] = useState({
+  //   horse: "",
+  //   date: "",
+  //   rodzajZdarzenia: "",
+  //   dataWaznosci: "",
+  //   osobaImieNazwisko: "",
+  //   opisZdarzenia: "",
+  // });
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("/api/wydarzenia");
+        const response = await APIClient.api.wydarzenia.$get();
 
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Błąd pobierania wydarzeń");
-
-        setEvents(data);
-        setFilteredEvents(data);
+        if (response.ok) {
+          const data = (await response.json()) as Event[];
+          setEvents(data);
+          setFilteredEvents(data);
+        } else {
+          throw new Error("Błąd pobierania wydarzeń");
+        }
       } catch (err) {
         setError((err as Error).message);
       }
     };
 
-    fetchEvents();
+    void fetchEvents();
   }, []);
 
   const handleSort = (key: keyof Event) => {
@@ -165,11 +170,15 @@ function StajniaEvents() {
               ].map(({ key, label }) => (
                 <th
                   key={key}
-                  className="border border-gray-300 px-2 py-2 md:px-4 cursor-pointer hover:bg-gray-300"
+                  className="cursor-pointer border border-gray-300 px-2 py-2 hover:bg-gray-300 md:px-4"
                   onClick={() => handleSort(key as keyof Event)}
                 >
                   {label}{" "}
-                  {sortConfig.key === key ? (sortConfig.direction === "asc" ? "▲" : "▼") : "⇅"}
+                  {sortConfig.key === key
+                    ? sortConfig.direction === "asc"
+                      ? "▲"
+                      : "▼"
+                    : "⇅"}
                 </th>
               ))}
             </tr>

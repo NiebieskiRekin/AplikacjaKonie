@@ -6,8 +6,16 @@ import tseslint from "typescript-eslint";
 import drizzle from "eslint-plugin-drizzle";
 import eslintConfigPrettier from "eslint-config-prettier";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+import { includeIgnoreFile } from "@eslint/compat";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const gitignorePath = path.resolve(__dirname, ".gitignore");
 
 export default tseslint.config(
+  includeIgnoreFile(gitignorePath),
   {
     ignores: [
       "./infra",
