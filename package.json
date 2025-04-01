@@ -13,7 +13,7 @@
     "lint:fix": "npx eslint . --fix",
     "format": "npx prettier . -w",
     "typecheck": "npm --prefix apps/backend run typecheck && npm --prefix packages/api-client run typecheck && npm --prefix apps/frontend run typecheck",
-    "prepare": "husky"
+    "prepare": "node .husky/install.mjs"
   },
   "license": "MIT",
   "repository": {

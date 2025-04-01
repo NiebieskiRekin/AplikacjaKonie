@@ -3,14 +3,14 @@ WORKDIR /app
 COPY package.json package-lock.json /app/
 COPY apps/frontend/package.json /app/apps/frontend/package.json
 COPY apps/backend/package.json /app/apps/backend/package.json
-RUN npm ci
+RUN npm pkg delete scripts.prepare && npm ci
 
 FROM node:22-slim AS production-dependencies-env
 WORKDIR /app
 COPY package.json package-lock.json /app/
 COPY apps/frontend/package.json /app/apps/frontend/package.json
 COPY apps/backend/package.json /app/apps/backend/package.json
-RUN npm ci --omit=dev --workspace apps/backend
+RUN npm pkg delete scripts.prepare && npm ci --omit=dev --workspace apps/backend
 
 FROM node:22-slim AS build-env
 COPY . /app/
