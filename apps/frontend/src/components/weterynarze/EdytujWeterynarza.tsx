@@ -2,7 +2,7 @@ import { APIClient } from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
-import { redirect, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function EditWeterynarz() {
   const { id } = useParams();
@@ -15,6 +15,7 @@ function EditWeterynarz() {
   const [success, setSuccess] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWeterynarz = async () => {
@@ -58,7 +59,7 @@ function EditWeterynarz() {
 
       if (response.ok) {
         setSuccess("Dane weterynarza zostały zaktualizowane!");
-        setTimeout(() => redirect("/weterynarze"), 1500);
+        setTimeout(() => void navigate("/weterynarze"), 1500);
       } else {
         throw new Error("Błąd edycji weterynarza");
       }
@@ -77,7 +78,7 @@ function EditWeterynarz() {
       if (!response.ok) throw new Error("Błąd usuwania weterynarza");
 
       setIsDeletePopupOpen(false);
-      redirect("/weterynarze");
+      await navigate("/weterynarze");
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
     }

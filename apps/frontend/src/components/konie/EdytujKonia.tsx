@@ -12,7 +12,7 @@ function EditKonia() {
   const [numerChipa, setNumerChipa] = useState("");
   const [rocznikUrodzenia, setRocznikUrodzenia] = useState<number | null>(2025);
   const [dataPrzybycia, setDataPrzybycia] = useState("");
-  const [dataOdejscia, setDataOdejscia] = useState("");
+  const [dataOdejscia, setDataOdejscia] = useState<string | null>(null);
   const [rodzajKonia, setRodzajKonia] =
     useState<BackendTypes.RodzajKonia>("Konie hodowlane");
   const [plec, setPlec] = useState<BackendTypes.Plec>(BackendTypes.Plcie[0]);
@@ -36,7 +36,7 @@ function EditKonia() {
         setNumerChipa(data.numerChipa || "");
         setRocznikUrodzenia(data.rocznikUrodzenia);
         setDataPrzybycia(data.dataPrzybyciaDoStajni || "");
-        setDataOdejscia(data.dataOdejsciaZeStajni || "");
+        setDataOdejscia(data.dataOdejsciaZeStajni);
         setRodzajKonia(data.rodzajKonia);
         setPlec(data.plec!);
       } catch (err) {
@@ -156,7 +156,7 @@ function EditKonia() {
           Data odejścia ze stajni:
           <input
             type="date"
-            value={dataOdejscia}
+            value={dataOdejscia!}
             onChange={(e) => setDataOdejscia(e.target.value)}
             className="w-full rounded-lg border p-2"
           />

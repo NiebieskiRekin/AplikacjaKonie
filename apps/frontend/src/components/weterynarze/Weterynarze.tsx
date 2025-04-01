@@ -1,6 +1,6 @@
 import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { Link, redirect } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 type Weterynarz = {
   id: number;
@@ -11,6 +11,7 @@ type Weterynarz = {
 function Weterynarze() {
   const [weterynarze, setweterynarze] = useState<Weterynarz[]>([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWeterynarze = async () => {
@@ -40,7 +41,7 @@ function Weterynarze() {
       {error && <p className="text-red-600">{error}</p>}
 
       <button
-        onClick={() => redirect("/weterynarze/add")}
+        onClick={() => void navigate("/weterynarze/add")}
         className="mb-4 rounded-lg bg-green-600 px-6 py-3 text-white shadow-md transition hover:bg-green-700"
       >
         ➕ Dodaj weterynarza

@@ -2,7 +2,7 @@ import { APIClient } from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
-import { redirect } from "react-router";
+import { useNavigate } from "react-router";
 
 function AddWeterynarz() {
   const [formData, setFormData] = useState({
@@ -12,6 +12,7 @@ function AddWeterynarz() {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,7 +30,7 @@ function AddWeterynarz() {
 
       if (response.ok) {
         setSuccess("Weterynarz został dodany!");
-        setTimeout(() => redirect("/weterynarze"), 1500);
+        setTimeout(() => void navigate("/weterynarze"), 1500);
       } else {
         throw new Error("Błąd dodawania weterynarza");
       }
