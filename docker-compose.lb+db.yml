@@ -69,48 +69,6 @@ services:
       traefik.tcp.routers.postgres.entrypoints: db
       traefik.tcp.routers.postgres.service: service_db
       traefik.tcp.services.service_db.loadbalancer.server.port: 5432
-  backend:
-    build:
-      context: ./
-      target: production-backend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-backend:main
-    # ports:
-    #   - 3001:3001
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-        restart: true
-    networks:
-      - traefik
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.backend.rule: "Host(`${DOMAIN}`) && PathPrefix(`/api`)"
-      traefik.http.routers.backend.entrypoints: https
-      traefik.http.routers.backend.tls: "true"
-      traefik.http.routers.backend.tls.certResolver: myresolver
-      traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
-
-  frontend:
-    build:
-      context: ./
-      target: production-frontend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-frontend:main
-    # ports:
-    #   - 5173:5733
-    depends_on:
-      backend:
-        condition: service_started
-        restart: true
-    networks:
-      - traefik
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.frontend.rule: Host(`${DOMAIN}`)
-      traefik.http.routers.frontend.entrypoints: https
-      traefik.http.routers.frontend.tls: "true"
-      traefik.http.routers.frontend.tls.certResolver: myresolver
-      traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
 
 networks:
   traefik:
