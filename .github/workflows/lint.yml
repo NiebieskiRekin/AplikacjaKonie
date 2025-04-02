@@ -8,14 +8,17 @@ on:
 
 jobs:
   eslint:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: 22
       - run: npm ci
-      - uses: sibiraj-s/action-eslint@v3
+      - uses: sibiraj-s/action-eslint@bcf41bb9abce43cdbad51ab9b3da2eddaa17eab3 # v3.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           eslint-args: "--quiet"
