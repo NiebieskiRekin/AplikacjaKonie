@@ -22,7 +22,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.11",
-    "drizzle-kit": "^0.30.5",
+    "drizzle-kit": "0.30.6",
     "typescript": "^5.7.3"
   },
   "dependencies": {
@@ -31,14 +31,13 @@
     "@hono/zod-validator": "^0.4.3",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.2",
-    "image-size": "^2.0.0",
     "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.0",
     "pg": "^8.13.3",
     "winston": "^3.17.0",
-    "zod": "^3.24.2",
-    "nodemailer": "^6.10.0"
+    "zod": "^3.24.2"
   }
 }

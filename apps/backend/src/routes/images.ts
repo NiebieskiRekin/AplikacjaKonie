@@ -21,7 +21,6 @@ import {
 // import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 // import { randomUUID } from "node:crypto";
-// import { imageSize } from "image-size";
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { ProcessEnv } from "../env";
 
