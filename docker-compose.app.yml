@@ -3,32 +3,24 @@ services:
     build:
       context: ./
       target: production-backend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-backend:main
-    # ports:
-    #   - 3001:3001
+    container_name: "${ENV_NAME}-aplikacjakonie-backend"
+    image: "ghcr.io/niebieskirekin/aplikacjakonie-backend:${BRANCH}"
     env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-        restart: true
     networks:
       - traefik
       - postgres
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.backend.rule: "Host(`${DOMAIN}`) && PathPrefix(`/api`)"
-      traefik.http.routers.backend.entrypoints: https
-      traefik.http.routers.backend.tls: "true"
-      traefik.http.routers.backend.tls.certResolver: myresolver
-      traefik.http.routers.backend.tls.domains[0].main: ${DOMAIN}
-
+      - "traefik.enable=true"
+      - "traefik.http.routers.${ENV_NAME}.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.${ENV_NAME}.entrypoints=https"
+      - "traefik.http.routers.${ENV_NAME}.tls=true"
+      - "traefik.http.routers.${ENV_NAME}.tls.certResolver=myresolver"
   frontend:
     build:
       context: ./
       target: production-frontend
-    image: ghcr.io/niebieskirekin/aplikacjakonie-frontend:main
-    # ports:
-    #   - 5173:5733
+    container_name: "${ENV_NAME}-aplikacjakonie-frontend"
+    image: "ghcr.io/niebieskirekin/aplikacjakonie-frontend:${BRANCH}"
     depends_on:
       backend:
         condition: service_started
@@ -36,13 +28,11 @@ services:
     networks:
       - traefik
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.frontend.rule: Host(`${DOMAIN}`)
-      traefik.http.routers.frontend.entrypoints: https
-      traefik.http.routers.frontend.tls: "true"
-      traefik.http.routers.frontend.tls.certResolver: myresolver
-      traefik.http.routers.frontend.tls.domains[0].main: ${DOMAIN}
-
+      - "traefik.enable=true"
+      - "traefik.http.routers.${ENV_NAME}.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${ENV_NAME}.entrypoints=https"
+      - "traefik.http.routers.${ENV_NAME}.tls=true"
+      - "traefik.http.routers.${ENV_NAME}.tls.certResolver=myresolver"
 networks:
   traefik:
     external: true
