@@ -8,11 +8,6 @@ on:
         type: environment
         required: true
         default: development
-      ref:
-        description: "Branch or tag"
-        type: string
-        required: true
-        default: main
   workflow_run:
     workflows:
       - Docker
@@ -36,7 +31,6 @@ jobs:
             infra
             docker-compose.app.yml
           sparse-checkout-cone-mode: false
-          ref: "${{inputs.ref}}"
 
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v3
