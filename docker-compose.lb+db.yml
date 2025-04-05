@@ -21,7 +21,6 @@ services:
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
-      # TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
     healthcheck:
       test: traefik healthcheck
   postgres:
@@ -37,6 +36,7 @@ services:
     volumes:
       - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
       - /mnt/disks/pg_backup/data:/backups:z
+      - ./create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh:z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 5s
