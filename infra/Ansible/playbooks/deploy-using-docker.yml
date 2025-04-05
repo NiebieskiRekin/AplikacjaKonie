@@ -3,7 +3,7 @@
     dockercompose: "{{ playbook_dir }}/../../../docker-compose.app.yml"
   hosts: main
   tasks:
-    - name: Get UUID
+    - name: Get directory
       ansible.builtin.set_fact:
         dest: "{{ lookup('env', 'DIRECTORY') }}"
 
