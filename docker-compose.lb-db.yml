@@ -1,0 +1,52 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    ports:
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/traefik/certs:/etc/traefik/certs:Z
+    networks:
+      - traefik
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TRAEFIK_ENTRYPOINTS_HTTPS: true
+      TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+      TRAEFIK_PROVIDERS_DOCKER: true
+      TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
+      TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
+    healthcheck:
+      test: traefik healthcheck
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    restart: unless-stopped
+    user: postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DATABASE}
+    volumes:
+      - /mnt/disks/pg_data/data:/var/lib/postgresql/data:z
+      - /mnt/disks/pg_backup/data:/backups:z
+      - ./create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 15s
+      retries: 20
+    networks:
+      - postgres
+
+networks:
+  traefik:
+    external: true
+  postgres:
+    external: true

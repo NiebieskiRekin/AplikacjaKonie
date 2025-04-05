@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ./
+      target: production-backend
+    container_name: "${ENV_NAME}-aplikacjakonie-backend"
+    image: "ghcr.io/niebieskirekin/aplikacjakonie-backend:${BRANCH}"
+    env_file: .env
+    networks:
+      - traefik
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.entrypoints=https"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls=true"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls.certResolver=myresolver"
+  frontend:
+    build:
+      context: ./
+      target: production-frontend
+    container_name: "${ENV_NAME}-aplikacjakonie-frontend"
+    image: "ghcr.io/niebieskirekin/aplikacjakonie-frontend:${BRANCH}"
+    depends_on:
+      backend:
+        condition: service_started
+        restart: true
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.entrypoints=https"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.tls=true"
+      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.tls.certResolver=myresolver"
+networks:
+  traefik:
+    external: true
+  postgres:
+    external: true

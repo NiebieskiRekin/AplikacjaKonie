@@ -2,41 +2,24 @@ name: Deploy
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment"
-        type: environment
-        required: true
-        default: development
-      ref:
-        description: "Branch or tag"
-        type: string
-        required: true
-        default: main
-  workflow_run:
-    workflows:
-      - Docker
-    types:
-      - completed
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
-    environment: "${{inputs.environment}}"
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: production
           sparse-checkout: |
             .github
             infra
-            docker-compose.app.yml
+            docker-compose.lb-db.yml
           sparse-checkout-cone-mode: false
-          ref: "${{inputs.ref}}"
 
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v3
@@ -44,11 +27,10 @@ jobs:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
           ANSIBLE_USER: ${{secrets.ANSIBLE_USER}}
-          ENV_FILE: "${{secrets.ENV_FILE}}"
-          DIRECTORY: ${{vars.DIRECTORY}}
+          ENV_FILE: "${{ secrets.TRAEFIK_POSTGRES_ENV_FILE }}"
         with:
           # Required, playbook filepath
-          playbook: infra/Ansible/playbooks/deploy-using-docker.yml
+          playbook: infra/Ansible/playbooks/deploy-lb+db.yml
           # Optional, SSH private key
           key: ${{secrets.SSH_PRIVATE_KEY}}
           # Optional, SSH known hosts file content

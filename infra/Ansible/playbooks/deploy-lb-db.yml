@@ -1,11 +1,15 @@
-- name: Deploy using docker images
+- name: Deploy database and reverse proxy using docker images
   vars:
-    dockercompose: "{{ playbook_dir }}/../../../docker-compose.app.yml"
+    dest: "/opt/AplikacjaKonie/lb-db"
   hosts: main
   tasks:
-    - name: Get UUID
-      ansible.builtin.set_fact:
-        dest: "{{ lookup('env', 'DIRECTORY') }}"
+    - name: Create traefik docker network
+      community.docker.docker_network:
+        name: traefik
+
+    - name: Create postgres docker network
+      community.docker.docker_network:
+        name: postgres
 
     - name: Create project directory
       ansible.builtin.file:
@@ -16,9 +20,19 @@
         group: "{{ ansible_user }}"
       become: true
 
+    - name: Copy create-multiple-postgresql-databases.sh
+      ansible.builtin.copy:
+        src:  "{{ playbook_dir }}/../postgres/create-multiple-postgresql-databases.sh"
+        dest: "{{ dest }}/create-multiple-postgresql-databases.sh"
+        mode: "0660"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        force: true
+      become: true
+
     - name: Copy docker-compose.yml
       ansible.builtin.copy:
-        src: "{{ dockercompose }}"
+        src:  "{{ playbook_dir }}/../../../docker-compose.lb-db.yml"
         dest: "{{ dest }}/docker-compose.yml"
         mode: "0660"
         owner: "{{ ansible_user }}"
