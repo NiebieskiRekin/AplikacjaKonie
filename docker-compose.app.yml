@@ -13,6 +13,7 @@ services:
         restart: true
     networks:
       - traefik
+      - postgres
     labels:
       traefik.enable: "true"
       traefik.http.routers.backend.rule: "Host(`${DOMAIN}`) && PathPrefix(`/api`)"
@@ -44,4 +45,6 @@ services:
 
 networks:
   traefik:
+    external: true
+  postgres:
     external: true

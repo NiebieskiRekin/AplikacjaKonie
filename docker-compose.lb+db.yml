@@ -14,8 +14,6 @@ services:
     environment:
       TRAEFIK_ENTRYPOINTS_HTTPS: true
       TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
-      TRAEFIK_ENTRYPOINTS_DB: true
-      TRAEFIK_ENTRYPOINTS_DB_ADDRESS: :5432
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
@@ -23,26 +21,9 @@ services:
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
-      TRAEFIK_API: ${TRAEFIK_ENABLE_API}
       # TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_CASERVER: https://acme-staging-v02.api.letsencrypt.org/directory
     healthcheck:
       test: traefik healthcheck
-    labels:
-      traefik.enable: "true"
-
-      traefik.http.routers.dashboard.rule: Host(`${DOMAIN}`) && PathPrefix(`/dashboard`)"
-      traefik.http.routers.dashboard.service: api@internal
-      traefik.http.routers.dashboard.entrypoints: https
-
-      traefik.http.routers.dashboard.middlewares: auth, vpn-whitelist-traefik@docker
-
-      traefik.http.middlewares.auth.basicAuth.users: "admin:${ADMIN_PASSWORD_BCRYPT}"
-      traefik.http.middlewares.vpn-whitelist-traefik.ipAllowList.sourceRange: 127.0.0.1/32, ${TRAEFIK_ADMIN_ALLOWED_IP}
-
-      traefik.http.routers.dashboard.tls: "true"
-      traefik.http.routers.dashboard.tls.certResolver: myresolver
-      traefik.http.routers.dashboard.tls.domains[0].main: ${DOMAIN}
-
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -62,14 +43,10 @@ services:
       timeout: 15s
       retries: 20
     networks:
-      - traefik
-    labels:
-      traefik.enable: "true"
-      traefik.tcp.routers.postgres.rule: "HostSNI(`*`)"
-      traefik.tcp.routers.postgres.entrypoints: db
-      traefik.tcp.routers.postgres.service: service_db
-      traefik.tcp.services.service_db.loadbalancer.server.port: 5432
+      - postgres
 
 networks:
   traefik:
+    external: true
+  postgres:
     external: true
