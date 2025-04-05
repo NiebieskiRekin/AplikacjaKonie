@@ -2,6 +2,17 @@ name: Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment"
+        type: environment
+        required: true
+        default: development
+      ref:
+        description: "Branch or tag"
+        type: string
+        required: true
+        default: main
   workflow_run:
     workflows:
       - Docker
@@ -15,10 +26,17 @@ jobs:
     permissions:
       contents: read
       packages: read
-    environment: development
+    environment: "${{inputs.environment}}"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            infra
+            docker-compose.app.yml
+          sparse-checkout-cone-mode: false
+          ref: "${{inputs.ref}}"
 
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v3
@@ -26,7 +44,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
           ANSIBLE_USER: ${{secrets.ANSIBLE_USER}}
-          ENV_FILE: "${{ secrets.ENV_FILE }}"
+          ENV_FILE: "${{secrets.ENV_FILE}}"
+          DIRECTORY: ${{vars.DIRECTORY}}
         with:
           # Required, playbook filepath
           playbook: infra/Ansible/playbooks/deploy-using-docker.yml
