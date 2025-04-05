@@ -1,10 +1,10 @@
-name: Deploy
+name: Deploy traefik postgres
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-traefik-postgres:
     runs-on: ubuntu-latest
     permissions:
       contents: read
