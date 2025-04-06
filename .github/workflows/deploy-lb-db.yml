@@ -12,7 +12,7 @@ jobs:
     environment: production
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           sparse-checkout: |
             .github
@@ -21,7 +21,7 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Run playbook
-        uses: dawidd6/action-ansible-playbook@v3
+        uses: dawidd6/action-ansible-playbook@a4133a9690f77b38c8227021ed497fc1267635d5 # v3
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
