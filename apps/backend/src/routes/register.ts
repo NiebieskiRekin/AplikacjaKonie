@@ -6,24 +6,13 @@ import {
   user_permissions,
   notifications,
 } from "../db/schema";
-import { ProcessEnv } from "../env";
 import { db } from "../db";
-import { basicAuth } from "hono/basic-auth";
 import { zValidator } from "@hono/zod-validator";
 import z from "zod";
+import { adminAuthMiddleware } from "../middleware/adminauth";
 
 const register = new Hono()
-  .use(
-    "*",
-    basicAuth({
-      verifyUser: async (username, password) => {
-        return (
-          username === "adam" &&
-          (await bcrypt.compare(password, ProcessEnv.ADMIN_PASSWORD_BCRYPT))
-        );
-      },
-    })
-  )
+  .use(adminAuthMiddleware)
   .post(
     "/",
     zValidator(
@@ -45,12 +34,24 @@ const register = new Hono()
           return c.json({ error: "Błąd dodawania użytkownika." }, 401);
         }
 
-        const eventTypes = ["Podkucia", "Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"];
+        const eventTypes = [
+          "Podkucia",
+          "Odrobaczanie",
+          "Podanie suplementów",
+          "Szczepienie",
+          "Dentysta",
+          "Inne",
+        ];
         const eventPromises = eventTypes.map(async (eventType) => {
-          await db.insert(notifications)
-          .values({
+          await db.insert(notifications).values({
             userId: added_user.id,
-            rodzajZdarzenia: eventType as "Podkucia" | "Odrobaczanie" | "Podanie suplementów" | "Szczepienie" | "Dentysta" | "Inne",
+            rodzajZdarzenia: eventType as
+              | "Podkucia"
+              | "Odrobaczanie"
+              | "Podanie suplementów"
+              | "Szczepienie"
+              | "Dentysta"
+              | "Inne",
             days: 7,
             time: "09:00",
             active: false,
