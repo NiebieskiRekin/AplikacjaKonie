@@ -23,8 +23,12 @@ services:
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
       TRAEFIK_LOG_LEVEL: INFO
       TRAEFIK_LOG_FORMAT: json
+      TRAEFIK_PING: true
     healthcheck:
-      test: traefik healthcheck
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
   postgres:
     image: postgres:17-alpine
     container_name: postgres
