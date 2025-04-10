@@ -17,7 +17,7 @@ import { verify } from "hono/jwt";
  * middleware so we can get a new access token when the refresh token
  * has expired.
  */
-const refresh = new Hono().get("/", async (c) => {
+const refresh = new Hono().all("/", async (c) => {
   // Get the refresh token, will only be present on /refresh call
   const refreshToken = getCookie(c, REFRESH_TOKEN);
 
