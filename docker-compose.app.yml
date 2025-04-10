@@ -21,7 +21,7 @@ services:
           "CMD",
           "/nodejs/bin/node",
           "-e",
-          'await fetch("http://localhost:${PORT:3001}/healthcheck")',
+          'await fetch("http://localhost:$${PORT:3001}/healthcheck")',
         ]
       interval: 10s
       timeout: 10s
