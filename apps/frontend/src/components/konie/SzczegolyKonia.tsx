@@ -412,27 +412,36 @@ function KonieDetails() {
               <FaSpinner className="animate-spin text-4xl text-green-700" />
             </div>
           )}
-          <div className="mt-2 flex items-center gap-3">
-            <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
-              ➕ Dodaj zdjęcie
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => void handleImageUpload(e)}
-              />
-            </label>
+          <div className="mt-2 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
+                ➕ Dodaj zdjęcie
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => void handleImageUpload(e)}
+                />
+              </label>
 
-            {horse.images_signed_urls &&
-              horse.images_signed_urls.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => void handleRemoveImage()}
-                  className="flex h-10 w-10 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-700"
-                  title="Usuń zdjęcie"
-                >
-                  🗑️
-                </button>
-              )}
+              {horse.images_signed_urls &&
+                horse.images_signed_urls.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleRemoveImage()}
+                    className="flex h-10 w-10 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-700"
+                    title="Usuń zdjęcie"
+                  >
+                    🗑️
+                  </button>
+                )}
+            </div>
+
+            <button
+              className="w-fit rounded-md bg-purple-600 px-6 py-2 text-white shadow-md transition hover:bg-purple-700"
+              onClick={() => navigate(`/konie/${horse.id}/stworz-raport`)}
+            >
+              📤 Stwórz raport
+            </button>
           </div>
         </div>
 

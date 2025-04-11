@@ -12,12 +12,14 @@ export default [
   layout("./components/Layout.tsx", [
     route("/restart", "./components/Restart.tsx"),
     route("/ustawienia", "./components/Settings.tsx"),
+    route("/raport/html/:id", "./components/raport/HorseRaport.tsx"),
 
     ...prefix("konie", [
       index("./components/konie/Konie.tsx"),
       route("add", "./components/konie/DodajKonia.tsx"),
       route(":id", "./components/konie/SzczegolyKonia.tsx"),
       route(":id/edit", "./components/konie/EdytujKonia.tsx"),
+      route("/:id/stworz-raport", "./components/raport/CreateRaport.tsx"),
     ]),
 
     ...prefix("wydarzenia", [
