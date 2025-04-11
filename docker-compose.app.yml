@@ -15,17 +15,6 @@ services:
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.entrypoints=https"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls=true"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls.certResolver=myresolver"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "/nodejs/bin/node",
-          "-e",
-          'await fetch("http://localhost:$${PORT:3001}/healthcheck")',
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
   frontend:
     build:
       context: ./
