@@ -66,7 +66,7 @@ function KonieDetails() {
 
       setHorse(data);
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd pobierania danych konia");
     }
   };
 
@@ -79,15 +79,13 @@ function KonieDetails() {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          console.log(data);
           throw new Error("Błąd pobierania zdarzeń");
         }
 
         const data = (await response.json()) as Event[];
         setEvents(data);
       } catch (err) {
-        setError((err as Error).message);
+        setError((err as Error).message || "Błąd pobierania zdarzeń konia");
       }
     };
 
@@ -122,7 +120,7 @@ function KonieDetails() {
           setActiveEvents(formattedEvents);
         }
       } catch (err) {
-        setError((err as Error).message);
+        setError((err as Error).message || "Błąd pobierania aktywnych zdarzeń");
       }
     };
 
@@ -181,7 +179,7 @@ function KonieDetails() {
       setIsDeletePopupOpen(false);
       await navigate("/konie");
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd usuwania konia");
     }
   };
 
@@ -235,7 +233,15 @@ function KonieDetails() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setError("Nie wybrano pliku.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Rozmiar zdjęcia przekracza 5MB.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("image", file);
@@ -271,7 +277,7 @@ function KonieDetails() {
       alert("Zdjęcie dodane pomyślnie!");
       void (await fetchHorseDetails());
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd przesyłania zdjęcia");
     }
   };
 
