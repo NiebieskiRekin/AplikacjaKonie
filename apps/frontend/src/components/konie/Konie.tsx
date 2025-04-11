@@ -6,6 +6,7 @@ import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import Kon from "../components/Kon";
 import BigImageOverlay from "../components/BigImageOverlay";
 import { type Horse } from "../components/Kon";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 const default_img = "/horses/default.png";
 
@@ -22,16 +23,16 @@ function Konie() {
         const resp = await APIClient.api.konie.$get();
 
         if (resp.ok) {
-          const horses = await resp.json();
+          const horses = await tryParseJson(resp);
           const data = horses.data;
-          data.forEach((element) => {
+          data.forEach((element: { img_url: string }) => {
             element.img_url = element.img_url ?? default_img;
           });
           setHorses(data);
           setFilteredHorses(data);
         } else {
-          const data = await resp.json();
-          throw new Error(data.error || "Błąd pobierania koni");
+          const data = await tryParseJson(resp);
+          throw new Error(data?.error || "Błąd pobierania koni");
         }
       } catch (err) {
         const message =

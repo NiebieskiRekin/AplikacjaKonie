@@ -21,6 +21,7 @@ function Weterynarze() {
 
         if (response.ok) {
           const data = await tryParseJson(response);
+          if (!data) throw new Error("Nieprawidłowa odpowiedź z serwera.");
           setweterynarze(data);
         } else {
           throw new Error("Błąd pobierania danych");
@@ -88,7 +89,7 @@ function Weterynarze() {
               ))
             ) : (
               <tr>
-                <td colSpan={2} className="py-4 text-center text-gray-600">
+                <td colSpan={3} className="py-4 text-center text-gray-600">
                   Brak weterynarzy
                 </td>
               </tr>

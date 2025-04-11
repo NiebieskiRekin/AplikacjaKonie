@@ -23,6 +23,19 @@ function AddWeterynarz() {
     setError("");
     setSuccess("");
 
+    if (!formData.imieINazwisko.trim()) {
+      setError("Imię i nazwisko jest wymagane.");
+      return;
+    }
+
+    if (
+      formData.numerTelefonu &&
+      !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
+    ) {
+      setError("Nieprawidłowy numer telefonu.");
+      return;
+    }
+
     try {
       const response = await APIClient.api.weterynarze.$post({
         json: formData,
