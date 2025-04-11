@@ -11,6 +11,7 @@ import {
   zdarzeniaProfilaktyczne,
   zdjeciaKoni,
   konieUpdateSchema,
+  hodowlakoni,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -97,7 +98,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           rocznikUrodzenia: z.number({ coerce: true }),
           dataPrzybyciaDoStajni: z.optional(z.string()),
           dataOdejsciaZeStajni: z.optional(z.string()),
-          file: z.boolean(),
+          // file: z.boolean(),
           // .custom<File | undefined>()
           // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
           //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
@@ -106,6 +107,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
           //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
           // ),
+          file: z.any().optional(), // jak byłoboolean to nie działało ;//
         })
         .omit({
           hodowla: true,

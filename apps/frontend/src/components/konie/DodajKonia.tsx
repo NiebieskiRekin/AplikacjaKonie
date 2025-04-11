@@ -33,7 +33,9 @@ function AddKonia() {
     setSuccess("");
 
     if (!nazwa || !rocznikUrodzenia || !rodzajKonia || !plec) {
-      setError("Wszystkie pola są wymagane.");
+      setError(
+        "Obowiązkowe pola to: nazwa, rocznik urodzenia, rodzaj konia, płeć."
+      );
       return;
     }
 
@@ -53,7 +55,8 @@ function AddKonia() {
       });
 
       if (!response.ok) {
-        return;
+        const data = await response.json();
+        throw new Error(data?.error || "Błąd przy dodawaniu konia");
       }
 
       setSuccess("Koń został dodany!");
@@ -75,18 +78,32 @@ function AddKonia() {
         ].$get({
           param: { filename: data.image_uuid.id },
         });
+
         if (!response_image_url_upload.ok)
           throw new Error(data.message || "Błąd przy przesyłaniu zdjęcia");
+
         const image_url_upload = await response_image_url_upload.json();
         const response_uploaded_image = await fetch(image_url_upload.url, {
           method: "PUT",
           body: file,
         });
+
         if (!response_uploaded_image.ok)
           throw new Error("Błąd przy przesyłaniu zdjęcia");
       }
     } catch (err) {
-      setError(formatApiError(err as ErrorSchema));
+      const message =
+        (err instanceof Error && err.message) ||
+        formatApiError(err as ErrorSchema) ||
+        "Nieznany błąd";
+
+      setError(message);
+
+      if (message.includes("TypeError") || message.includes("NetworkError")) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     }
   };
 
