@@ -26,11 +26,25 @@ function AddKowal() {
     try {
       const response = await APIClient.api.kowale.$post({ json: formData });
 
+      if (!formData.imieINazwisko.trim()) {
+        setError("Pole imię i nazwisko jest wymagane.");
+        return;
+      }
+
+      if (
+        formData.numerTelefonu &&
+        !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
+      ) {
+        setError("Nieprawidłowy numer telefonu.");
+        return;
+      }
+
       if (response.ok) {
         setSuccess("Kowal został dodany!");
         setTimeout(() => void navigate("/kowale"), 1500);
       } else {
-        throw new Error("Błąd dodawania weterynarza");
+        setError("Błąd dodawania kowala");
+        throw new Error("Błąd dodawania kowala");
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));

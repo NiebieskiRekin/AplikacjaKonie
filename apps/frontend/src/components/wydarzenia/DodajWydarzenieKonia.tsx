@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 import BaseHorseEventForm from "./BaseHorseEventForm";
 import { eventTypes } from "@/frontend/types/event-types";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 const AddHorseEvent = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
@@ -20,7 +21,7 @@ const AddHorseEvent = () => {
     );
 
     if (!response.ok) {
-      const data: unknown = await response.json();
+      const data: unknown = await tryParseJson(response);
       if (
         typeof data == "object" &&
         data !== null &&
@@ -33,7 +34,7 @@ const AddHorseEvent = () => {
       }
     }
 
-    await response.json();
+    await tryParseJson(response);
   };
 
   if (!id) throw new Error("Błąd id");

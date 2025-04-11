@@ -4,6 +4,7 @@ import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function Restart() {
   const [oldPassword, setOldPassword] = useState("");
@@ -41,7 +42,7 @@ function Restart() {
         );
         setTimeout(() => void navigate("/login"), 5000);
       } else {
-        const data = await response.json();
+        const data = await tryParseJson(response);
         throw new Error(
           typeof data.error === "string" ? data.error : "Błąd zmiany hasła"
         );

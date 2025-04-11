@@ -3,6 +3,7 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function EditWeterynarz() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ function EditWeterynarz() {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
             numerTelefonu: data.numerTelefonu || "",

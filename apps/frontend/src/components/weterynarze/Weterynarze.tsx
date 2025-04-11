@@ -1,6 +1,7 @@
 import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type Weterynarz = {
   id: number;
@@ -19,7 +20,7 @@ function Weterynarze() {
         const response = await APIClient.api.weterynarze.$get();
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           setweterynarze(data);
         } else {
           throw new Error("Błąd pobierania danych");

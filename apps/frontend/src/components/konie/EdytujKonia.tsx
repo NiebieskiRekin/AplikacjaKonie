@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { konie_plec_enum } from "@/frontend/types/types";
 import { BackendTypes } from "@aplikacja-konie/api-client";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function EditKonia() {
   const { id } = useParams();
@@ -30,7 +31,7 @@ function EditKonia() {
 
         if (!response.ok) throw new Error("Błąd pobierania danych konia");
 
-        const data = await response.json();
+        const data = await tryParseJson(response);
         setNazwa(data.nazwa);
         setNumerPrzyzyciowy(data.numerPrzyzyciowy || "");
         setNumerChipa(data.numerChipa || "");
@@ -79,13 +80,13 @@ function EditKonia() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await tryParseJson(response);
         throw new Error(
           "error" in data ? data.error : "Błąd aktualizacji konia"
         );
       }
 
-      await response.json();
+      await tryParseJson(response);
       setSuccess("Dane konia zostały zaktualizowane!");
       setShowPopup(true);
     } catch (err) {

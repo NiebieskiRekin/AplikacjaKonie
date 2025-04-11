@@ -1,5 +1,6 @@
 import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type Event = {
   horse: string;
@@ -42,7 +43,7 @@ function StajniaEvents() {
         const response = await APIClient.api.wydarzenia.$get();
 
         if (response.ok) {
-          const data = (await response.json()) as Event[];
+          const data = (await tryParseJson(response)) as Event[];
           setEvents(data);
           setFilteredEvents(data);
         } else {

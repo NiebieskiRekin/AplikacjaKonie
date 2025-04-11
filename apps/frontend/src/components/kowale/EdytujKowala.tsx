@@ -3,6 +3,7 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function EditKowal() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ function EditKowal() {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
             numerTelefonu: data.numerTelefonu || "",
@@ -50,6 +51,19 @@ function EditKowal() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!formData.imieINazwisko.trim()) {
+      setError("Imię i nazwisko jest wymagane.");
+      return;
+    }
+
+    if (
+      formData.numerTelefonu &&
+      !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
+    ) {
+      setError("Nieprawidłowy numer telefonu.");
+      return;
+    }
 
     try {
       const response = await APIClient.api.kowale[":id{[0-9]+}"].$put({

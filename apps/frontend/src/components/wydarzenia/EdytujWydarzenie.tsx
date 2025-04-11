@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import BaseHorseEventForm from "./BaseHorseEventForm";
 import { eventTypes } from "@/frontend/types/event-types";
 import { eventTypesNamesSchema } from "@/frontend/types/event-types";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 const EditHorseEvent = () => {
   const { id, type, eventId } = useParams<{
@@ -22,7 +23,7 @@ const EditHorseEvent = () => {
       );
 
       if (!response.ok) {
-        const data: unknown = await response.json();
+        const data: unknown = await tryParseJson(response);
         if (
           typeof data == "object" &&
           data !== null &&
@@ -35,7 +36,7 @@ const EditHorseEvent = () => {
         }
       }
 
-      await response.json();
+      await tryParseJson(response);
     } catch {
       throw new Error("Invalid event type");
     }

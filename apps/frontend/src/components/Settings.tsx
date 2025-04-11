@@ -4,6 +4,7 @@ import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { BackendTypes } from "@aplikacja-konie/api-client";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 const default_setting_value = {
   active: false,
@@ -33,12 +34,12 @@ function Settings() {
         const response = await APIClient.api.ustawienia.$get();
 
         if (response.status === 200) {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           if (Object.keys(data).length !== 0) {
             setSettings(data);
           }
         } else {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           throw new Error(data.error || "Błąd pobierania ustawień");
         }
       } catch (err) {
@@ -81,7 +82,7 @@ function Settings() {
         setSuccess("✅ Ustawienia zostały zapisane!");
         setShowPopup(true);
       } else if (!response.ok) {
-        const data = await response.json();
+        const data = await tryParseJson(response);
         throw new Error(data.error || "Błąd zapisywania ustawień");
       }
     } catch (err) {

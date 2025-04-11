@@ -3,6 +3,7 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type Kowal = {
   id: number;
@@ -21,10 +22,10 @@ function Kowale() {
         const response = await APIClient.api.kowale.$get();
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           setKowale(data);
         } else {
-          const data = await response.json();
+          const data = await tryParseJson(response);
           throw new Error(data.error || "Błąd pobierania danych");
         }
       } catch (err) {
@@ -88,7 +89,7 @@ function Kowale() {
               ))
             ) : (
               <tr>
-                <td colSpan={2} className="py-4 text-center text-gray-600">
+                <td colSpan={3} className="py-4 text-center text-gray-600">
                   Brak kowali
                 </td>
               </tr>
