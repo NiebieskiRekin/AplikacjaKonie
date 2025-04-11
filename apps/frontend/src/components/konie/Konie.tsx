@@ -31,10 +31,19 @@ function Konie() {
           setFilteredHorses(data);
         } else {
           const data = await resp.json();
-          setError(data.error);
+          throw new Error(data.error || "Błąd pobierania koni");
         }
       } catch (err) {
-        setError(formatApiError(err as ErrorSchema));
+        const message =
+          (err instanceof Error && err.message) ||
+          formatApiError(err as ErrorSchema) ||
+          "Wystąpił nieznany błąd";
+
+        setError(message);
+
+        if (message.includes("TypeError") || message.includes("NetworkError")) {
+          setTimeout(() => window.location.reload(), 2000);
+        }
       }
     };
 

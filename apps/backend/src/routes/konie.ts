@@ -11,7 +11,6 @@ import {
   zdarzeniaProfilaktyczne,
   zdjeciaKoni,
   konieUpdateSchema,
-  hodowlakoni,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -86,7 +85,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         200
       );
     } catch {
-      return c.json({ success: false, error: "Bład zapytania" }, 400);
+      return c.json({ success: false, error: "Błąd bazy danych" }, 400);
     }
   })
   .post(
