@@ -21,6 +21,7 @@ import {
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { generateV4ReadSignedUrl } from "./images";
+import { RodzajZdarzeniaRozrodczego } from "../db/types";
 
 const eventTypes = z.enum([
   "Podkucia",
@@ -45,18 +46,62 @@ export const raportSchema = z.object({
   ),
 });
 
+// Zmień definicję tego pomocniczego typu, jeśli chcesz zmienić zwracany format przez ten endpoint
 type HorseReportResult = {
   horse: typeof konie.$inferSelect;
   images: string[];
-  Podkucia?: any[];
-  Szczepienie?: any[];
-  Odrobaczanie?: any[];
-  PodanieSuplementów?: any[];
-  Dentysta?: any[];
-  Inne?: any[];
-  Choroby?: any[];
-  Leczenia?: any[];
-  Rozrody?: any[];
+  Podkucia?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    Kowal: string | null;
+  }[];
+  Szczepienie?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    opisZdarzenia: string | null;
+    Weterynarz: string | null;
+  }[];
+  Odrobaczanie?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    opisZdarzenia: string | null;
+    Weterynarz: string | null;
+  }[];
+  PodanieSuplementów?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    opisZdarzenia: string | null;
+    Weterynarz: string | null;
+  }[];
+  Dentysta?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    opisZdarzenia: string | null;
+    Weterynarz: string | null;
+  }[];
+  Inne?: {
+    dataZdarzenia: string;
+    dataWaznosci: string | null;
+    opisZdarzenia: string | null;
+    Weterynarz: string | null;
+  }[];
+  Choroby?: {
+    dataRozpoczecia: string;
+    dataZakonczenia: string | null;
+    opisZdarzenia: string | null;
+  }[];
+  Leczenia?: {
+    dataZdarzenia: string;
+    Weterynarz: string | null;
+    Choroba: string | null;
+    opisZdarzenia: string | null;
+  }[];
+  Rozrody?: {
+    dataZdarzenia: string;
+    Weterynarz: string | null;
+    rodzajZdarzenia: RodzajZdarzeniaRozrodczego;
+    opisZdarzenia: string | null;
+  }[];
 };
 
 const raport = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
