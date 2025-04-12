@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { zReportRequestData } from "./types";
+import { zReportRequestDataArray } from "./types";
 
 export default function HorseReport() {
   const { id } = useParams();
@@ -35,7 +35,10 @@ export default function HorseReport() {
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search).get("data");
-    const events = zReportRequestData.parse(query ? JSON.parse(query) : []);
+    console.log(query);
+    const events = zReportRequestDataArray.parse(
+      query ? JSON.parse(query) : []
+    );
 
     fetch(`/api/raport/${id}`, {
       method: "POST",
@@ -51,7 +54,7 @@ export default function HorseReport() {
     return <div className="p-10 text-center text-xl">Ładowanie...</div>;
 
   const horse = data.horse;
-  const images = data.images as string;
+  const images = data.images;
 
   const renderTable = (
     title: string,

@@ -33,4 +33,6 @@ export const zReportRequestData = z.object({
   to: z.string().nullable(),
 });
 
+export const zReportRequestDataArray = z.array(zReportRequestData);
+
 export type ReportRequestData = z.infer<typeof zReportRequestData>;
