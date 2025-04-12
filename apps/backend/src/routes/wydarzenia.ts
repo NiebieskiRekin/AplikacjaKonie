@@ -49,7 +49,7 @@ const zdarzenieProfilaktyczneSchema = z.object({
     "Dentysta",
     "Inne",
   ]),
-  opisZdarzenia: z.string().min(5),
+  opisZdarzenia: z.string().optional(),
 });
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where

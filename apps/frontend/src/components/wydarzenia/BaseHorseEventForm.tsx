@@ -221,15 +221,7 @@ const BaseHorseEventForm = ({
 
     void fetchData();
     // TODO: check line below
-  }, [
-    type,
-    id,
-    eventId,
-    edit,
-    eventTypes,
-    formData.dataZdarzenia,
-    formData.dataRozpoczecia,
-  ]);
+  }, [type, id, eventId, edit, eventTypes]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -295,6 +287,43 @@ const BaseHorseEventForm = ({
         (type === "zdarzenia_profilaktyczne" || type === "podkucia")
       )
         formattedData.konieId = [Number(formattedData.kon)];
+
+      if (type === "rozrody") {
+        if (!formattedData.weterynarz) {
+          setError("Wybierz weterynarza!");
+          return;
+        }
+        if (!formattedData.rodzajZdarzenia) {
+          setError("Wybierz rodzaj zdarzenia!");
+          return;
+        }
+      }
+      if (type === "leczenia") {
+        if (!formattedData.weterynarz) {
+          setError("Wybierz weterynarza!");
+          return;
+        }
+        if (!formattedData.choroba) {
+          setError("Wybierz chorobę!");
+          return;
+        }
+      }
+      if (type === "zdarzenia_profilaktyczne") {
+        if (!formattedData.rodzajZdarzenia) {
+          setError("Wybierz rodzaj zdarzenia!");
+          return;
+        }
+        if (!formattedData.weterynarz) {
+          setError("Wybierz weterynarza!");
+          return;
+        }
+      }
+      if (type === "podkucia") {
+        if (!formattedData.kowal) {
+          setError("Wybierz kowala!");
+          return;
+        }
+      }
 
       await formAction(JSON.stringify(formattedData));
       setSuccess("Zdarzenie zostało zaktualizowane!");
