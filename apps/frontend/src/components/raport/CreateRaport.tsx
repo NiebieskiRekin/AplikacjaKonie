@@ -1,25 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-
-type EventType = {
-  name: string;
-  isChecked: boolean;
-  isAllChecked: boolean;
-  dateFrom: string;
-  dateTo: string;
-};
-
-const eventTypes = [
-  "Podkucia",
-  "Szczepienie",
-  "Odrobaczanie",
-  "Podanie suplementów",
-  "Dentysta",
-  "Inne",
-  "Choroby",
-  "Leczenia",
-  "Rozrody",
-];
+import { eventTypes, type EventType, type ReportRequestData } from "./types";
 
 function CreateReport() {
   const navigate = useNavigate();
@@ -86,7 +67,7 @@ function CreateReport() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const requestData = [];
+    const requestData: ReportRequestData[] = [];
 
     for (const event of events) {
       // Jeżeli nie zaznaczony to wywalone
@@ -94,7 +75,7 @@ function CreateReport() {
         continue;
       }
 
-      const data = {
+      const data: ReportRequestData = {
         event: event.name,
         all: event.isAllChecked, // Jeśli checkbox "Wszystkie" jest zaznaczony, wysyłamy 'all: true'
         from: event.isAllChecked ? null : event.dateFrom, // Jeśli "Wszystkie" zaznaczone, "od kiedy?" jest null

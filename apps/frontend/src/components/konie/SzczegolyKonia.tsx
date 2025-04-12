@@ -133,7 +133,7 @@ function KonieDetails() {
     ])
       .then(() => {})
       .catch(() => {});
-  }, [id]);
+  }, [id]); // TODO: specify missing dependency or use useCallback
 
   useEffect(() => {
     setIsImageLoaded(false);
@@ -438,7 +438,7 @@ function KonieDetails() {
 
             <button
               className="w-fit rounded-md bg-purple-600 px-6 py-2 text-white shadow-md transition hover:bg-purple-700"
-              onClick={() => navigate(`/konie/${horse.id}/stworz-raport`)}
+              onClick={() => void navigate(`/konie/${horse.id}/stworz-raport`)}
             >
               📤 Stwórz raport
             </button>
