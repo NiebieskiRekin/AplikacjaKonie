@@ -49,6 +49,11 @@ resource "google_compute_attached_disk" "postgres_database_attached_disk" {
   instance = google_compute_instance.default.self_link
 }
 
+resource "google_compute_attached_disk" "postgres_backup_attached_disk" {
+  disk     = google_compute_disk.postgres_backup.self_link
+  instance = google_compute_instance.default.self_link
+}
+
 output "instance_public_ip" {
   description = "Public IP of compute instance"
   value       = google_compute_instance.default.network_interface[0].access_config[0].nat_ip
@@ -57,5 +62,10 @@ output "instance_public_ip" {
 output "postgres_disk_device_name" {
   description = "Device name of external disk for postgres database"
   value       = google_compute_attached_disk.postgres_database_attached_disk.device_name
+}
+
+output "postgres_backup_disk_device_name" {
+  description = "Device name of external disk for database backups"
+  value       = google_compute_attached_disk.postgres_backup_attached_disk.device_name
 }
 

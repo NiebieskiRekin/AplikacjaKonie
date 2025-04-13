@@ -165,3 +165,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 key.json
+infra/Ansible/group_vars/main.yml
