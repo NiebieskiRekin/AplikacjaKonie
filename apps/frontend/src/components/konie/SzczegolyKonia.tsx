@@ -108,7 +108,10 @@ function KonieDetails() {
                 dataWaznosci: data.podkucie?.dataWaznosci || "-",
               };
             } else {
-              const profilaktyczneEvent = data.profilaktyczne.find(
+              const profilaktyczne = Array.isArray(data.profilaktyczne)
+                ? data.profilaktyczne
+                : [];
+              const profilaktyczneEvent = profilaktyczne.find(
                 (e: { rodzajZdarzenia: string }) => e.rodzajZdarzenia === type
               );
               return {
