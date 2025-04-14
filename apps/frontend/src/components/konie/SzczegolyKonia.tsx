@@ -354,7 +354,9 @@ function KonieDetails() {
           </p>
           <p className="text-gray-800">
             <strong>Płeć:</strong>{" "}
-            {horse.plec!.charAt(0).toUpperCase() + horse.plec!.slice(1)}
+            {horse?.plec
+              ? horse.plec.charAt(0).toUpperCase() + horse.plec.slice(1)
+              : "Brak danych"}
           </p>
           <p className="text-gray-800">
             <strong>Data przybycia do stajni:</strong>{" "}
