@@ -11,6 +11,7 @@ import weterynarzeRoute from "./weterynarze";
 import settingsRoute from "./settings";
 import images from "./images";
 import { healthcheck } from "./healthcheck";
+import raport from "../routes/raport";
 
 export function registerRoutes(app: Hono) {
   return app
@@ -26,7 +27,8 @@ export function registerRoutes(app: Hono) {
     .route("/weterynarze", weterynarzeRoute)
     .route("/ustawienia", settingsRoute)
     .route("/images", images)
-    .route("/healthcheck", healthcheck);
+    .route("/healthcheck", healthcheck)
+    .route("/raport", raport);
 }
 export const apiRoutes = registerRoutes(new Hono());
 

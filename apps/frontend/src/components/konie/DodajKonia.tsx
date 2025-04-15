@@ -53,6 +53,9 @@ function AddKonia() {
       });
 
       if (!response.ok) {
+        const data = await response.json();
+        setError("Wystąpił błąd.");
+        console.log(data);
         return;
       }
 
