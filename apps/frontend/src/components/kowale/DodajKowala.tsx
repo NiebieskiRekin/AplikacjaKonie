@@ -74,7 +74,7 @@ function AddKowal() {
           disabled={loading}
           className={`w-full rounded-lg py-3 text-white transition ${loading ? "cursor-not-allowed bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
         >
-          ✅ Dodaj Kowala
+          {loading ? "Dodawanie..." : "✅ Dodaj Kowala"}
         </button>
       </form>
     </div>
