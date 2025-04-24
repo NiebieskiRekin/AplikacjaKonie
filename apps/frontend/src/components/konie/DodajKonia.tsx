@@ -20,6 +20,7 @@ function AddKonia() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -37,6 +38,7 @@ function AddKonia() {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await APIClient.api.konie.$post({
         form: {
@@ -90,6 +92,8 @@ function AddKonia() {
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -211,9 +215,14 @@ function AddKonia() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-2 text-white transition hover:bg-green-700"
+          disabled={loading}
+          className={`w-full rounded-lg py-2 text-white transition ${
+            loading
+              ? "cursor-not-allowed bg-gray-400"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
         >
-          Dodaj konia
+          {loading ? "Dodawanie..." : "Dodaj konia"}
         </button>
       </form>
 
