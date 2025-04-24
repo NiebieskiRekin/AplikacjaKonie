@@ -18,6 +18,7 @@ function StajniaEvents() {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Event | null;
@@ -38,6 +39,7 @@ function StajniaEvents() {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const response = await APIClient.api.wydarzenia.$get();
 
@@ -50,6 +52,8 @@ function StajniaEvents() {
         }
       } catch (err) {
         setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -184,7 +188,13 @@ function StajniaEvents() {
             </tr>
           </thead>
           <tbody>
-            {currentEvents.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="py-6 text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-500 border-t-transparent"></div>
+                </td>
+              </tr>
+            ) : currentEvents.length > 0 ? (
               currentEvents.map((event, index) => (
                 <tr
                   key={index}
