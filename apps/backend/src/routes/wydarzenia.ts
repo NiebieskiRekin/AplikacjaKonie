@@ -264,7 +264,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
                 ? 6
                 : 12;
             } else if (
-              ["Podanie witamin", "Odrobaczanie"].includes(rodzajZdarzenia)
+              ["Podanie suplementów", "Odrobaczanie"].includes(rodzajZdarzenia)
             ) {
               monthsToAdd = 6;
             }
