@@ -37,6 +37,7 @@ function AddEvent() {
   const [error, setError] = useState("");
   const [validityText, setValidityText] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 🔽 Stan dla rozwijanej listy
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -126,6 +127,7 @@ function AddEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (type === "podkucia") {
         const payload = {
@@ -168,6 +170,8 @@ function AddEvent() {
       }
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
