@@ -18,10 +18,9 @@ const default_img = "/horses/default.png";
 
 function Kon({ horse, setSelectedImage }: KonProps) {
   return (
-    <NavLink
-      key={horse.id}
+    <div
       className="cursor-pointer rounded-lg bg-white p-4 shadow-lg transition-transform duration-200 hover:scale-105"
-      to={`/konie/${horse.id}`}
+      onClick={() => (window.location.href = `/konie/${horse.id}`)}
     >
       <img
         src={horse.img_url || default_img}
@@ -38,7 +37,7 @@ function Kon({ horse, setSelectedImage }: KonProps) {
           {horse.nazwa}
         </h3>
       </div>
-    </NavLink>
+    </div>
   );
 }
 
