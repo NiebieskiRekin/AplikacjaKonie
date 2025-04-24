@@ -331,13 +331,13 @@ function AddEvent() {
         <button
           type="submit"
           className={`w-full rounded-lg py-3 text-white transition ${
-            selectedHorses.length > 0
+            !loading && selectedHorses.length > 0
               ? "bg-green-600 hover:bg-green-700"
               : "cursor-not-allowed bg-gray-400"
           }`}
-          disabled={selectedHorses.length <= 0}
+          disabled={loading || selectedHorses.length <= 0}
         >
-          ✅ Dodaj zdarzenie
+          {loading ? "Dodawanie..." : "✅ Dodaj zdarzenie"}
         </button>
       </form>
     </div>
