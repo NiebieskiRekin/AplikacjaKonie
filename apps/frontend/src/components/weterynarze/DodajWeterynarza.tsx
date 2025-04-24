@@ -12,6 +12,7 @@ function AddWeterynarz() {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,6 +23,7 @@ function AddWeterynarz() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
       const response = await APIClient.api.weterynarze.$post({
@@ -36,6 +38,8 @@ function AddWeterynarz() {
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,9 +75,14 @@ function AddWeterynarz() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700"
+          disabled={loading}
+          className={`w-full rounded-lg py-3 text-white transition ${
+            loading
+              ? "cursor-not-allowed bg-gray-400"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
         >
-          ✅ Dodaj weterynarza
+          {loading ? "Dodawanie..." : "✅ Dodaj weterynarza"}
         </button>
       </form>
     </div>
