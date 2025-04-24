@@ -3,6 +3,7 @@ import type { BackendTypes } from "@aplikacja-konie/api-client";
 import type { RodzajKonia } from "@aplikacja-konie/backend/schema";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
+import { GoArrowLeft } from "react-icons/go";
 
 const eventTypes = {
   podkucie: "Podkucie",
@@ -187,9 +188,19 @@ function AddEvent() {
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
-      <h2 className="mb-6 text-3xl font-bold text-white">
-        ➕ Dodaj {eventTypes[type as keyof typeof eventTypes] || "Zdarzenie"}
-      </h2>
+      <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
+        <button
+          onClick={() => void navigate(`/wydarzenia`)}
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
+        >
+          <GoArrowLeft className="text-xl" />
+        </button>
+
+        <h2 className="absolute left-1/2 -translate-x-1/2 transform text-center text-3xl font-bold text-white">
+          ➕ Dodaj {eventTypes[type as keyof typeof eventTypes] || "Zdarzenie"}
+        </h2>
+      </div>
+
       {error && <p className="text-red-600">{error}</p>}
 
       <form
