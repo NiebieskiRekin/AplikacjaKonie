@@ -56,12 +56,12 @@ function KonieDetails() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingRemoveImage, setLoadingRemoveImage] = useState(false);
   const [showImagePopup, setShowImagePopup] = useState(false);
-  const [showRemoveImagePopup, setShowRemoveImagePopup] = useState(false);
   const [showConfirmDeleteImagePopup, setShowConfirmDeleteImagePopup] =
     useState(false);
   const [pendingDeleteImageId, setPendingDeleteImageId] = useState<
     string | null
   >(null);
+  const [loadingImageUpload, setLoadingImageUpload] = useState(false);
 
   const fetchHorseDetails = async () => {
     try {
@@ -247,6 +247,7 @@ function KonieDetails() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setLoadingImageUpload(true);
     const formData = new FormData();
     formData.append("image", file);
 
@@ -282,6 +283,8 @@ function KonieDetails() {
       void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setLoadingImageUpload(false);
     }
   };
 
@@ -317,7 +320,6 @@ function KonieDetails() {
 
       setShowConfirmDeleteImagePopup(false);
       setPendingDeleteImageId(null);
-      setShowRemoveImagePopup(true);
       void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
@@ -431,12 +433,19 @@ function KonieDetails() {
           )}
           <div className="mt-2 flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
-              <label className="cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white transition hover:bg-green-800">
-                ➕ Dodaj zdjęcie
+              <label
+                className={`cursor-pointer rounded-lg px-4 py-2 text-white transition ${
+                  loadingImageUpload
+                    ? "cursor-not-allowed bg-green-400"
+                    : "bg-green-700 hover:bg-green-800"
+                }`}
+              >
+                {loadingImageUpload ? "Dodawanie..." : "➕ Dodaj zdjęcie"}
                 <input
                   type="file"
                   className="hidden"
                   onChange={(e) => void handleImageUpload(e)}
+                  disabled={loadingImageUpload}
                 />
               </label>
               {showImagePopup && (
