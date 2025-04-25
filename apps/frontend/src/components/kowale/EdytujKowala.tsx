@@ -16,6 +16,7 @@ function EditKowal() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -52,6 +53,7 @@ function EditKowal() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
       const response = await APIClient.api.kowale[":id{[0-9]+}"].$put({
@@ -67,6 +69,8 @@ function EditKowal() {
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,9 +126,14 @@ function EditKowal() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700"
+          className={`w-full rounded-lg py-3 text-white transition ${
+            loading
+              ? "cursor-not-allowed bg-green-400"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+          disabled={loading}
         >
-          💾 Zapisz zmiany
+          {loading ? "Zapisywanie..." : "💾 Zapisz zmiany"}
         </button>
       </form>
 
