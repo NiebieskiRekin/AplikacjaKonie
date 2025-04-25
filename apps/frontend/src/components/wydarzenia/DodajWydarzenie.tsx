@@ -38,6 +38,7 @@ function AddEvent() {
   const [validityText, setValidityText] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 🔽 Stan dla rozwijanej listy
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -127,9 +128,11 @@ function AddEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
     setLoading(true);
     try {
-      if (type === "podkucia") {
+      if (type === "podkucie") {
         const payload = {
           konieId: selectedHorses,
           dataZdarzenia: date,
@@ -141,8 +144,8 @@ function AddEvent() {
         });
 
         if (response.ok) {
-          alert("Zdarzenie zostało dodane!");
-          await navigate("/wydarzenia");
+          setSuccess("Zdarzenie zostało dodane!");
+          setTimeout(() => void navigate("/wydarzenia"), 1500);
         } else {
           throw new Error("Błąd dodawania zdarzenia");
         }
@@ -162,8 +165,8 @@ function AddEvent() {
         ].$post({ json: payload });
 
         if (response.ok) {
-          alert("Zdarzenie zostało dodane!");
-          await navigate("/wydarzenia");
+          setSuccess("Zdarzenie zostało dodane!");
+          setTimeout(() => void navigate("/wydarzenia"), 1500);
         } else {
           throw new Error("Błąd dodawania zdarzenia");
         }
@@ -203,6 +206,7 @@ function AddEvent() {
         </h2>
       </div>
 
+      {success && <p className="mt-4 text-center text-green-400">{success}</p>}
       {error && <p className="text-red-600">{error}</p>}
 
       <form
