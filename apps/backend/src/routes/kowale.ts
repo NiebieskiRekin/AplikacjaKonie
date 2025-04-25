@@ -21,12 +21,15 @@ const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         .select()
         .from(kowale)
         .where(
-          eq(
-            kowale.hodowla,
-            db
-              .select({ h: users.hodowla })
-              .from(users)
-              .where(eq(users.id, user))
+          and(
+            eq(
+              kowale.hodowla,
+              db
+                .select({ h: users.hodowla })
+                .from(users)
+                .where(eq(users.id, user))
+            ),
+            eq(kowale.active, true)
           )
         );
       return c.json(allKowale, 200);
@@ -51,7 +54,8 @@ const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
                 .from(users)
                 .where(eq(users.id, user))
             ),
-            eq(kowale.id, Number(c.req.param("id")))
+            eq(kowale.id, Number(c.req.param("id"))),
+            eq(kowale.active, true)
           )
         )
         .then((res) => res[0]);
@@ -147,20 +151,26 @@ const kowaleRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
       }
 
+      // await db
+      //   .delete(kowale)
+      //   .where(
+      //     and(
+      //       eq(kowale.id, eventId),
+      //       eq(kowale.hodowla, Number(hodowla.hodowlaId))
+      //     )
+      //   )
+      //   .returning();
+
       await db
-        .delete(kowale)
-        .where(
-          and(
-            eq(kowale.id, eventId),
-            eq(kowale.hodowla, Number(hodowla.hodowlaId))
-          )
-        )
+        .update(kowale)
+        .set({ active: false })
+        .where(eq(kowale.id, eventId))
         .returning();
 
-      return c.json({ success: "Koń został usunięty" });
+      return c.json({ success: "Kowal został usunięty" });
     } catch (error) {
-      console.error("Błąd podczas usuwania konia:", error);
-      return c.json({ error: "Błąd podczas usuwania konia" }, 500);
+      console.error("Błąd podczas usuwania Kowal:", error);
+      return c.json({ error: "Błąd podczas usuwania Kowal" }, 500);
     }
   });
 
