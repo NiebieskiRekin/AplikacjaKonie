@@ -54,6 +54,7 @@ function KonieDetails() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const imageDataCache = useRef<{ [url: string]: string }>({});
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [loadingRemoveImage, setLoadingRemoveImage] = useState(false);
 
   const fetchHorseDetails = async () => {
     try {
@@ -292,6 +293,7 @@ function KonieDetails() {
 
     const imageUrl = horse.images_signed_urls[currentImageIndex];
 
+    setLoadingRemoveImage(true);
     try {
       const parts = imageUrl.split("/");
       const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
@@ -310,6 +312,8 @@ function KonieDetails() {
       void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setLoadingRemoveImage(false);
     }
   };
 
@@ -432,10 +436,15 @@ function KonieDetails() {
                   <button
                     type="button"
                     onClick={() => void handleRemoveImage()}
-                    className="flex h-10 w-10 items-center justify-center rounded-md bg-red-600 text-white transition hover:bg-red-700"
+                    className={`flex h-10 w-10 items-center justify-center rounded-md transition ${
+                      loadingRemoveImage
+                        ? "cursor-not-allowed bg-red-400"
+                        : "bg-red-600 hover:bg-red-700"
+                    } text-white`}
                     title="Usuń zdjęcie"
+                    disabled={loadingRemoveImage}
                   >
-                    🗑️
+                    {loadingRemoveImage ? "..." : "🗑️"}
                   </button>
                 )}
             </div>
