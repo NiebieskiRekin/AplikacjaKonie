@@ -4,7 +4,6 @@ import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { konie_plec_enum } from "@/frontend/types/types";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function AddKonia() {
   const navigate = useNavigate();
@@ -56,7 +55,7 @@ function AddKonia() {
       });
 
       if (!response.ok) {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         throw new Error(data?.error || "Błąd przy dodawaniu konia");
       }
 
@@ -73,7 +72,7 @@ function AddKonia() {
       // setFile(null);
 
       if (response.status == 201 && file) {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         const response_image_url_upload = await APIClient.api.images.upload[
           ":filename"
         ].$get({

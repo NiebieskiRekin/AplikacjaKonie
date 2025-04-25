@@ -3,7 +3,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
 import { APIClient } from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -24,10 +23,10 @@ function Login() {
       });
 
       if (response.status === 200) {
-        await tryParseJson(response);
+        await response.json();
         await navigate("/konie");
       } else {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         throw new Error(data.error || "Błąd logowania");
       }
     } catch (err) {

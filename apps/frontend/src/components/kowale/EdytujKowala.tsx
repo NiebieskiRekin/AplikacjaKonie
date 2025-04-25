@@ -3,7 +3,6 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function EditKowal() {
   const { id } = useParams();
@@ -26,7 +25,7 @@ function EditKowal() {
         });
 
         if (response.ok) {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
             numerTelefonu: data.numerTelefonu || "",

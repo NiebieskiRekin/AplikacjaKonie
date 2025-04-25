@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { APIClient } from "@/frontend/lib/api-client";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type EventFormProps = {
   id: string;
@@ -31,10 +30,10 @@ const fetchPeople = async (type: string) => {
       response = await APIClient.api.weterynarze.$get();
     }
     if (response.status === 401 || response.status === 500) {
-      const data = await tryParseJson(response);
+      const data = await response.json();
       throw new Error(data.error);
     } else {
-      const data = await tryParseJson(response);
+      const data = await response.json();
       return data;
     }
   } catch (err) {
@@ -50,10 +49,10 @@ const fetchChoroba = async (id: string, type: string) => {
         param: { id: id },
       });
       if (response.status == 200) {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         return data;
       } else {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         throw new Error(data.error || "Błąd pobierania danych");
       }
     } catch (err) {
@@ -70,10 +69,10 @@ const fetchHorseType = async (id: string) => {
       param: { id: id },
     });
     if (response.status == 200) {
-      const data = await tryParseJson(response);
+      const data = await response.json();
       return data.rodzajKonia;
     } else {
-      const data = await tryParseJson(response);
+      const data = await response.json();
       throw new Error(data.error || "Błąd pobierania danych");
     }
   } catch (err) {
@@ -142,7 +141,7 @@ const BaseHorseEventForm = ({
         ].$get({ param: { id: eventId!, type: eventTypes[type].apiEndpoint } });
 
         if (response.status === 200) {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           const eventData = data[0];
 
           // Tutaj x3 zabawa w id i wyświetlanie nazwy, i opowiednie co wysyłanie
@@ -169,7 +168,7 @@ const BaseHorseEventForm = ({
 
           setFormData(eventData);
         } else {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           throw new Error(data.error || "Błąd pobierania danych");
         }
       } catch (err) {

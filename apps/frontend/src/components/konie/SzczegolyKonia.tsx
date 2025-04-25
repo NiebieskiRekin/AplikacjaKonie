@@ -4,7 +4,6 @@ import { GoArrowRight, GoArrowLeft } from "react-icons/go";
 import { IoMdCloseCircle } from "react-icons/io";
 import { FaSpinner } from "react-icons/fa";
 import { APIClient } from "@/frontend/lib/api-client";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type HorseDetails = {
   id: number;
@@ -63,7 +62,7 @@ function KonieDetails() {
 
       if (!response.ok) throw new Error("Błąd pobierania danych konia");
 
-      const data = await tryParseJson(response);
+      const data = await response.json();
 
       setHorse(data);
     } catch (err) {
@@ -83,7 +82,7 @@ function KonieDetails() {
           throw new Error("Błąd pobierania zdarzeń");
         }
 
-        const data = (await tryParseJson(response)) as Event[];
+        const data = (await response.json()) as Event[];
         setEvents(data);
       } catch (err) {
         setError((err as Error).message || "Błąd pobierania zdarzeń konia");
@@ -99,7 +98,7 @@ function KonieDetails() {
         if (!response.ok) {
           throw new Error("Błąd pobierania aktywnych zdarzeń");
         } else {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           const formattedEvents: ActiveEvent[] = EVENT_TYPES.map((type) => {
             if (type === "Podkucie") {
               return {
@@ -256,11 +255,11 @@ function KonieDetails() {
       });
 
       if (!response.ok) {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         throw new Error(data.error || "Błąd przesyłania zdjęcia");
       }
 
-      const data = await tryParseJson(response);
+      const data = await response.json();
       const response_image_url_upload = await APIClient.api.images.upload[
         ":filename"
       ].$get({ param: { filename: data.image_uuid.id } });
@@ -308,7 +307,7 @@ function KonieDetails() {
       ].$delete({ param: { id: id!, imageId: imageId } });
 
       if (!response.ok) {
-        const data = await tryParseJson(response);
+        const data = await response.json();
         throw new Error(data.error || "Błąd usuwania zdjęcia");
       }
 

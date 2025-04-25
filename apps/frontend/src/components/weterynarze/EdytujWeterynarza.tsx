@@ -3,7 +3,6 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 function EditWeterynarz() {
   const { id } = useParams();
@@ -26,7 +25,7 @@ function EditWeterynarz() {
         });
 
         if (response.ok) {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           if (!data) throw new Error("Brak danych z serwera.");
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
@@ -34,7 +33,7 @@ function EditWeterynarz() {
             hodowla: data.hodowla || 0,
           });
         } else {
-          const err = await tryParseJson(response);
+          const err = await response.json();
           throw new Error(err?.error || `Błąd pobierania danych`);
         }
       } catch (err) {

@@ -2,7 +2,6 @@ import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { GoArrowLeft } from "react-icons/go";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 // TODO: consider a type that is anything more than undefined
 type Event = {
@@ -33,7 +32,7 @@ function HorseEventList({ type }: { type: string }) {
           ":type{[A-Za-z_]+}"
         ].$get({ param: { id: id!, type: type } });
         if (response.ok) {
-          const data = (await tryParseJson(response)) as Event[];
+          const data = (await response.json()) as Event[];
           setEvents(data);
         } else {
           throw new Error("Błąd pobierania danych");

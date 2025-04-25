@@ -3,7 +3,6 @@ import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { tryParseJson } from "@/frontend/lib/safe-json";
 
 type Kowal = {
   id: number;
@@ -22,10 +21,10 @@ function Kowale() {
         const response = await APIClient.api.kowale.$get();
 
         if (response.ok) {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           setKowale(data);
         } else {
-          const data = await tryParseJson(response);
+          const data = await response.json();
           throw new Error(data.error || "Błąd pobierania danych");
         }
       } catch (err) {
