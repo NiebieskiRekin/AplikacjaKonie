@@ -97,7 +97,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           rocznikUrodzenia: z.number({ coerce: true }),
           dataPrzybyciaDoStajni: z.optional(z.string()),
           dataOdejsciaZeStajni: z.optional(z.string()),
-          // file: z.boolean(),
+          file: z.boolean({ coerce: true }),
           // .custom<File | undefined>()
           // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
           //   message: "Maksymalny rozmiar pliku wynosi 5MB.",

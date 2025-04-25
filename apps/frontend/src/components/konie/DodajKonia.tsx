@@ -56,6 +56,8 @@ function AddKonia() {
 
       if (!response.ok) {
         const data = await response.json();
+        setError("Wystąpił błąd.");
+        console.log(data);
         throw new Error(data?.error || "Błąd przy dodawaniu konia");
       }
 
