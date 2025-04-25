@@ -21,12 +21,15 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         .select()
         .from(weterynarze)
         .where(
-          eq(
-            weterynarze.hodowla,
-            db
-              .select({ h: users.hodowla })
-              .from(users)
-              .where(eq(users.id, user))
+          and(
+            eq(
+              weterynarze.hodowla,
+              db
+                .select({ h: users.hodowla })
+                .from(users)
+                .where(eq(users.id, user))
+            ),
+            eq(weterynarze.active, true)
           )
         );
       return c.json(allWeterynarze, 200);
@@ -51,7 +54,8 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
                 .from(users)
                 .where(eq(users.id, user))
             ),
-            eq(weterynarze.id, Number(c.req.param("id")))
+            eq(weterynarze.id, Number(c.req.param("id"))),
+            eq(weterynarze.active, true)
           )
         )
         .then((res) => res[0]);
@@ -152,20 +156,29 @@ const weterynarzeRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
       }
 
+      // await db
+      //   .delete(weterynarze)
+      //   .where(
+      //     and(
+      //       eq(weterynarze.id, eventId),
+      //       eq(weterynarze.hodowla, Number(hodowla.hodowlaId))
+      //     )
+      //   )
+      //   .returning();
+
       await db
-        .delete(weterynarze)
-        .where(
-          and(
-            eq(weterynarze.id, eventId),
-            eq(weterynarze.hodowla, Number(hodowla.hodowlaId))
-          )
-        )
+        .update(weterynarze)
+        .set({ active: false })
+        .where(eq(weterynarze.id, eventId))
         .returning();
 
-      return c.json({ success: "Koń został usunięty" }, 201);
+      return c.json({ success: "Weterynarz został usunięty" }, 201);
     } catch (error) {
-      console.error("Błąd podczas usuwania konia:", error);
-      return c.json({ error: "Błąd podczas usuwania konia" }, 500);
+      console.error("Błąd podczas usuwania Weterynarz:", error);
+      return c.json(
+        { error: "Błąd podczas usuwania Weterynarz", _error: error },
+        500
+      );
     }
   });
 
