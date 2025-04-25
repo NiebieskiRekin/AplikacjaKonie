@@ -56,6 +56,12 @@ function KonieDetails() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingRemoveImage, setLoadingRemoveImage] = useState(false);
   const [showImagePopup, setShowImagePopup] = useState(false);
+  const [showRemoveImagePopup, setShowRemoveImagePopup] = useState(false);
+  const [showConfirmDeleteImagePopup, setShowConfirmDeleteImagePopup] =
+    useState(false);
+  const [pendingDeleteImageId, setPendingDeleteImageId] = useState<
+    string | null
+  >(null);
 
   const fetchHorseDetails = async () => {
     try {
@@ -287,27 +293,31 @@ function KonieDetails() {
     )
       return;
 
-    const confirmed = confirm("Czy na pewno chcesz usunąć to zdjęcie?");
-    if (!confirmed) return;
-
     const imageUrl = horse.images_signed_urls[currentImageIndex];
+    const parts = imageUrl.split("/");
+    const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
+
+    setPendingDeleteImageId(imageId);
+    setShowConfirmDeleteImagePopup(true);
+  };
+
+  const confirmDeleteImage = async () => {
+    if (!pendingDeleteImageId) return;
 
     setLoadingRemoveImage(true);
     try {
-      const parts = imageUrl.split("/");
-      const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
-      console.log(parts);
-
       const response = await APIClient.api.konie[":id{[0-9]+}"][
         ":imageId{[A-Za-z0-9-]+}"
-      ].$delete({ param: { id: id!, imageId: imageId } });
+      ].$delete({ param: { id: id!, imageId: pendingDeleteImageId } });
 
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || "Błąd usuwania zdjęcia");
       }
 
-      alert("Zdjęcie zostało usunięte!");
+      setShowConfirmDeleteImagePopup(false);
+      setPendingDeleteImageId(null);
+      setShowRemoveImagePopup(true);
       void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
@@ -462,6 +472,42 @@ function KonieDetails() {
                   </button>
                 )}
             </div>
+
+            {showConfirmDeleteImagePopup && (
+              <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center backdrop-blur-lg">
+                <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+                  <p className="mb-4 text-lg font-bold text-red-600">
+                    Czy na pewno chcesz usunąć to zdjęcie?
+                  </p>
+                  <p className="text-gray-700">
+                    Tej operacji nie można cofnąć.
+                  </p>
+
+                  <div className="mt-6 flex justify-center gap-4">
+                    <button
+                      onClick={() => {
+                        setShowConfirmDeleteImagePopup(false);
+                        setPendingDeleteImageId(null);
+                      }}
+                      className="rounded-lg bg-gray-400 px-4 py-2 text-white transition hover:bg-gray-500"
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={() => void confirmDeleteImage()}
+                      className={`rounded-lg px-4 py-2 text-white transition ${
+                        loadingRemoveImage
+                          ? "cursor-not-allowed bg-red-400"
+                          : "bg-red-600 hover:bg-red-700"
+                      }`}
+                      disabled={loadingRemoveImage}
+                    >
+                      {loadingRemoveImage ? "Usuwanie..." : "Usuń"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
               className="w-fit rounded-md bg-purple-600 px-6 py-2 text-white shadow-md transition hover:bg-purple-700"
