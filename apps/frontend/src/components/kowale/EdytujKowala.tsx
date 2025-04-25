@@ -69,8 +69,6 @@ function EditKowal() {
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -88,8 +86,6 @@ function EditKowal() {
       await navigate("/kowale");
     } catch (err) {
       setDeleteError((err as Error).message);
-    } finally {
-      setLoadingDelete(false);
     }
   };
 

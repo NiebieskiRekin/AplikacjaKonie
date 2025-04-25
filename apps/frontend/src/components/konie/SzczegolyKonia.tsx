@@ -185,8 +185,6 @@ function KonieDetails() {
       await navigate("/konie");
     } catch (err) {
       setError((err as Error).message);
-    } finally {
-      setLoadingDelete(false);
     }
   };
 

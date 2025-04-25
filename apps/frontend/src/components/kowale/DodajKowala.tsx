@@ -36,8 +36,6 @@ function AddKowal() {
       }
     } catch (err) {
       setError(formatApiError(err as ErrorSchema));
-    } finally {
-      setLoading(false);
     }
   };
 

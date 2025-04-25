@@ -170,8 +170,6 @@ function AddEvent() {
       }
     } catch (err) {
       setError((err as Error).message);
-    } finally {
-      setLoading(false);
     }
   };
 
