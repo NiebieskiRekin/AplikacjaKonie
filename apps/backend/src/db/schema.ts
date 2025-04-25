@@ -194,6 +194,7 @@ export const kowale = hodowlakoni.table("kowale", {
   hodowla: integer("hodowla")
     .notNull()
     .references(() => hodowcyKoni.id),
+  active: boolean("active").notNull().default(true),
 });
 
 export const kowaleSelectSchema = createSelectSchema(kowale);
@@ -341,6 +342,7 @@ export const weterynarze = hodowlakoni.table("weterynarze", {
   hodowla: integer("hodowla")
     .notNull()
     .references(() => hodowcyKoni.id),
+  active: boolean("active").notNull().default(true),
 });
 
 export const weterynarzeSelectSchema = createSelectSchema(weterynarze);
