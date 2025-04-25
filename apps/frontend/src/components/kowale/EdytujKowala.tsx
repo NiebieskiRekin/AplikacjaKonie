@@ -15,6 +15,8 @@ function EditKowal() {
   const [success, setSuccess] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +72,7 @@ function EditKowal() {
 
   const handleDelete = async () => {
     setDeleteError("");
+    setLoadingDelete(true);
     try {
       const response = await APIClient.api.kowale[":id{[0-9]+}"].$delete({
         param: { id: id! },
@@ -81,6 +84,8 @@ function EditKowal() {
       await navigate("/kowale");
     } catch (err) {
       setDeleteError((err as Error).message);
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
@@ -141,10 +146,16 @@ function EditKowal() {
             </p>
             <div className="flex justify-center gap-4">
               <button
-                className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+                type="button"
+                className={`rounded-lg px-4 py-2 text-white transition ${
+                  loadingDelete
+                    ? "cursor-not-allowed bg-red-400"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
                 onClick={() => void handleDelete()}
+                disabled={loadingDelete}
               >
-                Usuń
+                {loadingDelete ? "Usuwanie..." : "Usuń"}
               </button>
               <button
                 className="rounded-lg bg-gray-400 px-4 py-2 text-white transition hover:bg-gray-500"
