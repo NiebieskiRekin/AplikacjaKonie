@@ -55,6 +55,7 @@ function KonieDetails() {
   const imageDataCache = useRef<{ [url: string]: string }>({});
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingRemoveImage, setLoadingRemoveImage] = useState(false);
+  const [showImagePopup, setShowImagePopup] = useState(false);
 
   const fetchHorseDetails = async () => {
     try {
@@ -271,7 +272,7 @@ function KonieDetails() {
       if (!response_uploaded_image.ok)
         throw new Error("Błąd przy przesyłaniu zdjęcia");
 
-      alert("Zdjęcie dodane pomyślnie!");
+      setShowImagePopup(true);
       void (await fetchHorseDetails());
     } catch (err) {
       setError((err as Error).message);
@@ -428,6 +429,21 @@ function KonieDetails() {
                   onChange={(e) => void handleImageUpload(e)}
                 />
               </label>
+              {showImagePopup && (
+                <div className="to-brown-600 fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-800">
+                  <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+                    <p className="mb-4 text-lg font-bold text-green-600">
+                      Zdjęcie dodane pomyślnie!
+                    </p>
+                    <button
+                      onClick={() => setShowImagePopup(false)}
+                      className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {horse.images_signed_urls &&
                 horse.images_signed_urls.length > 0 && (
