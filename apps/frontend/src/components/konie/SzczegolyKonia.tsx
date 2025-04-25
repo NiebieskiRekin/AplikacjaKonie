@@ -53,6 +53,7 @@ function KonieDetails() {
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const imageDataCache = useRef<{ [url: string]: string }>({});
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const fetchHorseDetails = async () => {
     try {
@@ -171,6 +172,7 @@ function KonieDetails() {
   if (!horse) return <p className="text-lg text-white">Ładowanie...</p>;
 
   const handleDeleteHorse = async () => {
+    setLoadingDelete(true);
     try {
       const response = await APIClient.api.konie[":id{[0-9]+}"].$delete({
         param: { id: id! },
@@ -182,6 +184,8 @@ function KonieDetails() {
       await navigate("/konie");
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setLoadingDelete(false);
     }
   };
 
@@ -533,10 +537,15 @@ function KonieDetails() {
                 Anuluj
               </button>
               <button
-                className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+                className={`rounded-lg px-4 py-2 text-white transition ${
+                  loadingDelete
+                    ? "cursor-not-allowed bg-red-400"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
                 onClick={() => void handleDeleteHorse()}
+                disabled={loadingDelete}
               >
-                Usuń
+                {loadingDelete ? "Usuwanie..." : "Usuń"}
               </button>
             </div>
           </div>
