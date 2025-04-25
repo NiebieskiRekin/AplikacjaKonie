@@ -67,6 +67,7 @@ function EditWeterynarz() {
         throw new Error("Błąd edycji weterynarza");
       }
     } catch (err) {
+      setLoading(false);
       setError(formatApiError(err as ErrorSchema));
     }
   };
@@ -84,6 +85,7 @@ function EditWeterynarz() {
       setIsDeletePopupOpen(false);
       await navigate("/weterynarze");
     } catch (err) {
+      setDeleteLoading(false);
       setError(formatApiError(err as ErrorSchema));
     }
   };

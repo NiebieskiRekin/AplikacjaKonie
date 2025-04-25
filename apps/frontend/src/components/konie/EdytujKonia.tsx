@@ -85,6 +85,7 @@ function EditKonia() {
       setSuccess("Dane konia zostały zaktualizowane!");
       setShowPopup(true);
     } catch (err) {
+      setLoading(false);
       setError((err as Error).message);
     }
   };

@@ -68,6 +68,7 @@ function EditKowal() {
         throw new Error("Błąd edycji kowala");
       }
     } catch (err) {
+      setLoading(false);
       setError(formatApiError(err as ErrorSchema));
     }
   };
@@ -85,6 +86,7 @@ function EditKowal() {
       setIsDeletePopupOpen(false);
       await navigate("/kowale");
     } catch (err) {
+      setLoadingDelete(false);
       setDeleteError((err as Error).message);
     }
   };

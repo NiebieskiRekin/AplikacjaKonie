@@ -172,6 +172,7 @@ function AddEvent() {
         }
       }
     } catch (err) {
+      setLoading(false);
       setError((err as Error).message);
     }
   };

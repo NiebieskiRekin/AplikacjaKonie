@@ -35,6 +35,7 @@ function AddKowal() {
         throw new Error("Błąd dodawania weterynarza");
       }
     } catch (err) {
+      setLoading(false);
       setError(formatApiError(err as ErrorSchema));
     }
   };

@@ -191,6 +191,7 @@ function KonieDetails() {
       setIsDeletePopupOpen(false);
       await navigate("/konie");
     } catch (err) {
+      setLoadingDelete(false);
       setError((err as Error).message);
     }
   };

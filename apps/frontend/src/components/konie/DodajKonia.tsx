@@ -92,6 +92,7 @@ function AddKonia() {
           throw new Error("Błąd przy przesyłaniu zdjęcia");
       }
     } catch (err) {
+      setLoading(false);
       setError(formatApiError(err as ErrorSchema));
     }
   };
