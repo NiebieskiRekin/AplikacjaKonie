@@ -20,6 +20,7 @@ function EditKonia() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,6 +55,7 @@ function EditKonia() {
     event.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     if (!nazwa || !rocznikUrodzenia || !rodzajKonia || !plec) {
       setError("Wszystkie pola są wymagane.");
@@ -209,9 +211,14 @@ function EditKonia() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-2 text-white transition hover:bg-green-700"
+          className={`w-full rounded-lg py-2 text-white transition ${
+            loading
+              ? "cursor-not-allowed bg-green-400"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+          disabled={loading}
         >
-          Zapisz zmiany
+          {loading ? "Zapisywanie..." : "Zapisz zmiany"}
         </button>
       </form>
 
