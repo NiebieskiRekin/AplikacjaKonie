@@ -52,6 +52,8 @@ function StajniaEvents() {
         }
       } catch (err) {
         setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
     };
 
