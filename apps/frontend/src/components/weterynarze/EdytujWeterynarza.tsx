@@ -15,6 +15,8 @@ function EditWeterynarz() {
   const [success, setSuccess] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +52,7 @@ function EditWeterynarz() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
       const response = await APIClient.api.weterynarze[":id{[0-9]+}"].$put({
@@ -70,6 +73,7 @@ function EditWeterynarz() {
 
   const handleDelete = async () => {
     setDeleteError("");
+    setDeleteLoading(true);
     try {
       const response = await APIClient.api.weterynarze[":id{[0-9]+}"].$delete({
         param: { id: id! },
@@ -119,9 +123,12 @@ function EditWeterynarz() {
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700"
+          disabled={loading}
+          className={`w-full rounded-lg bg-green-600 py-3 text-white transition ${
+            loading ? "cursor-not-allowed bg-green-400" : "hover:bg-green-700"
+          }`}
         >
-          💾 Zapisz zmiany
+          {loading ? "Zapisywanie..." : "💾 Zapisz zmiany"}
         </button>
       </form>
 
@@ -143,10 +150,15 @@ function EditWeterynarz() {
             </p>
             <div className="flex justify-center gap-4">
               <button
-                className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-                onClick={handleDelete}
+                className={`rounded-lg px-4 py-2 text-white transition ${
+                  deleteLoading
+                    ? "cursor-not-allowed bg-red-400"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+                onClick={() => void handleDelete()}
+                disabled={deleteLoading}
               >
-                Usuń
+                {deleteLoading ? "Usuwanie..." : "Usuń"}
               </button>
               <button
                 className="rounded-lg bg-gray-400 px-4 py-2 text-white transition hover:bg-gray-500"
