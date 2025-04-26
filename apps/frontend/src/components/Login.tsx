@@ -3,6 +3,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
 import { APIClient } from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ function Login() {
     } catch (err) {
       const message =
         (err instanceof Error && err.message) ||
-        formatApiError(err as any) ||
+        formatApiError(err as ErrorSchema) ||
         "Wystąpił błąd podczas logowania";
 
       setError(message);

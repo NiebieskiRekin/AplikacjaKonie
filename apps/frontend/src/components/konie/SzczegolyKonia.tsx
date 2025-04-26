@@ -298,7 +298,7 @@ function KonieDetails() {
     }
   };
 
-  const handleRemoveImage = async () => {
+  const handleRemoveImage = () => {
     if (
       !horse ||
       !horse.images_signed_urls ||
@@ -480,7 +480,7 @@ function KonieDetails() {
                 horse.images_signed_urls.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => void handleRemoveImage()}
+                    onClick={() => handleRemoveImage()}
                     className={`flex h-10 w-10 items-center justify-center rounded-md transition ${
                       loadingRemoveImage
                         ? "cursor-not-allowed bg-red-400"

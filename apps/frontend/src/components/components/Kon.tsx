@@ -1,5 +1,3 @@
-import { NavLink } from "react-router";
-
 export type Horse = {
   id: number;
   nazwa: string;
