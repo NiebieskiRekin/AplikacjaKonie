@@ -1,0 +1,11 @@
+# Installing the Monitoring and Logging agents
+- hosts: all
+  become: true
+  roles:
+    - role: googlecloudplatform.google_cloud_ops_agents
+      vars:
+        agent_type: monitoring
+
+    - role: googlecloudplatform.google_cloud_ops_agents
+      vars:
+        agent_type: logging
