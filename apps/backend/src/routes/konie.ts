@@ -85,7 +85,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         200
       );
     } catch {
-      return c.json({ success: false, error: "Bład zapytania" }, 400);
+      return c.json({ success: false, error: "Błąd bazy danych" }, 400);
     }
   })
   .post(
@@ -106,6 +106,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
           //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
           // ),
+          file: z.any().optional(), // jak byłoboolean to nie działało ;//
         })
         .omit({
           hodowla: true,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
 import { APIClient } from "@/frontend/lib/api-client";
+import formatApiError from "@/frontend/lib/format-api-error";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,18 @@ function Login() {
         throw new Error(data.error || "Błąd logowania");
       }
     } catch (err) {
-      setError((err as Error).message);
+      const message =
+        (err instanceof Error && err.message) ||
+        formatApiError(err as any) ||
+        "Wystąpił błąd podczas logowania";
+
+      setError(message);
+
+      if (message.includes("TypeError") || message.includes("NetworkError")) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } finally {
       setLoading(false);
     }

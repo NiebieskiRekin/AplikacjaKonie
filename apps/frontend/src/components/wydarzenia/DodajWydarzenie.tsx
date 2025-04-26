@@ -139,6 +139,15 @@ function AddEvent() {
           kowal: Number(selectedPerson),
         };
 
+        if (payload.kowal === 0) {
+          setError("Wybierz kowala!");
+          return;
+        }
+        if (!payload.dataZdarzenia) {
+          setError("Wybierz datę zdarzenia!");
+          return;
+        }
+
         const response = await APIClient.api.wydarzenia.podkucie.$post({
           json: payload,
         });
@@ -159,6 +168,15 @@ function AddEvent() {
             type as EventType
           ] as BackendTypes.RodzajZdarzeniaProfilaktycznego,
         };
+
+        if (payload.weterynarz === 0) {
+          setError("Wybierz weterynarza!");
+          return;
+        }
+        if (!payload.dataZdarzenia) {
+          setError("Wybierz datę zdarzenia!");
+          return;
+        }
 
         const response = await APIClient.api.wydarzenia[
           "zdarzenia_profilaktyczne"

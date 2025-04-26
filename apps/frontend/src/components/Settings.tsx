@@ -85,7 +85,16 @@ function Settings() {
         throw new Error(data.error || "Błąd zapisywania ustawień");
       }
     } catch (err) {
-      setError((err as Error).message);
+      const formatted = formatApiError(err as ErrorSchema);
+      const message =
+        (err instanceof Error && err.message) || formatted || "Nieznany błąd";
+      setError(message);
+
+      if (message.includes("TypeError") || message.includes("NetworkError")) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
     }
   };
 
@@ -93,6 +102,14 @@ function Settings() {
     setShowPopup(false);
     void navigate("/konie"); // Przekierowanie po zamknięciu popupu
   };
+
+  useEffect(() => {
+    if (error && error.includes("TypeError")) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  }, [error]);
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">

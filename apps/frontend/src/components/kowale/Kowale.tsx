@@ -88,7 +88,7 @@ function Kowale() {
               ))
             ) : (
               <tr>
-                <td colSpan={2} className="py-4 text-center text-gray-600">
+                <td colSpan={3} className="py-4 text-center text-gray-600">
                   Brak kowali
                 </td>
               </tr>

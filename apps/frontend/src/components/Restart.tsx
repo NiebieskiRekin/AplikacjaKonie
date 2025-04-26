@@ -18,6 +18,8 @@ function Restart() {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (newPassword !== confirmNewPassword) {
       setError("Nowe hasła muszą się zgadzać!");
@@ -37,14 +39,26 @@ function Restart() {
         setSuccess(
           "Hasło zostało zmienione! Wylogowanie nastąpi po 5s. \n Zaloguj się ponownie."
         );
-        setError("");
-        setTimeout(() => void navigate("/login"), 6000);
+        setTimeout(() => void navigate("/login"), 5000);
       } else {
-        throw new Error("Błąd zmiany hasła");
+        const data = await response.json();
+        throw new Error(
+          typeof data.error === "string" ? data.error : "Błąd zmiany hasła"
+        );
       }
     } catch (err) {
-      setError(formatApiError(err as ErrorSchema));
-      setSuccess("");
+      const message =
+        (err instanceof Error && err.message) ||
+        formatApiError(err as ErrorSchema) ||
+        "Wystąpił nieznany błąd";
+
+      setError(message);
+
+      if (message.includes("TypeError") || message.includes("NetworkError")) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
+      }
     }
   };
 

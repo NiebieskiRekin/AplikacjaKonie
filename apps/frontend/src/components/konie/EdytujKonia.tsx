@@ -58,7 +58,9 @@ function EditKonia() {
     setLoading(true);
 
     if (!nazwa || !rocznikUrodzenia || !rodzajKonia || !plec) {
-      setError("Wszystkie pola są wymagane.");
+      setError(
+        "Obowiązkowe pola to: nazwa, rocznik urodzenia, rodzaj konia, płeć."
+      );
       return;
     }
 
@@ -79,14 +81,27 @@ function EditKonia() {
         json: requestData,
       });
 
-      if (!response.ok) throw new Error("Błąd aktualizacji konia");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(
+          "error" in data ? data.error : "Błąd aktualizacji konia"
+        );
+      }
 
       await response.json();
       setSuccess("Dane konia zostały zaktualizowane!");
       setShowPopup(true);
     } catch (err) {
       setLoading(false);
-      setError((err as Error).message);
+      const message = (err instanceof Error && err.message) || "Nieznany błąd";
+
+      setError(message);
+
+      if (message.includes("TypeError") || message.includes("NetworkError")) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     }
   };
 

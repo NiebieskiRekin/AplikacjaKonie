@@ -75,7 +75,7 @@ function KonieDetails() {
 
       setHorse(data);
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd pobierania danych konia");
     }
   };
 
@@ -88,15 +88,13 @@ function KonieDetails() {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          console.log(data);
           throw new Error("Błąd pobierania zdarzeń");
         }
 
         const data = (await response.json()) as Event[];
         setEvents(data);
       } catch (err) {
-        setError((err as Error).message);
+        setError((err as Error).message || "Błąd pobierania zdarzeń konia");
       }
     };
 
@@ -118,8 +116,11 @@ function KonieDetails() {
                 dataWaznosci: data.podkucie?.dataWaznosci || "-",
               };
             } else {
-              const profilaktyczneEvent = data.profilaktyczne.find(
-                (e) => e.rodzajZdarzenia === type
+              const profilaktyczne = Array.isArray(data.profilaktyczne)
+                ? data.profilaktyczne
+                : [];
+              const profilaktyczneEvent = profilaktyczne.find(
+                (e: { rodzajZdarzenia: string }) => e.rodzajZdarzenia === type
               );
               return {
                 type,
@@ -131,7 +132,7 @@ function KonieDetails() {
           setActiveEvents(formattedEvents);
         }
       } catch (err) {
-        setError((err as Error).message);
+        setError((err as Error).message || "Błąd pobierania aktywnych zdarzeń");
       }
     };
 
@@ -192,7 +193,7 @@ function KonieDetails() {
       await navigate("/konie");
     } catch (err) {
       setLoadingDelete(false);
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd usuwania konia");
     }
   };
 
@@ -246,7 +247,15 @@ function KonieDetails() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setError("Nie wybrano pliku.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Rozmiar zdjęcia przekracza 5MB.");
+      return;
+    }
 
     setLoadingImageUpload(true);
     const formData = new FormData();
@@ -283,7 +292,7 @@ function KonieDetails() {
       setShowImagePopup(true);
       void (await fetchHorseDetails());
     } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || "Błąd przesyłania zdjęcia");
     } finally {
       setLoadingImageUpload(false);
     }
@@ -364,7 +373,9 @@ function KonieDetails() {
           </p>
           <p className="text-gray-800">
             <strong>Płeć:</strong>{" "}
-            {horse.plec!.charAt(0).toUpperCase() + horse.plec!.slice(1)}
+            {horse?.plec
+              ? horse.plec.charAt(0).toUpperCase() + horse.plec.slice(1)
+              : "Brak danych"}
           </p>
           <p className="text-gray-800">
             <strong>Data przybycia do stajni:</strong>{" "}

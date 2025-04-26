@@ -28,13 +28,15 @@ function EditWeterynarz() {
 
         if (response.ok) {
           const data = await response.json();
+          if (!data) throw new Error("Brak danych z serwera.");
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
             numerTelefonu: data.numerTelefonu || "",
             hodowla: data.hodowla || 0,
           });
         } else {
-          throw new Error("Błąd pobierania danych");
+          const err = await response.json();
+          throw new Error(err?.error || `Błąd pobierania danych`);
         }
       } catch (err) {
         setError(formatApiError(err as ErrorSchema));
@@ -53,6 +55,19 @@ function EditWeterynarz() {
     setError("");
     setSuccess("");
     setLoading(true);
+
+    if (!formData.imieINazwisko.trim()) {
+      setError("Imię i nazwisko jest wymagane.");
+      return;
+    }
+
+    if (
+      formData.numerTelefonu &&
+      !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
+    ) {
+      setError("Nieprawidłowy numer telefonu.");
+      return;
+    }
 
     try {
       const response = await APIClient.api.weterynarze[":id{[0-9]+}"].$put({
