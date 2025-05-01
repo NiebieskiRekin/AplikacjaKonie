@@ -134,10 +134,26 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       })),
     ];
 
+    const latestByCategory = new Map<string, { date: string; index: number }>();
+
+    events.forEach((event, index) => {
+      const key = `${event.horse}-${event.rodzajZdarzenia}`;
+      const current = latestByCategory.get(key);
+      if (
+        !current ||
+        new Date(event.date).getTime() > new Date(current.date).getTime()
+      ) {
+        latestByCategory.set(key, { date: event.date, index });
+      }
+    });
+
+    events.forEach((event, index) => {
+      const key = `${event.horse}-${event.rodzajZdarzenia}`;
+      event.highlighted = latestByCategory.get(key)?.index === index;
+    });
+
     events.sort(
-      (a, b) =>
-        new Date(b.date ?? "0000-00-00").getTime() -
-        new Date(a.date ?? "0000-00-00").getTime()
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
     return c.json(events);
