@@ -27,7 +27,7 @@ export function generateEmailTemplate(
                       const _daysLeft = Math.abs(daysLeft);
                       return `<li><strong>${nazwaKonia}</strong>: ważne do - ${dataWaznosci}: ${_daysLeft} dni po terminie</li>`;
                     } else {
-                      return `<li><strong>${nazwaKonia}</strong>: ważne do -${dataWaznosci}: masz jeszcze ${daysLeft} dni</li>`;
+                      return `<li><strong>${nazwaKonia}</strong>: ważne do - ${dataWaznosci}: masz jeszcze ${daysLeft} dni</li>`;
                     }
                   })
                   .join("")}
