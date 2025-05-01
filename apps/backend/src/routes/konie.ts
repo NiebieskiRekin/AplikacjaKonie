@@ -219,6 +219,11 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
       try {
         const d = c.req.valid("json");
 
+        const dataPrzybycia =
+          d.dataPrzybyciaDoStajni === "" ? null : d.dataPrzybyciaDoStajni;
+        const dataOdejscia =
+          d.dataOdejsciaZeStajni === "" ? null : d.dataOdejsciaZeStajni;
+
         const updatedHorse = await db
           .update(konie)
           .set({
@@ -226,9 +231,10 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
             numerPrzyzyciowy: d.numerPrzyzyciowy,
             numerChipa: d.numerChipa,
             rocznikUrodzenia: d.rocznikUrodzenia,
-            dataPrzybyciaDoStajni: d.dataPrzybyciaDoStajni,
-            dataOdejsciaZeStajni: d.dataOdejsciaZeStajni,
+            dataPrzybyciaDoStajni: dataPrzybycia,
+            dataOdejsciaZeStajni: dataOdejscia,
             rodzajKonia: d.rodzajKonia,
+            plec: d.plec,
           })
           .where(eq(konie.id, horseId))
           .returning();
