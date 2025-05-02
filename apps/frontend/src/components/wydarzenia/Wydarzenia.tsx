@@ -8,6 +8,7 @@ type Event = {
   dataWaznosci: string;
   osobaImieNazwisko: string;
   opisZdarzenia: string;
+  highlighted?: boolean;
 };
 
 const ITEMS_PER_PAGE = 25;
@@ -92,8 +93,8 @@ function StajniaEvents() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentEvents = filteredEvents.slice(startIndex, endIndex);
 
-  const getRowClass = (dataWaznosci: string) => {
-    if (!dataWaznosci) return "";
+  const getRowClass = (dataWaznosci: string, highlighted?: boolean) => {
+    if (!highlighted || !dataWaznosci) return "";
 
     const today = new Date();
     const expirationDate = new Date(dataWaznosci);
@@ -198,7 +199,7 @@ function StajniaEvents() {
               currentEvents.map((event, index) => (
                 <tr
                   key={index}
-                  className={`text-center transition hover:bg-gray-100 ${getRowClass(event.dataWaznosci)}`}
+                  className={`text-center transition hover:bg-gray-100 ${getRowClass(event.dataWaznosci, event.highlighted)}`}
                 >
                   <td className="border border-gray-300 px-2 py-2 md:px-4">
                     {event.date}

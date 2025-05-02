@@ -140,10 +140,12 @@ function AddEvent() {
         };
 
         if (payload.kowal === 0) {
+          setLoading(false);
           setError("Wybierz kowala!");
           return;
         }
         if (!payload.dataZdarzenia) {
+          setLoading(false);
           setError("Wybierz datę zdarzenia!");
           return;
         }
@@ -170,10 +172,12 @@ function AddEvent() {
         };
 
         if (payload.weterynarz === 0) {
+          setLoading(false);
           setError("Wybierz weterynarza!");
           return;
         }
         if (!payload.dataZdarzenia) {
+          setLoading(false);
           setError("Wybierz datę zdarzenia!");
           return;
         }

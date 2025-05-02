@@ -27,7 +27,8 @@ export async function fetchUserEvents() {
     .where(
       or(
         eq(notifications.rodzajWysylania, sql`'Email'`),
-        eq(notifications.rodzajWysylania, sql`'Oba'`)
+        eq(notifications.rodzajWysylania, sql`'Oba'`),
+        eq(notifications.active, true)
       )
     );
 
