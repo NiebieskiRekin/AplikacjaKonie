@@ -123,6 +123,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         dataWaznosci: event.dataWaznosci || "-",
         osobaImieNazwisko: event.weterynarzImieNazwisko || "Brak danych",
         opisZdarzenia: event.opisZdarzenia,
+        highlighted: false,
       })),
       ...podkuciaData.map((event) => ({
         horse: konieMap[event.kon] || "Nieznany koń",
@@ -131,6 +132,7 @@ const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         dataWaznosci: event.dataWaznosci || "-",
         osobaImieNazwisko: event.kowalImieNazwisko || "Brak danych",
         opisZdarzenia: "-",
+        highlighted: false,
       })),
     ];
 
