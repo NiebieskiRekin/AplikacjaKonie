@@ -1,6 +1,6 @@
 ## .dockerignore
 # Ignore node_modules directory to prevent copying unnecessary dependencies
-node_modules
+**/node_modules
 
 # Don't copy sensitive data
 .env*
@@ -29,3 +29,6 @@ build
 Dockerfile
 README.md
 .tsbuildinfo
+.git*
+docker*
+eslint.config.mjs
