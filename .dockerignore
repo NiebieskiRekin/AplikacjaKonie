@@ -29,3 +29,6 @@ build
 Dockerfile
 README.md
 .tsbuildinfo
+.git*
+docker*
+eslint.config.mjs
