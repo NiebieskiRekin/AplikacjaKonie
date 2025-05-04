@@ -15,6 +15,7 @@ services:
     environment:
       TRAEFIK_ENTRYPOINTS_HTTPS: true
       TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+      # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: crowdsec@docker
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
@@ -31,6 +32,8 @@ services:
       TRAEFIK_ACCESSLOG_FORMAT: json
       TRAEFIK_PING: true
       TRAEFIK_API: true
+      TRAEFIK_EXPERIMENTAL_PLUGINS_CROWDSEC-BOUNCER-TRAEFIK-PLUGIN_MODULENAME: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      TRAEFIK_EXPERIMENTAL_PLUGINS_CROWDSEC-BOUNCER-TRAEFIK-PLUGIN_VERSION: v1.4.2
       TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE: true
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -46,6 +49,13 @@ services:
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certResolver=myresolver"
       - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH}"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.enabled=true"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapikey=${BOUNCER_KEY_TRAEFIK}"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapischeme=http"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapihost=crowdsec:8080"
+    depends_on:
+      - crowdsec
+
   postgres:
     image: postgres:17-alpine
     container_name: postgres
@@ -70,6 +80,27 @@ services:
     networks:
       - postgres
 
+  crowdsec:
+    image: crowdsecurity/crowdsec:slim
+    container_name: crowdsec
+    env_file: .env
+    environment:
+      GID: "${GID-1000}"
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik"
+      BOUNCER_KEY_TRAEFIK: "${BOUNCER_KEY_TRAEFIK}"
+      CUSTOM_HOSTNAME: crowdsec
+    volumes:
+      - ./acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./crowdsec/db:/var/lib/crowdsec/data/:Z
+      - ./crowdsec/config:/etc/crowdsec/:Z
+      - /var/log/traefik:/var/log/traefik/:z
+    networks:
+      - traefik
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
 networks:
   traefik:
     external: true
