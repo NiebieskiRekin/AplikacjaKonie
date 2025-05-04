@@ -7,6 +7,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/traefik/certs:/etc/traefik/certs:Z
+      - /var/log/traefik:/var/log/traefik/:z
     networks:
       - traefik
     restart: unless-stopped
@@ -14,21 +15,50 @@ services:
     environment:
       TRAEFIK_ENTRYPOINTS_HTTPS: true
       TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+      # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: crowdsec@docker
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER: true
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
-      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_DNSCHALLENGE: true
+      TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_DNSCHALLENGE_PROVIDER: cloudflare
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
-      TRAEFIK_LOG_LEVEL: INFO
+      CF_API_EMAIL: ${LETS_ENCRYPT_EMAIL}
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN}
+      TREAFIK_LOG: true
+      TRAEFIK_LOG_LEVEL: DEBUG
       TRAEFIK_LOG_FORMAT: json
+      TRAEFIK_LOG_FILEPATH: /var/log/traefik/traefik.log
+      TRAEFIK_ACCESSLOG: true
+      TRAEFIK_ACCESSLOG_FILEPATH: /var/log/traefik/access.log
+      TRAEFIK_ACCESSLOG_FORMAT: json
       TRAEFIK_PING: true
+      TRAEFIK_API: true
+      TRAEFIK_EXPERIMENTAL_PLUGINS_CROWDSEC-BOUNCER-TRAEFIK-PLUGIN_MODULENAME: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      TRAEFIK_EXPERIMENTAL_PLUGINS_CROWDSEC-BOUNCER-TRAEFIK-PLUGIN_VERSION: v1.4.2
+      TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE: true
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
       timeout: 10s
       retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth,crowdsec"
+      - "traefik.http.routers.dashboard.entrypoints=https"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certResolver=myresolver"
+      - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH}"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.enabled=true"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapikey=${BOUNCER_KEY_TRAEFIK}"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapischeme=http"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer-traefik-plugin.crowdseclapihost=crowdsec:8080"
+    depends_on:
+      - crowdsec
+
   postgres:
     image: postgres:17-alpine
     container_name: postgres
@@ -53,6 +83,27 @@ services:
     networks:
       - postgres
 
+  crowdsec:
+    image: crowdsecurity/crowdsec:slim
+    container_name: crowdsec
+    env_file: .env
+    environment:
+      GID: "${GID-1000}"
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik"
+      BOUNCER_KEY_TRAEFIK: "${BOUNCER_KEY_TRAEFIK}"
+      CUSTOM_HOSTNAME: crowdsec
+    volumes:
+      - ./acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./crowdsec/db:/var/lib/crowdsec/data/:Z
+      - ./crowdsec/config:/etc/crowdsec/:Z
+      - /var/log/traefik:/var/log/traefik/:z
+    networks:
+      - traefik
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
 networks:
   traefik:
     external: true

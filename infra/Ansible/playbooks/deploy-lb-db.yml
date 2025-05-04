@@ -30,6 +30,16 @@
         force: true
       become: true
 
+    - name: Copy acquis.yaml
+      ansible.builtin.copy:
+        src:  "{{ playbook_dir }}/../crowdsec/acquis.yaml"
+        dest: "{{ dest }}/acquis.yaml"
+        mode: "0600"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        force: true
+      become: true
+
     - name: Copy docker-compose.yml
       ansible.builtin.copy:
         src:  "{{ playbook_dir }}/../../../docker-compose.lb-db.yml"
