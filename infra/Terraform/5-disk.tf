@@ -11,3 +11,18 @@ resource "google_compute_disk" "postgres_database" {
   project                   = local.project_id
   depends_on                = [google_project_service.api]
 }
+
+resource "google_compute_disk" "postgres_backup" {
+  name = "${local.res_prefix}backup"
+  type = "pd-standard"
+  zone = local.zone
+  labels = {
+    environment  = "dev"
+    dedicated_to = "postgres_backup"
+  }
+  size                      = 5
+  physical_block_size_bytes = 4096 # block size
+  project                   = local.project_id
+  depends_on                = [google_project_service.api]
+}
+

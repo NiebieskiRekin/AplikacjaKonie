@@ -1,0 +1,40 @@
+- name: Setup borg backup
+  hosts: main
+  become: true
+  roles:
+    - role: borgbase.ansible_role_borgbackup
+      borg_repository: /mnt/disks/pg_backup/backup
+      borgmatic_timer: systemd
+      borgmatic_hooks:
+        postgresql_databases:
+          - name: "{{ dbname }}"
+            username: "{{ dbname }}"
+            hostname: 127.0.0.1
+            pg_dump_command: docker exec postgres pg_dump
+            pg_restore_command: docker exec postgres pg_restore
+            psql_command: docker exec postgres psql
+        ntfy:
+          topic: "{{ ntfy_topic }}"
+          server: https://ntfy.sh
+          access_token: "{{ ntfy_token }}"
+          start:
+            title: "Aplikacja Konie: borgmatic backup started"
+            tags: borgmatic
+            priority: min
+          finish:
+            title: "Aplikacja Konie: borgmatic backup successful"
+            tags: borgmatic,+1
+            priority: min
+          fail:
+            title: "Aplikacja Konie: borgmatic backup FAILED"
+            tags: borgmatic,-1,skull
+            priority: max
+          states:
+            - start
+            - finish
+            - fail
+      borg_retention_policy:
+        keep_hourly: 1
+        keep_daily: 2
+        keep_weekly: 5
+        keep_monthly: 10
