@@ -7,6 +7,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/traefik/certs:/etc/traefik/certs:Z
+      - /var/log/traefik:/var/log/traefik/:z
     networks:
       - traefik
     restart: unless-stopped
@@ -21,9 +22,15 @@ services:
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL: ${LETS_ENCRYPT_EMAIL}
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_TLSCHALLENGE: true
       TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_STORAGE: /etc/traefik/certs/myresolver.json
+      TREAFIK_LOG: true
       TRAEFIK_LOG_LEVEL: INFO
       TRAEFIK_LOG_FORMAT: json
+      TRAEFIK_LOG_FILEPATH: /var/log/traefik/traefik.log
+      TRAEFIK_ACCESSLOG: true
+      TRAEFIK_ACCESSLOG_FILEPATH: /var/log/traefik/access.log
+      TRAEFIK_ACCESSLOG_FORMAT: json
       TRAEFIK_PING: true
+      TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE: true
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
