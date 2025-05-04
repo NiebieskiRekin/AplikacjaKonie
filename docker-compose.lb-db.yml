@@ -30,12 +30,22 @@ services:
       TRAEFIK_ACCESSLOG_FILEPATH: /var/log/traefik/access.log
       TRAEFIK_ACCESSLOG_FORMAT: json
       TRAEFIK_PING: true
+      TRAEFIK_API: true
       TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE: true
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
       timeout: 10s
       retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth,crowdsec"
+      - "traefik.http.routers.dashboard.entrypoints=https"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certResolver=myresolver"
+      - "traefik.http.middlewares.auth.basicauth.users=${DASHBOARD_BASIC_AUTH}"
   postgres:
     image: postgres:17-alpine
     container_name: postgres
