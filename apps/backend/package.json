@@ -35,7 +35,7 @@
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.2",
     "node-cron": "^3.0.3",
-    "nodemailer": "^6.10.0",
+    "nodemailer": "^7.0.2",
     "pg": "^8.14.1",
     "winston": "^3.17.0",
     "zod": "^3.24.2"
