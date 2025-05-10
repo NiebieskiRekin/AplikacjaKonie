@@ -26,7 +26,7 @@ app.get(
 
 app.use("/ui", swaggerUI({ url: "/api/openapi" }));
 
-app.use("/api/*", cors());
+app.use("*", cors());
 if (ProcessEnv.NODE_ENV != "production") {
   app.use("*", logger()); // Only for testing and development
   log("Server", "info", "Połączono z Serwerem");
