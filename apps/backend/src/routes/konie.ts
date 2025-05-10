@@ -11,6 +11,7 @@ import {
   zdarzeniaProfilaktyczne,
   zdjeciaKoni,
   konieUpdateSchema,
+  konieSelectSchema,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -20,74 +21,97 @@ import {
 } from "../middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 import { generateV4ReadSignedUrl } from "./images";
 import { InsertZdjecieKonia } from "../db/types";
+import { describeRoute } from "hono-openapi";
+import { resolver } from "hono-openapi/zod";
+
+const konieGetResponseSchema = z.object({
+  success: z.boolean(),
+  data: konieSelectSchema.extend({
+    img_url: z.string().nullable(),
+  }),
+});
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
-  .get("/", async (c) => {
-    const userId = getUserFromContext(c);
-    try {
-      const user = db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .as("user_hodowla");
-
-      // Pobieramy konie tylko tej samej hodowli
-
-      const horsesList = await db
-        .select({
-          id: konie.id,
-          nazwa: konie.nazwa,
-          numerPrzyzyciowy: konie.numerPrzyzyciowy,
-          // numerChipa: konie.numerChipa,
-          // rocznikUrodzenia: konie.rocznikUrodzenia,
-          // dataPrzybyciaDoStajni:konie.dataPrzybyciaDoStajni,
-          // dataOdejsciaZeStajni: konie.dataOdejsciaZeStajni,
-          // hodowla:konie.hodowla,
-          rodzajKonia: konie.rodzajKonia,
-          // plec: konie.plec,
-          imageId: zdjeciaKoni.id,
-        })
-        .from(user)
-        .innerJoin(
-          konie,
-          and(eq(user.hodowla, konie.hodowla), eq(konie.active, true))
-        )
-        .leftJoin(
-          zdjeciaKoni,
-          and(eq(konie.id, zdjeciaKoni.kon), eq(zdjeciaKoni.default, true))
-        )
-        .orderBy(sql`LOWER(${konie.nazwa})`);
-
-      const images_urls = await Promise.allSettled(
-        horsesList.map((horse) =>
-          horse.imageId ? generateV4ReadSignedUrl(horse.imageId) : null
-        )
-      );
-
-      return c.json(
-        {
-          success: true,
-          data: horsesList.map((k, i) => {
-            return {
-              ...k,
-              img_url:
-                images_urls[i].status === "fulfilled"
-                  ? images_urls[i].value!
-                  : null,
-            };
-          }),
+  .get(
+    "/",
+    describeRoute({
+      description: "Wyświetl listę koni z hodowli użytkownika",
+      responses: {
+        200: {
+          description: "Pomyślne zapytanie",
+          content: {
+            "application/json": { schema: resolver(konieGetResponseSchema) },
+          },
         },
-        200
-      );
-    } catch {
-      return c.json({ success: false, error: "Błąd bazy danych" }, 400);
+      },
+    }),
+    async (c) => {
+      const userId = getUserFromContext(c);
+      try {
+        const user = db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId))
+          .as("user_hodowla");
+
+        // Pobieramy konie tylko tej samej hodowli
+
+        const horsesList = await db
+          .select({
+            id: konie.id,
+            nazwa: konie.nazwa,
+            numerPrzyzyciowy: konie.numerPrzyzyciowy,
+            // numerChipa: konie.numerChipa,
+            // rocznikUrodzenia: konie.rocznikUrodzenia,
+            // dataPrzybyciaDoStajni:konie.dataPrzybyciaDoStajni,
+            // dataOdejsciaZeStajni: konie.dataOdejsciaZeStajni,
+            // hodowla:konie.hodowla,
+            rodzajKonia: konie.rodzajKonia,
+            // plec: konie.plec,
+            imageId: zdjeciaKoni.id,
+          })
+          .from(user)
+          .innerJoin(
+            konie,
+            and(eq(user.hodowla, konie.hodowla), eq(konie.active, true))
+          )
+          .leftJoin(
+            zdjeciaKoni,
+            and(eq(konie.id, zdjeciaKoni.kon), eq(zdjeciaKoni.default, true))
+          )
+          .orderBy(sql`LOWER(${konie.nazwa})`);
+
+        const images_urls = await Promise.allSettled(
+          horsesList.map((horse) =>
+            horse.imageId ? generateV4ReadSignedUrl(horse.imageId) : null
+          )
+        );
+
+        return c.json(
+          {
+            success: true,
+            data: horsesList.map((k, i) => {
+              return {
+                ...k,
+                img_url:
+                  images_urls[i].status === "fulfilled"
+                    ? images_urls[i].value!
+                    : null,
+              };
+            }),
+          },
+          200
+        );
+      } catch {
+        return c.json({ success: false, error: "Błąd bazy danych" }, 400);
+      }
     }
-  })
+  )
   .post(
     "/",
     zValidator(
