@@ -11,7 +11,6 @@ import {
   zdarzeniaProfilaktyczne,
   zdjeciaKoni,
   konieUpdateSchema,
-  konieSelectSchema,
 } from "../db/schema";
 import { db } from "../db";
 import {
@@ -23,16 +22,42 @@ import { zValidator } from "@hono/zod-validator";
 import { union } from "drizzle-orm/pg-core";
 import { z } from "@hono/zod-openapi";
 import { generateV4ReadSignedUrl } from "./images";
-import { InsertZdjecieKonia } from "../db/types";
+import { InsertZdjecieKonia, RodzajeKoni } from "../db/types";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 
-const konieGetResponseSchema = z.object({
-  success: z.boolean(),
-  data: konieSelectSchema.extend({
-    img_url: z.string().nullable(),
-  }),
+const konieGetResponseSchemaSuccess = z.object({
+  success: z.boolean().openapi({ example: true }),
+  data: z.array(
+    z.object({
+      img_url: z
+        .string()
+        .url()
+        .nullable()
+        .openapi({
+          examples: [
+            "https://storage.googleapis.com/aplikacjakonie-zdjecia-koni/f5d9fa39-8306-4y2f-8a6d-c95cb086a4b5",
+            "https://storage.googleapis.com/aplikacjakonie-zdjecia-koni/3f1a03dc-2de3-11f0-9f1d-00e04c6801af",
+          ],
+        }),
+      id: z.number().openapi({ examples: [50, 102] }),
+      nazwa: z.string().openapi({ examples: ["Lucky", "Gracja", "Czubajka"] }),
+      numerPrzyzyciowy: z
+        .string()
+        .nullable()
+        .openapi({ examples: ["POL007530107098", "POL0008660043801"] }),
+      rodzajKonia: z.enum(RodzajeKoni),
+      imageId: z.string().uuid().nullable(),
+    })
+  ),
 });
+
+const konieGetResponseSchemaFailure = z.object({
+  success: z.boolean().openapi({ example: false }),
+  error: z.string().openapi({ example: "Błąd bazy danych" }),
+});
+
+const JsonMime = "application/json";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
@@ -45,7 +70,13 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         200: {
           description: "Pomyślne zapytanie",
           content: {
-            "application/json": { schema: resolver(konieGetResponseSchema) },
+            [JsonMime]: { schema: resolver(konieGetResponseSchemaSuccess) },
+          },
+        },
+        500: {
+          description: "Bład serwera",
+          content: {
+            [JsonMime]: { schema: resolver(konieGetResponseSchemaFailure) },
           },
         },
       },
@@ -108,7 +139,7 @@ const konieRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           200
         );
       } catch {
-        return c.json({ success: false, error: "Błąd bazy danych" }, 400);
+        return c.json({ success: false, error: "Błąd bazy danych" }, 500);
       }
     }
   )
