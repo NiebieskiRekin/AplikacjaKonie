@@ -11,7 +11,7 @@ import weterynarzeRoute from "./weterynarze";
 import settingsRoute from "./settings";
 import images from "./images";
 import { healthcheck } from "./healthcheck";
-import raport from "../routes/raport";
+import raport from "./raport";
 
 export function registerRoutes(app: Hono) {
   return app
