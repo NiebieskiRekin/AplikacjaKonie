@@ -23,6 +23,9 @@ import { z } from "zod";
 // import { randomUUID } from "node:crypto";
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { ProcessEnv } from "../env";
+import { describeRoute } from "hono-openapi";
+import { JsonMime, response_failure_schema } from "./constants";
+import { resolver } from "hono-openapi/zod";
 
 const key_schema = z.object({
   type: z.string(),
@@ -88,25 +91,80 @@ export async function generateV4ReadSignedUrl(filename: string) {
   return url;
 }
 
+const success_response_schema = z.object({ url: z.string().url() });
+
 const images = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
-  .get("/upload/:filename", async (c) => {
-    // Creates a client
-    const filename = c.req.param("filename");
-    const signed_url = await generateV4UploadSignedUrl(filename);
+  .get(
+    "/upload/:filename",
+    describeRoute({
+      description:
+        "Pobierz link do przesłania zdjęcia o wzkazanym id (filename)",
+      responses: {
+        200: {
+          description: "Pomyślne zapytanie",
+          content: {
+            [JsonMime]: { schema: resolver(success_response_schema) },
+          },
+        },
+        500: {
+          description: "Bład serwera",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      try {
+        // Creates a client
+        const filename = c.req.param("filename");
+        const signed_url = await generateV4UploadSignedUrl(filename);
 
-    return c.json({
-      url: signed_url,
-    });
-  })
-  .get("/read/:filename", async (c) => {
-    // Creates a client
-    const filename = c.req.param("filename");
-    const signed_url = await generateV4ReadSignedUrl(filename);
+        return c.json(
+          {
+            url: signed_url,
+          },
+          200
+        );
+      } catch {
+        return c.json({ error: "Błąd serwera" }, 500);
+      }
+    }
+  )
+  .get(
+    "/read/:filename",
+    describeRoute({
+      description:
+        "Pobierz link do wyświetlenia zdjęcia o wskazanym id (filename)",
+      responses: {
+        200: {
+          description: "Pomyślne zapytanie",
+          content: {
+            [JsonMime]: { schema: resolver(success_response_schema) },
+          },
+        },
+        500: {
+          description: "Bład serwera",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      try {
+        // Creates a client
+        const filename = c.req.param("filename");
+        const signed_url = await generateV4ReadSignedUrl(filename);
 
-    return c.json({
-      url: signed_url,
-    });
-  });
+        return c.json({
+          url: signed_url,
+        });
+      } catch {
+        return c.json({ error: "Błąd serwera" }, 500);
+      }
+    }
+  );
 
 export default images;
