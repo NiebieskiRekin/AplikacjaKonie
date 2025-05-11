@@ -5,11 +5,16 @@ import {
   userPermissionsInsertSchema,
   user_permissions,
   notifications,
+  usersSelectSchema,
+  userPermissionsSelectSchema,
 } from "../db/schema";
 import { db } from "../db";
 import { zValidator } from "@hono/zod-validator";
 import z from "zod";
 import { adminAuthMiddleware } from "../middleware/adminauth";
+import { describeRoute } from "hono-openapi";
+import { JsonMime, response_failure_schema } from "./constants";
+import { resolver } from "hono-openapi/zod";
 
 const register = new Hono()
   .use(adminAuthMiddleware)
@@ -25,6 +30,29 @@ const register = new Hono()
         })
         .strict()
     ),
+    describeRoute({
+      description: "Dodaj nowego użytkownika do hodowli",
+      responses: {
+        200: {
+          description: "Pomyślne zapytanie",
+          content: {
+            [JsonMime]: { schema: resolver(usersSelectSchema) },
+          },
+        },
+        401: {
+          description: "Bład zapytania",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+        500: {
+          description: "Bład serwera",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+      },
+    }),
     async (c) => {
       try {
         const user = c.req.valid("json");
@@ -70,6 +98,29 @@ const register = new Hono()
   .post(
     "/permission",
     zValidator("json", userPermissionsInsertSchema),
+    describeRoute({
+      description: "Dodaj uprawnienia do użytkownika",
+      responses: {
+        200: {
+          description: "Pomyślne zapytanie",
+          content: {
+            [JsonMime]: { schema: resolver(userPermissionsSelectSchema) },
+          },
+        },
+        401: {
+          description: "Bład zapytania",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+        500: {
+          description: "Bład serwera",
+          content: {
+            [JsonMime]: { schema: resolver(response_failure_schema) },
+          },
+        },
+      },
+    }),
     async (c) => {
       try {
         const user_permission = c.req.valid("json");
