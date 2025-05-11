@@ -8,7 +8,7 @@ import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 // import { z } from "@hono/zod-openapi";
 import { RodzajeKoni } from "@/backend/db/types";
-import "zod-openapi/extend";
+import "@hono/zod-openapi";
 import { z } from "zod";
 
 const konie_wydarzenia_get_response_success = z.array(

@@ -1,9 +1,27 @@
 import { Hono } from "hono";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq } from "drizzle-orm";
-import { db } from "../../../db";
-import { konie, konieUpdateSchema } from "@/backend/db/schema";
+import { db } from "@/backend/db";
+import {
+  konie,
+  konieSelectSchema,
+  konieUpdateSchema,
+} from "@/backend/db/schema";
 import { zValidator } from "@hono/zod-validator";
+import { describeRoute } from "hono-openapi";
+import { JsonMime } from "@/backend/routes/constants";
+import { resolver } from "hono-openapi/zod";
+import { z } from "zod";
+import "@hono/zod-openapi";
+
+const konie_id_put_response_success = z.object({
+  success: z.string(),
+  horse: konieSelectSchema,
+});
+
+const konie_id_put_response_error = z
+  .object({ error: z.string() })
+  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_put = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -17,6 +35,44 @@ export const konie_id_put = new Hono<{
       active: true,
     })
   ),
+  describeRoute({
+    description: "Zmień informacje o koniu",
+    responses: {
+      200: {
+        // ContentfulStatusCode
+        description: "Pomyślne zapytanie",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_put_response_success),
+          },
+        },
+      },
+      400: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_put_response_error),
+          },
+        },
+      },
+      401: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_put_response_error),
+          },
+        },
+      },
+      500: {
+        desciption: "Błąd serwera",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_put_response_error),
+          },
+        },
+      },
+    },
+  }),
   async (c) => {
     const userId = getUserFromContext(c);
     if (!userId) {
