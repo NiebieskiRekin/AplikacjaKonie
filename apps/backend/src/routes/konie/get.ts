@@ -2,7 +2,7 @@ import { RodzajeKoni } from "@/backend/db/types";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
-import { JsonMime } from "../constants";
+import { JsonMime, response_failure_schema } from "../constants";
 import { resolver } from "hono-openapi/zod";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { and, eq, sql } from "drizzle-orm";
@@ -11,7 +11,6 @@ import { users, konie, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "../images";
 
 const konieGetResponseSchemaSuccess = z.object({
-  success: z.boolean().openapi({ example: true }),
   data: z.array(
     z.object({
       img_url: z
@@ -36,11 +35,6 @@ const konieGetResponseSchemaSuccess = z.object({
   ),
 });
 
-const konieGetResponseSchemaFailure = z.object({
-  success: z.boolean().openapi({ example: false }),
-  error: z.string().openapi({ example: "Błąd bazy danych" }),
-});
-
 export const konie_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
 }>().get(
@@ -57,7 +51,7 @@ export const konie_get = new Hono<{
       500: {
         description: "Bład serwera",
         content: {
-          [JsonMime]: { schema: resolver(konieGetResponseSchemaFailure) },
+          [JsonMime]: { schema: resolver(response_failure_schema) },
         },
       },
     },
@@ -106,7 +100,6 @@ export const konie_get = new Hono<{
 
       return c.json(
         {
-          success: true,
           data: horsesList.map((k, i) => {
             return {
               ...k,
@@ -120,7 +113,7 @@ export const konie_get = new Hono<{
         200
       );
     } catch {
-      return c.json({ success: false, error: "Błąd bazy danych" }, 500);
+      return c.json({ error: "Błąd bazy danych" }, 500);
     }
   }
 );

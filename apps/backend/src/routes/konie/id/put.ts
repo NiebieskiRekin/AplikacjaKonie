@@ -9,7 +9,7 @@ import {
 } from "@/backend/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { describeRoute } from "hono-openapi";
-import { JsonMime } from "@/backend/routes/constants";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 import "@hono/zod-openapi";
@@ -18,10 +18,6 @@ const konie_id_put_response_success = z.object({
   success: z.string(),
   horse: konieSelectSchema,
 });
-
-const konie_id_put_response_error = z
-  .object({ error: z.string() })
-  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_put = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -51,7 +47,7 @@ export const konie_id_put = new Hono<{
         description: "Błąd klienta",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_put_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -59,7 +55,7 @@ export const konie_id_put = new Hono<{
         description: "Błąd klienta",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_put_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -67,7 +63,7 @@ export const konie_id_put = new Hono<{
         desciption: "Błąd serwera",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_put_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },

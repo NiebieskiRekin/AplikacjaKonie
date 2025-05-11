@@ -9,12 +9,8 @@ import {
 import { adminAuthMiddleware } from "../middleware/adminauth";
 import { describeRoute } from "hono-openapi";
 import { z } from "zod";
-import { JsonMime } from "./constants";
+import { JsonMime, response_failure_schema } from "./constants";
 import { resolver } from "hono-openapi/zod";
-
-const response_failure_schema = z.object({
-  error: z.string(),
-});
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const hodowcyKoniRoute = new Hono()

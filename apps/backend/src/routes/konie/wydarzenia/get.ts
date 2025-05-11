@@ -4,9 +4,8 @@ import { eq, isNull, and, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, konie } from "@/backend/db/schema";
 import { describeRoute } from "hono-openapi";
-import { JsonMime } from "@/backend/routes/constants";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-// import { z } from "@hono/zod-openapi";
 import { RodzajeKoni } from "@/backend/db/types";
 import "@hono/zod-openapi";
 import { z } from "zod";
@@ -18,10 +17,6 @@ const konie_wydarzenia_get_response_success = z.array(
     rodzajKonia: z.enum(RodzajeKoni),
   })
 );
-
-const konie_wydarzenia_get_response_error = z
-  .object({ error: z.string() })
-  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_wydarzenia_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -42,7 +37,7 @@ export const konie_wydarzenia_get = new Hono<{
         desciption: "Błąd serwera",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_wydarzenia_get_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },

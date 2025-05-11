@@ -5,7 +5,7 @@ import { db } from "../../../db";
 import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "../../images";
 import { describeRoute } from "hono-openapi";
-import { JsonMime } from "@/backend/routes/constants";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 import "@hono/zod-openapi";
@@ -13,10 +13,6 @@ import "@hono/zod-openapi";
 const konie_id_get_response_success = konieSelectSchema.extend({
   images_signed_urls: z.array(z.string().url()),
 });
-
-const konie_id_get_response_error = z
-  .object({ error: z.string() })
-  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -37,7 +33,7 @@ export const konie_id_get = new Hono<{
         description: "Błąd klienta",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_get_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -45,7 +41,7 @@ export const konie_id_get = new Hono<{
         description: "Błąd klienta",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_get_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -53,7 +49,7 @@ export const konie_id_get = new Hono<{
         desciption: "Błąd serwera",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_get_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },

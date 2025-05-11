@@ -4,16 +4,12 @@ import { eq } from "drizzle-orm";
 import { db } from "../../../db";
 import { konie } from "@/backend/db/schema";
 import { describeRoute } from "hono-openapi";
-import { JsonMime } from "@/backend/routes/constants";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 import "@hono/zod-openapi";
 
 const konie_id_delete_response_success = z.object({ success: z.string() });
-
-const konie_id_delete_response_error = z
-  .object({ error: z.string() })
-  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_delete = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -35,7 +31,7 @@ export const konie_id_delete = new Hono<{
         description: "Nieprawidłowy identyfikator konia",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_delete_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -43,7 +39,7 @@ export const konie_id_delete = new Hono<{
         description: "Błąd klienta",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_delete_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -51,7 +47,7 @@ export const konie_id_delete = new Hono<{
         description: "Koń nie istnieje",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_delete_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
@@ -59,7 +55,7 @@ export const konie_id_delete = new Hono<{
         description: "Błąd serwera",
         content: {
           [JsonMime]: {
-            schema: resolver(konie_id_delete_response_error),
+            schema: resolver(response_failure_schema),
           },
         },
       },
