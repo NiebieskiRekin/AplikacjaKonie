@@ -6,18 +6,24 @@ import { JsonMime } from "../constants";
 import { resolver } from "hono-openapi/zod";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/backend/db";
 import {
   users,
   konie,
   zdjeciaKoni,
   konieInsertSchema,
+  konieSelectSchema,
 } from "@/backend/db/schema";
 import { zValidator } from "@hono/zod-validator";
 
-const konie_post_response_success = z.object({});
+const konie_post_response_success = z.object({
+  message: z.string(),
+  horse: konieSelectSchema,
+});
 
-const konie_post_response_failure = z.object({});
+const konie_post_response_failure = z.object({
+  error: z.string(),
+});
 
 export const konie_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
