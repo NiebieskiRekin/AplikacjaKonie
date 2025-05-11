@@ -2,73 +2,134 @@ import { Hono } from "hono";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { desc, eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { podkucia, zdarzeniaProfilaktyczne } from "@/backend/db/schema";
+import {
+  podkucia,
+  podkuciaSelectSchema,
+  zdarzeniaProfilaktyczne,
+  zdarzeniaProfilaktyczneSelectSchema,
+} from "@/backend/db/schema";
+import { describeRoute } from "hono-openapi";
+import { JsonMime } from "@/backend/routes/constants";
+import { resolver } from "hono-openapi/zod";
+import { z } from "zod";
+import "@hono/zod-openapi";
+
+const konie_id_active_events_get_response_success = z.object({
+  podkucie: podkuciaSelectSchema.nullable(),
+  profilaktyczne: z.array(zdarzeniaProfilaktyczneSelectSchema),
+});
+
+const konie_id_active_events_get_response_error = z
+  .object({ error: z.string() })
+  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_active_events_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
-}>().get("/:id{[0-9]+}/active-events", async (c) => {
-  const userId = getUserFromContext(c);
-  if (!userId) {
-    return c.json({ error: "Błąd autoryzacji" }, 401);
-  }
+}>().get(
+  "/:id{[0-9]+}/active-events",
+  describeRoute({
+    description:
+      "Wyświetl informacje o aktywnych wydarzeniach dla danego konia",
+    responses: {
+      200: {
+        // ContentfulStatusCode
+        description: "Pomyślne zapytanie",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_active_events_get_response_success),
+          },
+        },
+      },
+      400: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_active_events_get_response_error),
+          },
+        },
+      },
+      401: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_active_events_get_response_error),
+          },
+        },
+      },
+      500: {
+        desciption: "Błąd serwera",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_active_events_get_response_error),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const userId = getUserFromContext(c);
+    if (!userId) {
+      return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
 
-  const horseId = Number(c.req.param("id"));
-  if (isNaN(horseId)) {
-    return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
-  }
+    const horseId = Number(c.req.param("id"));
+    if (isNaN(horseId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
+    }
 
-  try {
-    const latestPodkucie = await db
-      .select()
-      .from(podkucia)
-      .where(eq(podkucia.kon, horseId))
-      .orderBy(desc(podkucia.dataZdarzenia))
-      .limit(1)
-      .then((res) => res[0]);
+    try {
+      const latestPodkucie = await db
+        .select()
+        .from(podkucia)
+        .where(eq(podkucia.kon, horseId))
+        .orderBy(desc(podkucia.dataZdarzenia))
+        .limit(1)
+        .then((res) => res[0]);
 
-    // Pobieramy najnowsze zdarzenia profilaktyczne dla każdego unikalnego rodzaju zdarzenia
-    const eventTypes = [
-      "Odrobaczanie",
-      "Podanie suplementów",
-      "Szczepienie",
-      "Dentysta",
-    ];
+      // Pobieramy najnowsze zdarzenia profilaktyczne dla każdego unikalnego rodzaju zdarzenia
+      const eventTypes = [
+        "Odrobaczanie",
+        "Podanie suplementów",
+        "Szczepienie",
+        "Dentysta",
+      ];
 
-    const latestProfilaktyczneEvents = await Promise.all(
-      eventTypes.map(async (eventType) => {
-        return db
-          .select()
-          .from(zdarzeniaProfilaktyczne)
-          .where(
-            and(
-              eq(zdarzeniaProfilaktyczne.kon, horseId),
-              eq(
-                zdarzeniaProfilaktyczne.rodzajZdarzenia,
-                eventType as
-                  | "Odrobaczanie"
-                  | "Podanie suplementów"
-                  | "Szczepienie"
-                  | "Dentysta"
-                  | "Inne"
+      const latestProfilaktyczneEvents = await Promise.all(
+        eventTypes.map(async (eventType) => {
+          return db
+            .select()
+            .from(zdarzeniaProfilaktyczne)
+            .where(
+              and(
+                eq(zdarzeniaProfilaktyczne.kon, horseId),
+                eq(
+                  zdarzeniaProfilaktyczne.rodzajZdarzenia,
+                  eventType as
+                    | "Odrobaczanie"
+                    | "Podanie suplementów"
+                    | "Szczepienie"
+                    | "Dentysta"
+                    | "Inne"
+                )
               )
             )
-          )
-          .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
-          .limit(1)
-          .then((res) => res[0] || null);
-      })
-    );
+            .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
+            .limit(1)
+            .then((res) => res[0] || null);
+        })
+      );
 
-    const activeEvents = {
-      podkucie: latestPodkucie || null,
-      profilaktyczne: latestProfilaktyczneEvents.filter(
-        (event) => event !== null
-      ),
-    };
+      const activeEvents = {
+        podkucie: latestPodkucie || null,
+        profilaktyczne: latestProfilaktyczneEvents.filter(
+          (event) => event !== null
+        ),
+      };
 
-    return c.json(activeEvents);
-  } catch (error) {
-    console.error("Błąd pobierania aktywnych zdarzeń:", error);
-    return c.json({ error: "Błąd pobierania aktywnych zdarzeń." }, 500);
+      return c.json(activeEvents);
+    } catch (error) {
+      console.error("Błąd pobierania aktywnych zdarzeń:", error);
+      return c.json({ error: "Błąd pobierania aktywnych zdarzeń." }, 500);
+    }
   }
-});
+);
