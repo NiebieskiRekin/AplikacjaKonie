@@ -10,79 +10,137 @@ import {
   podkucia,
   zdarzeniaProfilaktyczne,
 } from "@/backend/db/schema";
+import { describeRoute } from "hono-openapi";
+import { JsonMime } from "@/backend/routes/constants";
+import { resolver } from "hono-openapi/zod";
+import { z } from "zod";
+import "@hono/zod-openapi";
+
+const konie_id_events_get_response_success = z.array(
+  z.object({
+    type: z.enum(["rozród", "choroba", "leczenie", "podkucie", "profilaktyka"]),
+    date: z.string().date(),
+    description: z.string(),
+  })
+);
+
+const konie_id_events_get_response_error = z
+  .object({ error: z.string() })
+  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_id_events_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
-}>().get("/:id{[0-9]+}/events", async (c) => {
-  const userId = getUserFromContext(c);
-  if (!userId) {
-    return c.json({ error: "Błąd autoryzacji" }, 401);
-  }
+}>().get(
+  "/:id{[0-9]+}/events",
+  describeRoute({
+    description: "Wyświetl informacje o wydarzeniach dla danego konia",
+    responses: {
+      200: {
+        // ContentfulStatusCode
+        description: "Pomyślne zapytanie",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_events_get_response_success),
+          },
+        },
+      },
+      400: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_events_get_response_error),
+          },
+        },
+      },
+      401: {
+        description: "Błąd klienta",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_events_get_response_error),
+          },
+        },
+      },
+      500: {
+        desciption: "Błąd serwera",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_id_events_get_response_error),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const userId = getUserFromContext(c);
+    if (!userId) {
+      return c.json({ error: "Błąd autoryzacji" }, 401);
+    }
 
-  const horseId = Number(c.req.param("id"));
-  if (isNaN(horseId)) {
-    return c.json({ error: "Nieprawidłowy identyfikator konia." }, 400);
-  }
+    const horseId = Number(c.req.param("id"));
+    if (isNaN(horseId)) {
+      return c.json({ error: "Nieprawidłowy identyfikator konia." }, 400);
+    }
 
-  try {
-    const after_union = await union(
-      db
-        .select({
-          type: sql<string>`'rozród'`,
-          date: rozrody.dataZdarzenia,
-          description: rozrody.opisZdarzenia,
-        })
-        .from(rozrody)
-        .where(eq(rozrody.kon, horseId))
-        .orderBy(desc(rozrody.dataZdarzenia))
-        .limit(5),
-      db
-        .select({
-          type: sql<string>`'choroba'`,
-          date: choroby.dataRozpoczecia,
-          description: choroby.opisZdarzenia,
-        })
-        .from(choroby)
-        .where(eq(choroby.kon, horseId))
-        .orderBy(desc(choroby.dataRozpoczecia))
-        .limit(5),
-      db
-        .select({
-          type: sql<string>`'leczenie'`,
-          date: leczenia.dataZdarzenia,
-          description: leczenia.opisZdarzenia,
-        })
-        .from(leczenia)
-        .where(eq(leczenia.kon, horseId))
-        .orderBy(desc(leczenia.dataZdarzenia))
-        .limit(5),
-      db
-        .select({
-          type: sql<string>`'podkucie'`,
-          date: podkucia.dataZdarzenia,
-          description: sql<string>`coalesce(to_char(data_waznosci, 'DD-MM-YYYY'),'nie podano daty ważności')`,
-        })
-        .from(podkucia)
-        .where(eq(podkucia.kon, horseId))
-        .orderBy(desc(podkucia.dataZdarzenia))
-        .limit(5),
-      db
-        .select({
-          type: sql<string>`'profilaktyka'`,
-          date: zdarzeniaProfilaktyczne.dataZdarzenia,
-          description: zdarzeniaProfilaktyczne.opisZdarzenia,
-        })
-        .from(zdarzeniaProfilaktyczne)
-        .where(eq(zdarzeniaProfilaktyczne.kon, horseId))
-        .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
-        .limit(5)
-    )
-      .orderBy(sql`2 desc`)
-      .limit(5);
+    try {
+      const after_union = await union(
+        db
+          .select({
+            type: sql<string>`'rozród'`,
+            date: rozrody.dataZdarzenia,
+            description: rozrody.opisZdarzenia,
+          })
+          .from(rozrody)
+          .where(eq(rozrody.kon, horseId))
+          .orderBy(desc(rozrody.dataZdarzenia))
+          .limit(5),
+        db
+          .select({
+            type: sql<string>`'choroba'`,
+            date: choroby.dataRozpoczecia,
+            description: choroby.opisZdarzenia,
+          })
+          .from(choroby)
+          .where(eq(choroby.kon, horseId))
+          .orderBy(desc(choroby.dataRozpoczecia))
+          .limit(5),
+        db
+          .select({
+            type: sql<string>`'leczenie'`,
+            date: leczenia.dataZdarzenia,
+            description: leczenia.opisZdarzenia,
+          })
+          .from(leczenia)
+          .where(eq(leczenia.kon, horseId))
+          .orderBy(desc(leczenia.dataZdarzenia))
+          .limit(5),
+        db
+          .select({
+            type: sql<string>`'podkucie'`,
+            date: podkucia.dataZdarzenia,
+            description: sql<string>`coalesce(to_char(data_waznosci, 'DD-MM-YYYY'),'nie podano daty ważności')`,
+          })
+          .from(podkucia)
+          .where(eq(podkucia.kon, horseId))
+          .orderBy(desc(podkucia.dataZdarzenia))
+          .limit(5),
+        db
+          .select({
+            type: sql<string>`'profilaktyka'`,
+            date: zdarzeniaProfilaktyczne.dataZdarzenia,
+            description: zdarzeniaProfilaktyczne.opisZdarzenia,
+          })
+          .from(zdarzeniaProfilaktyczne)
+          .where(eq(zdarzeniaProfilaktyczne.kon, horseId))
+          .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
+          .limit(5)
+      )
+        .orderBy(sql`2 desc`)
+        .limit(5);
 
-    return c.json(after_union);
-  } catch (error) {
-    console.error("Błąd pobierania zdarzeń konia:", error);
-    return c.json({ error: "Błąd pobierania zdarzeń konia." }, 500);
+      return c.json(after_union);
+    } catch (error) {
+      console.error("Błąd pobierania zdarzeń konia:", error);
+      return c.json({ error: "Błąd pobierania zdarzeń konia." }, 500);
+    }
   }
-});
+);
