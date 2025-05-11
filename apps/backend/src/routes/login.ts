@@ -13,6 +13,9 @@ import {
   REFRESH_TOKEN,
 } from "../middleware/auth";
 import { setCookie } from "hono/cookie";
+import { describeRoute } from "hono-openapi";
+import { JsonMime, response_failure_schema } from "./constants";
+import { resolver } from "hono-openapi/zod";
 
 const login = new Hono().post(
   "/",
@@ -25,6 +28,29 @@ const login = new Hono().post(
       password: z.string({ message: "Hasło jest wymagane" }),
     })
   ),
+  describeRoute({
+    description: "Zaloguj się do usługi",
+    responses: {
+      201: {
+        description: "Pomyślne zapytanie",
+        content: {
+          [JsonMime]: { schema: resolver(z.object({ status: z.string() })) },
+        },
+      },
+      401: {
+        description: "Bład autoryzacji",
+        content: {
+          [JsonMime]: { schema: resolver(response_failure_schema) },
+        },
+      },
+      500: {
+        description: "Bład serwera",
+        content: {
+          [JsonMime]: { schema: resolver(response_failure_schema) },
+        },
+      },
+    },
+  }),
   async (c) => {
     try {
       const { email, password } = c.req.valid("json");
