@@ -6,8 +6,10 @@ import { users, konie } from "@/backend/db/schema";
 import { describeRoute } from "hono-openapi";
 import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "@hono/zod-openapi";
+// import { z } from "@hono/zod-openapi";
 import { RodzajeKoni } from "@/backend/db/types";
+import "zod-openapi/extend";
+import { z } from "zod";
 
 const konie_wydarzenia_get_response_success = z.array(
   z.object({
@@ -16,6 +18,10 @@ const konie_wydarzenia_get_response_success = z.array(
     rodzajKonia: z.enum(RodzajeKoni),
   })
 );
+
+const konie_wydarzenia_get_response_error = z
+  .object({ error: z.string() })
+  .openapi({ example: { error: "Błąd zapytania" } });
 
 export const konie_wydarzenia_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -29,6 +35,14 @@ export const konie_wydarzenia_get = new Hono<{
         content: {
           [JsonMime]: {
             schema: resolver(konie_wydarzenia_get_response_success),
+          },
+        },
+      },
+      500: {
+        desciption: "Błąd serwera",
+        content: {
+          [JsonMime]: {
+            schema: resolver(konie_wydarzenia_get_response_error),
           },
         },
       },
@@ -76,7 +90,7 @@ export const konie_wydarzenia_get = new Hono<{
         })
       );
     } catch {
-      return c.json({ error: "Błąd zapytania" });
+      return c.json({ error: "Błąd zapytania" }, 500);
     }
   }
 );
