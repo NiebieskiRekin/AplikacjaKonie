@@ -19,51 +19,8 @@ import "@hono/zod-openapi";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "../constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "@hono/zod-openapi";
-import {
-  RodzajeZdarzenProfilaktycznych,
-  RodzajeZdarzenRozrodczych,
-} from "@/backend/db/types";
+import { eventTypeUnionSchema } from "./schema";
 // import { z } from "@hono/zod-openapi";
-
-const common = z.object({
-  _id: z.number(),
-  nazwaKonia: z.string(),
-});
-
-const big_union = z.array(
-  z.union([
-    common.extend({
-      dataRozpoczecia: z.string().date(),
-      dataZakonczenia: z.string().date().nullable(),
-      opisZdarzenia: z.string().nullable(),
-    }),
-    common.extend({
-      dataZdarzenia: z.string().date(),
-      weterynarz: z.string(),
-      choroba: z.string().nullable(),
-      opisZdarzenia: z.string().nullable(),
-    }),
-    common.extend({
-      dataZdarzenia: z.string().date(),
-      weterynarz: z.string(),
-      rodzajZdarzenia: z.enum(RodzajeZdarzenRozrodczych),
-      opisZdarzenia: z.string().nullable(),
-    }),
-    common.extend({
-      dataZdarzenia: z.string().date(),
-      dataWaznosci: z.string().date().nullable(),
-      weterynarz: z.string(),
-      rodzajZdarzenia: z.enum(RodzajeZdarzenProfilaktycznych),
-      opisZdarzenia: z.string().nullable(),
-    }),
-    common.extend({
-      dataZdarzenia: z.string().date(),
-      dataWaznosci: z.string().date().nullable(),
-      kowal: z.string(),
-    }),
-  ])
-);
 
 export const wydarzenia_horseId_eventType_get = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -75,7 +32,7 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
       200: {
         description: "Pomyślne zapytanie",
         content: {
-          [JsonMime]: { schema: resolver(big_union) },
+          [JsonMime]: { schema: resolver(eventTypeUnionSchema) },
         },
       },
       400: {
