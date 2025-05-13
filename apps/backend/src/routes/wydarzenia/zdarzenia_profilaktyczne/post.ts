@@ -3,19 +3,42 @@ import { konie, zdarzeniaProfilaktyczne } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq, or } from "drizzle-orm";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-// import { describeRoute } from "hono-openapi";
-// import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-// import { resolver } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver } from "hono-openapi/zod";
 import "@hono/zod-openapi";
 import { zValidator } from "@hono/zod-validator";
 import { zdarzenieProfilaktyczneSchema } from "./schema";
-// import { z } from "@hono/zod-openapi";
+import { z } from "@hono/zod-openapi";
 
 export const wydarzenia_zdarzenia_profilaktyczne_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
 }>().post(
   "/zdarzenia_profilaktyczne",
   zValidator("json", zdarzenieProfilaktyczneSchema),
+  describeRoute({
+    description: "Dodaj nowe zdarzenie profilaktyczne",
+    responses: {
+      200: {
+        description: "Pomyślne zapytanie",
+        content: {
+          [JsonMime]: { schema: resolver(z.object({ message: z.string() })) },
+        },
+      },
+      400: {
+        description: "Błąd zapytania",
+        content: {
+          [JsonMime]: { schema: resolver(response_failure_schema) },
+        },
+      },
+      500: {
+        description: "Bład serwera",
+        content: {
+          [JsonMime]: { schema: resolver(response_failure_schema) },
+        },
+      },
+    },
+  }),
   async (c) => {
     try {
       const user = getUserFromContext(c);
