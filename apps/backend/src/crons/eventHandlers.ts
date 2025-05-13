@@ -25,9 +25,11 @@ export async function fetchUserEvents() {
     .from(notifications)
     .innerJoin(users, eq(notifications.userId, users.id))
     .where(
-      or(
-        eq(notifications.rodzajWysylania, sql`'Email'`),
-        eq(notifications.rodzajWysylania, sql`'Oba'`),
+      and(
+        or(
+          eq(notifications.rodzajWysylania, sql`'Email'`),
+          eq(notifications.rodzajWysylania, sql`'Oba'`)
+        ),
         eq(notifications.active, true)
       )
     );
