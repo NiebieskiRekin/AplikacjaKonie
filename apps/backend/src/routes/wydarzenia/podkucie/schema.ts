@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 
 export const podkucieSchema = z.object({
   konieId: z.array(z.number().positive()),

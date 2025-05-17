@@ -7,12 +7,10 @@ import {
   konieSelectSchema,
   konieUpdateSchema,
 } from "@/backend/db/schema";
-import { zValidator } from "@hono/zod-validator";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
-import "@hono/zod-openapi";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const konie_id_put_response_success = z.object({
   success: z.string(),

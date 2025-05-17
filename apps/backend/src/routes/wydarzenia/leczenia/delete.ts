@@ -3,10 +3,9 @@ import { leczenia, leczeniaSelectSchema } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { UserPayload } from "@/backend/middleware/auth";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
 const successful_response = z.object({ deletedEvent: leczeniaSelectSchema });

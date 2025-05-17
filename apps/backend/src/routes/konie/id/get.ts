@@ -1,14 +1,13 @@
 import { Hono } from "hono";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq, and } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/backend/db";
 import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
-import { generateV4ReadSignedUrl } from "../../images";
-import { describeRoute } from "hono-openapi";
+import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const konie_id_get_response_success = konieSelectSchema.extend({
   images_signed_urls: z.array(z.string().url()),

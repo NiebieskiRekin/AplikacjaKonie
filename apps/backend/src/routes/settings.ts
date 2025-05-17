@@ -1,22 +1,21 @@
 import { Hono } from "hono";
-import { db } from "../db";
-import { notifications } from "../db/schema";
+import { db } from "@/backend/db";
+import { notifications } from "@/backend/db/schema";
 import {
   authMiddleware,
   getUserFromContext,
   UserPayload,
-} from "../middleware/auth";
-import { zValidator } from "@hono/zod-validator";
+} from "@/backend/middleware/auth";
 import { eq, and, asc } from "drizzle-orm";
 import {
   RodzajPowiadomienia,
   RodzajWysylaniaPowiadomienia,
   RodzajePowiadomien,
-} from "../db/types";
-import { z } from "zod";
+} from "@/backend/db/types";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { z } from "@hono/zod-openapi";
 
 const common_settings = z.object({
   days: z.number().int().nonnegative(),

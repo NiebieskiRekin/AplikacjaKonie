@@ -10,11 +10,10 @@ import {
   podkucia,
   zdarzeniaProfilaktyczne,
 } from "@/backend/db/schema";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const konie_id_events_get_response_success = z.array(
   z.object({

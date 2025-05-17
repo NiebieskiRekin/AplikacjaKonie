@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db } from "@/backend/db";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import {
   users,
@@ -13,19 +13,18 @@ import {
   weterynarze,
   kowale,
   konieSelectSchema,
-} from "../db/schema";
+} from "@/backend/db/schema";
 import {
   authMiddleware,
   getUserFromContext,
   UserPayload,
-} from "../middleware/auth";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-import { generateV4ReadSignedUrl } from "./images";
+} from "@/backend/middleware/auth";
+import { generateV4ReadSignedUrl } from "@/backend/routes/images";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { RodzajeZdarzenRozrodczych } from "@/backend/db/types";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
-import { RodzajeZdarzenRozrodczych } from "../db/types";
+import { z } from "@hono/zod-openapi";
 
 const eventTypes = z.enum([
   "Podkucia",

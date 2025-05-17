@@ -1,21 +1,20 @@
 import { Hono } from "hono";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
-import { users } from "../db/schema";
-import { db } from "../db";
-import { z } from "zod";
-import { zValidator } from "@hono/zod-validator";
+import { users } from "@/backend/db/schema";
+import { db } from "@/backend/db";
 import {
   access_cookie_opts,
   ACCESS_TOKEN,
   createAuthTokens,
   refresh_cookie_opts,
   REFRESH_TOKEN,
-} from "../middleware/auth";
+} from "@/backend/middleware/auth";
 import { setCookie } from "hono/cookie";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { z } from "@hono/zod-openapi";
 
 const login = new Hono().post(
   "/",

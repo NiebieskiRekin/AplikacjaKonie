@@ -3,12 +3,10 @@ import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { choroby, chorobySelectSchema } from "@/backend/db/schema";
-
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 export const konie_choroby_get = new Hono<{
   Variables: { jwtPayload: UserPayload };

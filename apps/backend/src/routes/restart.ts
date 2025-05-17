@@ -1,21 +1,20 @@
 import { Hono } from "hono";
 import { eq, sql } from "drizzle-orm";
-import { users } from "../db/schema";
-import { db } from "../db";
+import { users } from "@/backend/db/schema";
+import { db } from "@/backend/db";
 import {
   ACCESS_TOKEN,
   authMiddleware,
   getUserFromContext,
   REFRESH_TOKEN,
   UserPayload,
-} from "../middleware/auth";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
+} from "@/backend/middleware/auth";
 import bcrypt from "bcrypt";
 import { deleteCookie } from "hono/cookie";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { z } from "@hono/zod-openapi";
 
 const passwordResetSchema = z
   .object({

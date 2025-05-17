@@ -1,6 +1,5 @@
 import { Hono } from "hono";
-import { authMiddleware, UserPayload } from "../../middleware/auth";
-
+import { authMiddleware, UserPayload } from "@/backend/middleware/auth";
 import { konie_get } from "./get";
 import { konie_post } from "./post";
 import { konie_wydarzenia_get } from "./wydarzenia/get";

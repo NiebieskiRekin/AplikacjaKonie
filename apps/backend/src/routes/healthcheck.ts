@@ -1,12 +1,11 @@
 import { Hono } from "hono";
-import { db } from "../db";
+import { db } from "@/backend/db";
 import { sql } from "drizzle-orm";
 
-import { describeRoute } from "hono-openapi";
 import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
-import { z } from "zod";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const schema = z.object({ status: z.string() });
 

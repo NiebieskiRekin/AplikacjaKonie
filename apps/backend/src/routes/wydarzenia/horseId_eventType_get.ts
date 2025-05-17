@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db } from "../../db";
+import { db } from "@/backend/db";
 import { eq } from "drizzle-orm";
 import {
   weterynarze,
@@ -10,16 +10,12 @@ import {
   choroby,
   leczenia,
   rozrody,
-} from "../../db/schema";
-import { UserPayload } from "../../middleware/auth";
-// import { describeRoute } from "hono-openapi";
-// import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-// import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
-import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "../constants";
-import { resolver } from "hono-openapi/zod";
+} from "@/backend/db/schema";
+import { UserPayload } from "@/backend/middleware/auth";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
+import { resolver } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
 // import { z } from "@hono/zod-openapi";
 
 export const wydarzenia_horseId_eventType_get = new Hono<{

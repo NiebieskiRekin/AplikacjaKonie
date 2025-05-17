@@ -5,11 +5,9 @@ import { eq, or } from "drizzle-orm";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
-import { zValidator } from "@hono/zod-validator";
-import { zdarzenieProfilaktyczneSchema } from "./schema";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { z } from "@hono/zod-openapi";
+import { zdarzenieProfilaktyczneSchema } from "./schema";
 
 export const wydarzenia_zdarzenia_profilaktyczne_post = new Hono<{
   Variables: { jwtPayload: UserPayload };

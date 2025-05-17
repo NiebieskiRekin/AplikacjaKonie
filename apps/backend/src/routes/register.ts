@@ -7,14 +7,13 @@ import {
   notifications,
   usersSelectSchema,
   userPermissionsSelectSchema,
-} from "../db/schema";
-import { db } from "../db";
-import { zValidator } from "@hono/zod-validator";
-import z from "zod";
-import { adminAuthMiddleware } from "../middleware/adminauth";
+} from "@/backend/db/schema";
+import { db } from "@/backend/db";
+import { adminAuthMiddleware } from "@/backend/middleware/adminauth";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { z } from "@hono/zod-openapi";
 
 const register = new Hono()
   .use(adminAuthMiddleware)

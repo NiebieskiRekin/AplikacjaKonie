@@ -16,7 +16,7 @@ import {
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import z from "zod";
+import { z } from "@hono/zod-openapi";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(

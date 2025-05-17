@@ -8,10 +8,10 @@ import {
   users,
 } from "@/backend/db/schema";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
-import { zValidator } from "@hono/zod-validator";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
+// import { z } from "@hono/zod-openapi";
 
 export const kowale_post = new Hono<{
   Variables: { jwtPayload: UserPayload };

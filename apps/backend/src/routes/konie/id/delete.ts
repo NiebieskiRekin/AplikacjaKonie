@@ -1,13 +1,12 @@
 import { Hono } from "hono";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/backend/db";
 import { konie } from "@/backend/db/schema";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const konie_id_delete_response_success = z.object({ success: z.string() });
 

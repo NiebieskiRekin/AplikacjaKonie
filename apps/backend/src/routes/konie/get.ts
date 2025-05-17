@@ -1,14 +1,14 @@
 import { RodzajeKoni } from "@/backend/db/types";
 import { Hono } from "hono";
+import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
-import { JsonMime, response_failure_schema } from "../constants";
-import { resolver } from "hono-openapi/zod";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, konie, zdjeciaKoni } from "@/backend/db/schema";
-import { generateV4ReadSignedUrl } from "../images";
+import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 
 const konieGetResponseSchemaSuccess = z.object({
   data: z.array(

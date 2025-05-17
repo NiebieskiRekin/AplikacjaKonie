@@ -3,10 +3,10 @@ import { db } from "@/backend/db";
 import { eq, and } from "drizzle-orm";
 import { kowale, kowaleSelectSchema, users } from "@/backend/db/schema";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { describeRoute } from "hono-openapi";
-import { z } from "zod";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 export const kowale_get = new Hono<{
   Variables: { jwtPayload: UserPayload };

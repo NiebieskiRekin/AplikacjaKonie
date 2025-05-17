@@ -1,16 +1,15 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { db, eq } from "../db";
+import { db, eq } from "@/backend/db";
 import {
   hodowcyKoni,
   hodowcyKoniInsertSchema,
   hodowcyKoniSelectSchema,
-} from "../db/schema";
-import { adminAuthMiddleware } from "../middleware/adminauth";
+} from "@/backend/db/schema";
+import { adminAuthMiddleware } from "@/backend/middleware/adminauth";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
-import { z } from "zod";
-import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { z } from "@hono/zod-openapi";
 
 // eslint-disable-next-line drizzle/enforce-delete-with-where
 export const hodowcyKoniRoute = new Hono()

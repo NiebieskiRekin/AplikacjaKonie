@@ -7,11 +7,9 @@ import {
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { UserPayload } from "@/backend/middleware/auth";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
-import { zValidator } from "@hono/zod-validator";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
 const successful_response = z.object({ updatedEvent: chorobySelectSchema });

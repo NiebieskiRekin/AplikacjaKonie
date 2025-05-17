@@ -3,12 +3,11 @@ import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { eq, isNull, and, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, konie } from "@/backend/db/schema";
-import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
 import { RodzajeKoni } from "@/backend/db/types";
-import "@hono/zod-openapi";
-import { z } from "zod";
+import { resolver } from "hono-openapi/zod";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 const konie_wydarzenia_get_response_success = z.array(
   z.object({

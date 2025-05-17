@@ -1,12 +1,15 @@
 import { Hono } from "hono";
-import { db } from "../../db";
+import { db } from "@/backend/db";
 import { eq, and } from "drizzle-orm";
-import { weterynarze, users, weterynarzeSelectSchema } from "../../db/schema";
-import { getUserFromContext, UserPayload } from "../../middleware/auth";
-import { describeRoute } from "hono-openapi";
+import {
+  weterynarze,
+  users,
+  weterynarzeSelectSchema,
+} from "@/backend/db/schema";
+import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
 export const weterynarze_get = new Hono<{

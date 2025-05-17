@@ -8,13 +8,13 @@ import {
   refresh_cookie_opts,
   REFRESH_TOKEN,
   RefreshTokenData,
-} from "../middleware/auth";
-import { ProcessEnv } from "../env";
+} from "@/backend/middleware/auth";
+import { ProcessEnv } from "@/backend/env";
 import { verify } from "hono/jwt";
-import { describeRoute } from "hono-openapi";
-import { JsonMime, response_failure_schema } from "./constants";
+import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
-import { z } from "zod";
+import { describeRoute } from "hono-openapi";
+import { z } from "@hono/zod-openapi";
 
 /**
  * Handle the refresh token. Needs to be before the authorization
