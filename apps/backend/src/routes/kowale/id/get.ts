@@ -18,7 +18,20 @@ export const kowale_id_get = new Hono<{
       200: {
         description: "Pomyślne zapytanie",
         content: {
-          [JsonMime]: { schema: resolver(kowaleSelectSchema) },
+          [JsonMime]: {
+            schema: resolver(
+              kowaleSelectSchema.openapi({
+                description: "Szczegóły wskazanego kowala",
+                example: {
+                  id: 1,
+                  imieINazwisko: "Jan Kowalski",
+                  numerTelefonu: "831321432",
+                  hodowla: 5,
+                  active: true,
+                },
+              })
+            ),
+          },
         },
       },
       401: {

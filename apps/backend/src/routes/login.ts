@@ -33,7 +33,18 @@ const login = new Hono().post(
       201: {
         description: "Pomyślne zapytanie",
         content: {
-          [JsonMime]: { schema: resolver(z.object({ status: z.string() })) },
+          [JsonMime]: {
+            schema: resolver(
+              z.object({
+                status: z
+                  .string()
+                  .openapi({
+                    example: "Logowanie poprawne",
+                    description: "Odpowiedź serwera",
+                  }),
+              })
+            ),
+          },
         },
       },
       401: {

@@ -15,11 +15,14 @@ app.get(
   openAPISpecs(app, {
     documentation: {
       info: {
-        title: "Hono API",
+        title: "Konie API",
         version: "0.1.0",
         description: "API do aplikacji koni i weterynarzy",
       },
-      servers: [{ url: "http://localhost:3000", description: "Local Server" }],
+      servers: [
+        { url: "http://localhost:3000", description: "Local Server" },
+        { url: "https://konie-dev.at2k.pl", description: "Development server" },
+      ],
     },
   })
 );
