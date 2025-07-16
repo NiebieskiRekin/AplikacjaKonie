@@ -68,8 +68,8 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               nazwaKonia: konie.nazwa,
             })
             .from(choroby)
-            .innerJoin(konie, eq(choroby.kon, konie.id))
-            .where(eq(choroby.kon, horseId));
+            .leftJoin(konie, eq(choroby.kon, konie.id))
+            .where(eq(konie.id, horseId));
           break;
         case "leczenia":
           events = await db
@@ -82,10 +82,10 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               nazwaKonia: konie.nazwa,
             })
             .from(leczenia)
-            .innerJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
-            .innerJoin(choroby, eq(leczenia.choroba, choroby.id))
-            .innerJoin(konie, eq(leczenia.kon, konie.id))
-            .where(eq(leczenia.kon, horseId));
+            .leftJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
+            .leftJoin(choroby, eq(leczenia.choroba, choroby.id))
+            .rightJoin(konie, eq(leczenia.kon, konie.id))
+            .where(eq(konie.id, horseId));
           break;
         case "rozrody":
           events = await db
@@ -97,10 +97,10 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               opisZdarzenia: rozrody.opisZdarzenia,
               nazwaKonia: konie.nazwa,
             })
-            .from(rozrody)
-            .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
-            .innerJoin(konie, eq(rozrody.kon, konie.id))
-            .where(eq(rozrody.kon, horseId));
+            .from(konie)
+            .leftJoin(rozrody, eq(rozrody.kon, konie.id))
+            .leftJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
+            .where(eq(konie.id, horseId));
           break;
         case "zdarzenia_profilaktyczne":
           events = await db
@@ -113,13 +113,16 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               opisZdarzenia: zdarzeniaProfilaktyczne.opisZdarzenia,
               nazwaKonia: konie.nazwa,
             })
-            .from(zdarzeniaProfilaktyczne)
-            .innerJoin(konie, eq(zdarzeniaProfilaktyczne.kon, konie.id))
-            .innerJoin(
+            .from(konie)
+            .leftJoin(
+              zdarzeniaProfilaktyczne,
+              eq(zdarzeniaProfilaktyczne.kon, konie.id)
+            )
+            .leftJoin(
               weterynarze,
               eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id)
             )
-            .where(eq(zdarzeniaProfilaktyczne.kon, horseId));
+            .where(eq(konie.id, horseId));
           break;
         case "podkucia":
           events = await db
@@ -130,28 +133,14 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               kowal: kowale.imieINazwisko,
               nazwaKonia: konie.nazwa,
             })
-            .from(podkucia)
-            .innerJoin(konie, eq(podkucia.kon, konie.id))
-            .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
-            .where(eq(podkucia.kon, horseId));
+            .from(konie)
+            .leftJoin(podkucia, eq(podkucia.kon, konie.id))
+            .leftJoin(kowale, eq(podkucia.kowal, kowale.id))
+            .where(eq(konie.id, horseId));
           break;
         default:
           return c.json({ error: "Nieznany typ zdarzenia" }, 400);
       }
-
-      // if (events.length === 0) {
-      //   const horse = await db
-      //     .select({ nazwaKonia: konie.nazwa })
-      //     .from(konie)
-      //     .where(eq(konie.id, horseId))
-      //     .then((res) => res[0]);
-
-      //   if (horse){
-      //     return c.json(horse, 200)
-      //   } else {
-      //     return c.json({ error: "Koń nie znaleziony" }, 404)
-      //   }
-      // }
 
       return c.json(events, 200);
     } catch (error) {
