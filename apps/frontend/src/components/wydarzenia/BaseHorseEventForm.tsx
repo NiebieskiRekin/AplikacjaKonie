@@ -342,6 +342,35 @@ const BaseHorseEventForm = ({
 
   const { title, fields, eventOptions } = eventTypes[type];
 
+  const handleDelete = async () => {
+    if (!eventId) return;
+
+    const confirmed = window.confirm(
+      "Czy na pewno chcesz usunąć to zdarzenie?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await APIClient.api.wydarzenia[":type{[A-Za-z_-]+}"][
+        ":id{[0-9]+}"
+      ].$delete({
+        param: {
+          type: eventTypes[type].apiEndpoint,
+          id: eventId,
+        },
+      });
+
+      if (response.status === 200) {
+        navigate(`/wydarzenia/${id}/${displayType}`);
+      } else {
+        const data = await response.json();
+        setError(data.error || "Nie udało się usunąć zdarzenia.");
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
       <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
@@ -509,12 +538,24 @@ const BaseHorseEventForm = ({
           </>
         )}
 
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700"
-        >
-          ✅ Dodaj zdarzenie
-        </button>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <button
+            type="submit"
+            className="w-full flex-1 rounded-lg bg-green-600 py-3 text-white transition hover:bg-green-700 sm:w-auto"
+          >
+            {edit ? "💾 Zapisz zmiany" : "✅ Dodaj zdarzenie"}
+          </button>
+
+          {edit && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="w-full flex-1 rounded-lg bg-red-600 py-3 text-white transition hover:bg-red-700 sm:w-auto"
+            >
+              🗑 Usuń zdarzenie
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

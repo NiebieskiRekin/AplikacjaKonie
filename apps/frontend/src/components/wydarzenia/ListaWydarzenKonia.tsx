@@ -128,7 +128,7 @@ function HorseEventList({ type }: { type: string }) {
             </tr>
           </thead>
           <tbody>
-            {events.length > 0 ? (
+            {events.length > 0 && events[0]._id !== null ? (
               events.map((event) => (
                 <tr
                   key={event.id}
