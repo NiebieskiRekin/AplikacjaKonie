@@ -35,7 +35,6 @@ jobs:
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@a4133a9690f77b38c8227021ed497fc1267635d5 # v3
         env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           ANSIBLE_HOST: ${{secrets.ANSIBLE_HOST}}
           ANSIBLE_USER: ${{secrets.ANSIBLE_USER}}
           ENV_FILE: "${{secrets.ENV_FILE}}"
@@ -49,4 +48,4 @@ jobs:
           known_hosts: ${{secrets.SSH_KNOWN_HOSTS}}
           options: |
             --inventory infra/Ansible/inventory/inventory.yml
-            --verbose
+            -vvv
