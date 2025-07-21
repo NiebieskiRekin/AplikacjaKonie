@@ -15,7 +15,6 @@ services:
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.entrypoints=https"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls=true"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.tls.certResolver=myresolver"
-      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-backend.middlewares=crowdsec"
   frontend:
     build:
       context: ./
@@ -34,7 +33,6 @@ services:
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.entrypoints=https"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.tls=true"
       - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.tls.certResolver=myresolver"
-      - "traefik.http.routers.${ENV_NAME}-aplikacjakonie-frontend.middlewares=crowdsec"
 networks:
   traefik:
     external: true
