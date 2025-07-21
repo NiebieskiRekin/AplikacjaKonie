@@ -32,15 +32,6 @@ jobs:
             docker-compose.app.yml
           sparse-checkout-cone-mode: false
 
-      - name: Test SSH Connection Directly
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > .ansible_key
-          chmod 600 .ansible_key
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > .ansible_known_hosts
-          ssh -vvv -i .ansible_key -o UserKnownHostsFile=.ansible_known_hosts ${{ secrets.ANSIBLE_USER }}@${{ secrets.ANSIBLE_HOST }} 'echo "Direct SSH connection successful"'
-          rm .ansible_known_hosts
-          rm .ansible_key
-
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@a4133a9690f77b38c8227021ed497fc1267635d5 # v3
         env:
