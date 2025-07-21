@@ -76,7 +76,7 @@ function AddKonia() {
       setPlec("");
       // setFile(null);
 
-      if (response.status == 201 && file) {
+      if (response.status == 200 && file) {
         const data = await response.json();
         const response_image_url_upload = await APIClient.api.images.upload[
           ":filename"
