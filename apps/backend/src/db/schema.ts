@@ -71,6 +71,7 @@ export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
   nazwa: varchar("nazwa").notNull(),
   email: varchar("email").notNull(),
   numer_telefonu: NUMER_TELEFONU,
+  liczba_requestow: integer("liczba_requestow").default(0).notNull(),
 });
 
 export const hodowcyKoniSelectSchema = createSelectSchema(hodowcyKoni);
