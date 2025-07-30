@@ -92,7 +92,7 @@ const sendRequest = async (endpoint: string, jsonData: any, token: string) => {
     );
     formData.append("rodzajKonia", jsonData.rodzajKonia || "");
     formData.append("plec", jsonData.plec || "");
-    formData.append("file", jsonData.file ? "true" : "false");
+    formData.append("file", false);
 
     // Generowanie komendy curl
     const curlCommand = `curl --location 'http://localhost:3001${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${jsonData.nazwa}' \\\n--form 'numerPrzyzyciowy=${jsonData.numerPrzyzyciowy}' \\\n--form 'numerChipa=${jsonData.numerChipa}' \\\n--form 'rocznikUrodzenia=${jsonData.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${jsonData.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${jsonData.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${jsonData.rodzajKonia}' \\\n--form 'plec=${jsonData.plec}' \\\n--form 'file=${jsonData.file}'`;
