@@ -53,16 +53,27 @@ function GeminiChat() {
   const handleSend = async () => {
     if (!prompt.trim()) return;
 
-    const userMessage: Message = { role: "user", text: prompt };
-    setMessages((prev) => [...prev, userMessage]);
-    setPrompt("");
-    setLoading(true);
     setError("");
-    const konieBezZdjec = horses.map(
-      ({ img_url, imageId, ...reszta }) => reszta
-    );
+    setLoading(true);
 
     try {
+      const liczbaRes = await APIClient.api.chat.$get();
+      if (!liczbaRes.ok) throw new Error("Błąd pobierania liczby zapytań");
+
+      const { liczba_requestow } = await liczbaRes.json();
+      if (liczba_requestow <= 0) {
+        throw new Error("Brak dostępnych zapytań do Gemini");
+      }
+
+      const userMessage: Message = { role: "user", text: prompt };
+      setMessages((prev) => [...prev, userMessage]);
+      setPrompt("");
+      setLoading(true);
+      setError("");
+      const konieBezZdjec = horses.map(
+        ({ img_url, imageId, ...reszta }) => reszta
+      );
+
       const res = await APIClient.api.chat.$post({
         json: {
           konie: JSON.stringify(konieBezZdjec),
@@ -75,13 +86,41 @@ function GeminiChat() {
       if (!res.ok) throw new Error("Błąd komunikacji z Gemini");
 
       const data = await res.json();
-      const geminiMessage1: Message = {
-        role: "gemini",
-        text: String(data.status),
-      };
-      const geminiMessage2: Message = { role: "gemini", text: data.response };
 
-      setMessages((prev) => [...prev, geminiMessage1, geminiMessage2]);
+      try {
+        const parsedResponse = JSON.parse(data.response);
+
+        if (parsedResponse.message) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "gemini", text: parsedResponse.message },
+          ]);
+        } else {
+          if (data.status == 200 || data.status == 201) {
+            setMessages((prev) => [
+              ...prev,
+              { role: "gemini", text: "Dodano" },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              { role: "gemini", text: "Błąd podczas dodawania" },
+            ]);
+          }
+        }
+      } catch (e) {
+        // fallback jeśli JSON.parse się nie uda
+        setMessages((prev) => [
+          ...prev,
+          { role: "gemini", text: data.response },
+        ]);
+      }
+
+      // Odejmij 1 request w bazie danych
+      const updateRes = await APIClient.api.chat.decrease.$post();
+      if (!updateRes.ok) {
+        throw new Error("Błąd aktualizacji liczby zapytań");
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
