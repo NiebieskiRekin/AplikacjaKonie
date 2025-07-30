@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
+import { konieInsertSchema } from "@/backend/db/schema";
 
 dotenv.config();
 
@@ -70,32 +71,34 @@ function extractEndpointAndJson(text: string): [string, string] {
   return [endpoint, cleaned];
 }
 
-const sendRequest = async (endpoint: string, jsonData: any, token: string) => {
+const sendRequest = async (
+  endpoint: string,
+  jsonData: unknown,
+  token: string
+) => {
   const formData = new FormData();
 
   if (endpoint === "/api/konie") {
+    const kon_result = await konieInsertSchema.spa(jsonData);
+    if (!kon_result.success) {
+      throw new Error(
+        `Błąd wysyłania zapytania: ${(kon_result.error as Error).message}`
+      );
+    }
+    const kon = kon_result.data;
     // Dodajemy dane formularza
-    formData.append("nazwa", jsonData.nazwa || "");
-    formData.append("numerPrzyzyciowy", jsonData.numerPrzyzyciowy || "");
-    formData.append("numerChipa", jsonData.numerChipa || "");
-    formData.append(
-      "rocznikUrodzenia",
-      jsonData.rocznikUrodzenia.toString() || ""
-    );
-    formData.append(
-      "dataPrzybyciaDoStajni",
-      jsonData.dataPrzybyciaDoStajni || ""
-    );
-    formData.append(
-      "dataOdejsciaZeStajni",
-      jsonData.dataOdejsciaZeStajni || ""
-    );
-    formData.append("rodzajKonia", jsonData.rodzajKonia || "");
-    formData.append("plec", jsonData.plec || "");
-    formData.append("file", false);
+    formData.append("nazwa", kon.nazwa || "");
+    formData.append("numerPrzyzyciowy", kon.numerPrzyzyciowy || "");
+    formData.append("numerChipa", kon.numerChipa || "");
+    formData.append("rocznikUrodzenia", kon.rocznikUrodzenia?.toString() || "");
+    formData.append("dataPrzybyciaDoStajni", kon.dataPrzybyciaDoStajni || "");
+    formData.append("dataOdejsciaZeStajni", kon.dataOdejsciaZeStajni || "");
+    formData.append("rodzajKonia", kon.rodzajKonia || "");
+    formData.append("plec", kon.plec || "");
+    formData.append("file", "false");
 
     // Generowanie komendy curl
-    const curlCommand = `curl --location 'http://localhost:3001${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${jsonData.nazwa}' \\\n--form 'numerPrzyzyciowy=${jsonData.numerPrzyzyciowy}' \\\n--form 'numerChipa=${jsonData.numerChipa}' \\\n--form 'rocznikUrodzenia=${jsonData.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${jsonData.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${jsonData.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${jsonData.rodzajKonia}' \\\n--form 'plec=${jsonData.plec}' \\\n--form 'file=${jsonData.file}'`;
+    const curlCommand = `curl --location 'http://localhost:3001${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
 
     // Wysłanie zapytania jako multipart/form-data
     try {
@@ -190,7 +193,7 @@ export const gemini_chat_post = new Hono<{
 
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const chat = await model.startChat({ history: [] });
+      const chat = model.startChat({ history: [] });
 
       const examples: [string, string, string][] = [];
       for (const file of files) {
@@ -227,6 +230,7 @@ export const gemini_chat_post = new Hono<{
       const [endpoint, clean] = extractEndpointAndJson(result.response.text());
       let jsonData;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         jsonData = JSON.parse(clean);
       } catch (err) {
         return c.json(
@@ -247,6 +251,7 @@ export const gemini_chat_post = new Hono<{
 
       return c.json({
         endpoint,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         generated: jsonData,
         curl: curlCommand,
         response: fetchText,

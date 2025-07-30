@@ -29,7 +29,7 @@ export const liczba_requestow_decrease = new Hono<{
       .where(eq(hodowcyKoni.id, hodowla.hodowlaId));
 
     return c.json({ status: "OK" });
-  } catch (err) {
+  } catch {
     return c.json({ error: "Błąd aktualizacji liczby requestów" }, 500);
   }
 });
