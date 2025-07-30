@@ -12,7 +12,7 @@ import settingsRoute from "./settings";
 import images from "./images";
 import { healthcheck } from "./healthcheck";
 import raport from "./raport";
-import { gemini_chat_post } from "./chat";
+import chatRoute from "./chat";
 
 export function registerRoutes(app: Hono) {
   return app
@@ -30,7 +30,7 @@ export function registerRoutes(app: Hono) {
     .route("/images", images)
     .route("/healthcheck", healthcheck)
     .route("/raport", raport)
-    .route("/chat", gemini_chat_post);
+    .route("/chat", chatRoute);
 }
 export const apiRoutes = registerRoutes(new Hono());
 
