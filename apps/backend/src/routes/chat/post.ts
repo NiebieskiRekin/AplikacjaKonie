@@ -12,7 +12,7 @@ import { konieInsertSchema } from "@/backend/db/schema";
 
 dotenv.config();
 
-const BASE_DIR = path.resolve(__dirname, "../../../public");
+const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = process.env.AISTUDIO_API_KEY;
 
 const schemaPrompt = fs
