@@ -78,7 +78,9 @@ export const konie_id_imageId_delete = new Hono<{
         const nextDefaultImage = await db
           .select()
           .from(zdjeciaKoni)
-          .where(eq(zdjeciaKoni.kon, horseId))
+          .where(
+            and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.default, false))
+          )
           .orderBy(desc(zdjeciaKoni.id))
           .limit(1)
           .then((res) => res[0]);

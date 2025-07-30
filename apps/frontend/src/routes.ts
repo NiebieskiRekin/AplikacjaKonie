@@ -13,6 +13,7 @@ export default [
     route("/restart", "./components/Restart.tsx"),
     route("/ustawienia", "./components/Settings.tsx"),
     route("/raport/html/:id", "./components/raport/HorseRaport.tsx"),
+    route("/chat", "./components/Chat.tsx"),
 
     ...prefix("konie", [
       index("./components/konie/Konie.tsx"),
