@@ -98,7 +98,7 @@ export const konie_post = new Hono<{
         await db.insert(konie).values(kon_to_insert).returning()
       ).at(0)!;
 
-      if (formData.file !== true) {
+      if (formData.file == true) {
         // const dimensions = imageSize(await formData.file!.bytes());
 
         // const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
