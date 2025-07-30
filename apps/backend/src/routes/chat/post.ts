@@ -5,13 +5,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { z } from "zod";
 import dotenv from "dotenv";
-import { UserPayload } from "@/backend/middleware/auth";
 import fs from "fs";
 import path from "path";
+import { UserPayload } from "@/backend/middleware/auth";
 
 dotenv.config();
 
-const BASE_DIR = path.resolve(__dirname, "../../public");
+const BASE_DIR = path.resolve(__dirname, "../../../public");
 const API_KEY = process.env.AISTUDIO_API_KEY;
 
 const schemaPrompt = fs
