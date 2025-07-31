@@ -62,6 +62,12 @@ const NavLinks = () => (
     >
       Wydarzenia w stajni
     </Link>
+    <Link
+      to="/chat"
+      className="hover:bg-opacity-80 rounded-lg bg-gradient-to-r from-purple-400 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition"
+    >
+      Asystent
+    </Link>
 
     <Link
       to="/ustawienia"
