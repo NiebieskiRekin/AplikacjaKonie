@@ -165,7 +165,7 @@ function GeminiChat() {
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
       <div className="mb-6 w-full max-w-2xl text-center text-3xl font-bold text-white">
-        🧠 Chat z Gemini
+        🧠 Chat z Asystentem
       </div>
 
       <div className="w-full max-w-2xl space-y-4 rounded-lg bg-white p-4 shadow-md md:p-6">
@@ -186,7 +186,7 @@ function GeminiChat() {
             </div>
           ))}
           {loading && (
-            <p className="text-sm text-gray-500 italic">Gemini pisze...</p>
+            <p className="text-sm text-gray-500 italic">Asystent pisze...</p>
           )}
         </div>
 
