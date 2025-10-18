@@ -25,6 +25,7 @@ import { RodzajeZdarzenRozrodczych } from "@/backend/db/types";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "../logs/logger";
 
 const eventTypes = z.enum([
   "Podkucia",
@@ -467,7 +468,7 @@ const raport = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
 
         return c.json(result as HorseReportResult, 200);
       } catch (e) {
-        console.error(e);
+        log("Raport", "error", "", e as Error);
         return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
       }
     }

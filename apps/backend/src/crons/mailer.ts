@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { ProcessEnv } from "../env";
 import { generateEmailTemplate } from "./emailTemplate";
+import { log } from "../logs/logger";
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -8,7 +9,7 @@ export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: ProcessEnv.EMAIL_USER,
-    pass: ProcessEnv.EMAIL_PASS
+    pass: ProcessEnv.EMAIL_PASS,
   },
 });
 
@@ -16,7 +17,15 @@ export const transporter = nodemailer.createTransport({
  * Wysyła wiadomości e-mail do użytkowników
  */
 export async function sendEmailNotifications(
-  userNotifications: Record<string, { wydarzenia: Record<string, { nazwaKonia: string; rodzajKonia: string; dataWaznosci: string }[]> }>
+  userNotifications: Record<
+    string,
+    {
+      wydarzenia: Record<
+        string,
+        { nazwaKonia: string; rodzajKonia: string; dataWaznosci: string }[]
+      >;
+    }
+  >
 ) {
   for (const email in userNotifications) {
     try {
@@ -32,9 +41,14 @@ export async function sendEmailNotifications(
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`Wysłano e-mail do: ${email}`);
+      log("Email", "info", `Wysłano e-mail do: ${email}`);
     } catch (error) {
-      console.error(`Błąd wysyłania e-maila do ${email}:`, error);
+      log(
+        "Email",
+        "debug",
+        `Błąd wysyłania e-maila do ${email}:`,
+        error as Error
+      );
     }
   }
 }
