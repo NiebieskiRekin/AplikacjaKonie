@@ -1,5 +1,5 @@
 import winston from "winston";
-import { __prod__, ProcessEnv } from "../env";
+import { ProcessEnv } from "../env";
 import { LogEntry, LogEntrySchema } from "./schema";
 import { z } from "zod";
 
@@ -25,7 +25,7 @@ const ndjsonFormat = winston.format.printf((info) => {
 
   // Usuwamy puste pola
   Object.keys(logData).forEach(
-    (key) => (logData as any)[key] === undefined && delete (logData as any)[key]
+    (key) => (logData as any)[key] === undefined && delete (logData as any)[key] // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
   );
 
   return JSON.stringify(logData);
@@ -36,7 +36,7 @@ const textFormat = winston.format.printf((info) => {
 
   const { level, message, category, timestamp, error } = logInfo;
 
-  let output = `${timestamp} [${category}] ${level.toUpperCase()}: ${message}`;
+  let output = `${timestamp as string} [${category}] ${level.toUpperCase()}: ${message}`;
 
   // Obsługa błędu, jeśli format.errors({ stack: true }) go dodał
   if (error && error.stack) {

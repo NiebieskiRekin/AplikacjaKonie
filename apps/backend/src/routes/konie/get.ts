@@ -94,7 +94,9 @@ export const konie_get = new Hono<{
 
       const images_urls = await Promise.allSettled(
         horsesList.map((horse) =>
-          horse.imageId ? generateV4ReadSignedUrl(horse.imageId) : null
+          horse.imageId
+            ? generateV4ReadSignedUrl(horse.imageId)
+            : new Promise((resolve) => resolve(null))
         )
       );
 
