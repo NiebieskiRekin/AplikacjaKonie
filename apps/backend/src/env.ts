@@ -66,6 +66,7 @@ const ServeEnv = z.object({
 
   EMAIL_USER: z.string().email(),
   EMAIL_PASS: z.string(),
+  LOG_FORMAT: z.enum(["json", "text"]).default("text"),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
