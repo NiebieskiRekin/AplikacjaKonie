@@ -62,7 +62,7 @@ const logger = winston.createLogger({
  */
 export function log(
   category: string,
-  level: "info" | "warn" | "error",
+  level: "info" | "warn" | "error" | "debug",
   message: string,
   error?: Error
 ) {
