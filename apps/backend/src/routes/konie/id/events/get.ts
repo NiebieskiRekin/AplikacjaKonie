@@ -14,6 +14,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_events_get_response_success = z.array(
   z.object({
@@ -134,7 +135,12 @@ export const konie_id_events_get = new Hono<{
 
       return c.json(after_union);
     } catch (error) {
-      console.error("Błąd pobierania zdarzeń konia:", error);
+      log(
+        "Konie ID Events",
+        "error",
+        "Błąd pobierania zdarzeń konia:",
+        error as Error
+      );
       return c.json({ error: "Błąd pobierania zdarzeń konia." }, 500);
     }
   }

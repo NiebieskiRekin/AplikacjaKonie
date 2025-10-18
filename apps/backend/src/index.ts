@@ -10,7 +10,10 @@ export const server = serve(
     fetch: app.fetch,
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-    log("Server", "info", "Połączono z Serwerem");
+    log(
+      "Server",
+      "info",
+      `Server is running on http://${info.address}:${info.port}`
+    );
   }
 );

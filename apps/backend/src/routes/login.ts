@@ -15,6 +15,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "../logs/logger";
 
 const login = new Hono().post(
   "/",
@@ -36,12 +37,10 @@ const login = new Hono().post(
           [JsonMime]: {
             schema: resolver(
               z.object({
-                status: z
-                  .string()
-                  .openapi({
-                    example: "Logowanie poprawne",
-                    description: "Odpowiedź serwera",
-                  }),
+                status: z.string().openapi({
+                  example: "Logowanie poprawne",
+                  description: "Odpowiedź serwera",
+                }),
               })
             ),
           },
@@ -89,7 +88,7 @@ const login = new Hono().post(
 
       return c.json({ status: "Logowanie poprawne" }, 200);
     } catch (error) {
-      console.log(error);
+      log("Login", "error", "", error as Error);
       return c.json({ error: "Błąd podczas logowania" }, 500);
     }
   }

@@ -8,6 +8,7 @@ import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_upload_post_response_success = z.object({
   message: z.string(),
@@ -91,7 +92,12 @@ export const konie_id_upload_post = new Hono<{
         200
       );
     } catch (error) {
-      console.error("Błąd podczas dodawania konia:", error);
+      log(
+        "Konie Image Post",
+        "error",
+        "Błąd podczas dodawania konia:",
+        error as Error
+      );
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
     }
   }

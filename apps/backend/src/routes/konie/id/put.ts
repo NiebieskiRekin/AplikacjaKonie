@@ -11,6 +11,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_put_response_success = z.object({
   success: z.string(),
@@ -113,7 +114,7 @@ export const konie_id_put = new Hono<{
         horse: updatedHorse,
       });
     } catch (error) {
-      console.error("Błąd aktualizacji konia:", error);
+      log("Konie ID Put", "error", "Błąd aktualizacji konia:", error as Error);
       return c.json({ error: "Błąd aktualizacji konia" }, 500);
     }
   }

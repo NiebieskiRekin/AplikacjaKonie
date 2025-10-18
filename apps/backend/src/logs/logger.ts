@@ -1,78 +1,99 @@
 import winston from "winston";
-// import path from "path";
-// import fs from "fs";
+import { __prod__, ProcessEnv } from "../env";
+import { LogEntry, LogEntrySchema } from "./schema";
+import { z } from "zod";
 
-/**
- * https://github.com/winstonjs/winston
- * https://github.com/winstonjs/logform
- *
- * zapisywać log jako json
- * nadać timestamp
- * zawęzić logi względem kategorii (db, client request, mail, ...)
- * zawęzić logi do określonej kategorii (info, warn, error)
- * każdy log powinien precyzyjnie wskazywać linię kodu, a ich ciąg przebieg procedury
- */
-const logFormat = winston.format.printf(
-  ({ level, message, category, timestamp, stack }) => {
-    return JSON.stringify({
-      timestamp,
-      category,
-      level,
-      message,
-      stack,
-    });
+const ndjsonFormat = winston.format.printf((info) => {
+  const logInfo = info as winston.Logform.TransformableInfo & LogEntry;
+
+  // Przechwytywanie ścieżki pliku i linii wywołania.
+  const stackTrace = new Error().stack?.split("\n")[3]?.trim();
+
+  const { level, message, category, timestamp, error, ...rest } = logInfo;
+
+  const logData = {
+    timestamp,
+    level,
+    category,
+    message,
+    stackTrace,
+    ...(error && error.stack
+      ? { errorStack: error.stack, errorMessage: error.message }
+      : {}),
+    ...rest,
+  };
+
+  // Usuwamy puste pola
+  Object.keys(logData).forEach(
+    (key) => (logData as any)[key] === undefined && delete (logData as any)[key]
+  );
+
+  return JSON.stringify(logData);
+});
+
+const textFormat = winston.format.printf((info) => {
+  const logInfo = info as winston.Logform.TransformableInfo & LogEntry;
+
+  const { level, message, category, timestamp, error } = logInfo;
+
+  let output = `${timestamp} [${category}] ${level.toUpperCase()}: ${message}`;
+
+  // Obsługa błędu, jeśli format.errors({ stack: true }) go dodał
+  if (error && error.stack) {
+    output += `\n  Error: ${error.message}`;
+    // Usuń pierwszą linię 'Error: ...' ze stack trace
+    output += `\n${error.stack.split("\n").slice(1).join("\n")}`;
   }
-);
 
-// const logDir = path.join(process.cwd(), "apps/backend/logs");
-//
-// // Sprawdzam czy katalog na logi istnieje
-// if (!fs.existsSync(logDir)) {
-//   fs.mkdirSync(logDir, { recursive: true });
-// }
+  return output;
+});
+
+const finalFormat =
+  ProcessEnv.LOG_FORMAT === "json" ? ndjsonFormat : textFormat;
 
 const logger = winston.createLogger({
-  level: "info",
+  level: ProcessEnv.LOG_LEVEL,
   format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
+    // winston.format.colorize(),
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
     winston.format.splat(),
-    logFormat
+    finalFormat
   ),
-  transports: [
-    // Zapis do plików logów
-    // new winston.transports.File({ filename: `logs/error.log`, level: "error" }),
-    // new winston.transports.File({ filename: `logs/combined.log` }),
-
-    // Zapis do konsoli
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    }),
-  ],
+  transports: [new winston.transports.Console()],
 });
 
 /**
  * @param category - Kategoria loga (np. `db`, `server`, `mail`)
- * @param level - Poziom loga (`info`, `warn`, `error`)
+ * @param level - Poziom loga (`info`, `warn`, `error`, `debug`)
  * @param message - Treść wiadomości
  * @param error - Opcjonalnie: obiekt błędu
  */
 export function log(
-  category: string,
-  level: "info" | "warn" | "error" | "debug",
-  message: string,
-  error?: Error
+  category: LogEntry["category"],
+  level: LogEntry["level"],
+  message: LogEntry["message"],
+  error?: LogEntry["error"]
 ) {
-  const stackTrace = new Error().stack?.split("\n")[2].trim(); // Pobiera plik i linię kodu
-  logger.log({ level, category, message, stack: stackTrace, error });
-}
+  const logData: LogEntry = {
+    level,
+    message,
+    category,
+    error: error ?? undefined,
+  };
 
-// dodatkowo na konsole dla Nas
-if (process.env.NODE_ENV !== "production") {
-  logger.add(new winston.transports.Console());
+  try {
+    LogEntrySchema.parse(logData);
+  } catch (validationError) {
+    logger.error({
+      level: "error",
+      message: "Log validation error",
+      category: "logger",
+      validationDetails: (validationError as z.ZodError).errors,
+      originalLog: logData,
+    });
+  }
+
+  logger.log(logData);
 }
 
 export default logger;

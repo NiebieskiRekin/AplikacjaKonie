@@ -14,11 +14,14 @@ import {
   konieInsertSchema,
   konieSelectSchema,
 } from "@/backend/db/schema";
+import { log } from "@/backend/logs/logger";
 
 const konie_post_response_success = z.object({
   message: z.string(),
   horse: konieSelectSchema,
 });
+
+const LoggerScope = "Konie Post";
 
 export const konie_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -111,10 +114,6 @@ export const konie_post = new Hono<{
         // });
 
         // if (!photoValidationResult.success) {
-        //   console.error(
-        //     "Błąd walidacji formatu zdjecia:",
-        //     photoValidationResult.error
-        //   );
         //   return c.json(
         //     { success: false, error: photoValidationResult.error.flatten() },
         //     400
@@ -143,7 +142,12 @@ export const konie_post = new Hono<{
 
       return c.json({ message: "Koń został dodany!", horse: newHorse }, 200);
     } catch (error) {
-      console.error("Błąd podczas dodawania konia:", error);
+      log(
+        LoggerScope,
+        "error",
+        "Błąd podczas dodawania konia:",
+        error as Error
+      );
       return c.json({ error: "Błąd podczas dodawania konia" }, 500);
     }
   }

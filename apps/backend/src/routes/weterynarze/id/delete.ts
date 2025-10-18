@@ -7,6 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 export const weterynarze_id_delete = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -73,7 +74,12 @@ export const weterynarze_id_delete = new Hono<{
 
       return c.json({ success: "Weterynarz został usunięty" }, 201);
     } catch (error) {
-      console.error("Błąd podczas usuwania Weterynarz:", error);
+      log(
+        "Weterynarze Delete",
+        "error",
+        "Błąd podczas usuwania Weterynarz:",
+        error as Error
+      );
       return c.json(
         { error: "Błąd podczas usuwania Weterynarz", _error: error },
         500

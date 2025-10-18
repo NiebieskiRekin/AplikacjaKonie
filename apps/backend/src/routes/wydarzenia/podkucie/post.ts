@@ -8,6 +8,7 @@ import { podkucieSchema } from "./schema";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 export const wydarzenia_podkucie_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -79,7 +80,12 @@ export const wydarzenia_podkucie_post = new Hono<{
 
       return c.json({ message: "Podkucie dodane pomyślnie!" }, 200);
     } catch (error) {
-      console.error("Błąd podczas dodawania podkucia:", error);
+      log(
+        "Podkucie Post",
+        "error",
+        "Błąd podczas dodawania podkucia:",
+        error as Error
+      );
       return c.json({ error: "Błąd serwera podczas dodawania podkucia" }, 500);
     }
   }

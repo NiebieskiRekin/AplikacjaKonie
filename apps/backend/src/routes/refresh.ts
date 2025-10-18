@@ -15,6 +15,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "../logs/logger";
 
 /**
  * Handle the refresh token. Needs to be before the authorization
@@ -73,7 +74,7 @@ const refresh = new Hono().all(
       }
       // Invalid refreshToken, clear cookie and send to login
     } catch {
-      console.log("Refresh token invalid");
+      log("Refresh", "debug", "Refresh token invalid");
       deleteCookie(c, REFRESH_TOKEN);
       return c.json({ error: "Należy zalogować się ponownie" }, 403);
     }

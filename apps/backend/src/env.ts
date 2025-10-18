@@ -1,5 +1,6 @@
 import { z } from "zod";
 import dotenv from "dotenv";
+import { LogFormat, LogLevel } from "./logs/schema";
 dotenv.config({ path: __dirname + "/../../../.env" });
 
 const ServeEnv = z.object({
@@ -66,6 +67,8 @@ const ServeEnv = z.object({
 
   EMAIL_USER: z.string().email(),
   EMAIL_PASS: z.string(),
+  LOG_FORMAT: LogFormat,
+  LOG_LEVEL: LogLevel,
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);

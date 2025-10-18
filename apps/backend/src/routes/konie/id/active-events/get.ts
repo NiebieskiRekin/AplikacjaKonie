@@ -12,6 +12,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_active_events_get_response_success = z.object({
   podkucie: podkuciaSelectSchema.nullable(),
@@ -123,7 +124,12 @@ export const konie_id_active_events_get = new Hono<{
 
       return c.json(activeEvents);
     } catch (error) {
-      console.error("Błąd pobierania aktywnych zdarzeń:", error);
+      log(
+        "Konie ID events",
+        "error",
+        "Błąd pobierania aktywnych zdarzeń:",
+        error as Error
+      );
       return c.json({ error: "Błąd pobierania aktywnych zdarzeń." }, 500);
     }
   }

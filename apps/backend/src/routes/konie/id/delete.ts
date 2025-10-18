@@ -7,8 +7,11 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_delete_response_success = z.object({ success: z.string() });
+
+const LoggerScope = "Konie ID Delete";
 
 export const konie_id_delete = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -89,7 +92,7 @@ export const konie_id_delete = new Hono<{
 
       return c.json({ success: "Koń został usunięty" });
     } catch (error) {
-      console.error("Błąd podczas usuwania konia:", error);
+      log(LoggerScope, "error", "Błąd podczas usuwania konia:", error as Error);
       return c.json({ error: "Błąd podczas usuwania konia" }, 500);
     }
   }

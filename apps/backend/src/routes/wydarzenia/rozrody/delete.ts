@@ -7,6 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const successful_response = z.object({
   deletedEvent: rozrodySelectSchema,
@@ -64,7 +65,12 @@ export const wydarzenia_rozrody_delete = new Hono<{
 
       return c.json({ deletedEvent: deleteQuery[0] }, 200);
     } catch (error) {
-      console.error("Błąd usuwania wydarzenia:", error);
+      log(
+        "Rozrody Delete",
+        "error",
+        "Błąd usuwania wydarzenia:",
+        error as Error
+      );
       return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
     }
   }

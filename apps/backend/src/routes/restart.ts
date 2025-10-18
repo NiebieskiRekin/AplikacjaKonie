@@ -15,6 +15,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "../logs/logger";
 
 const passwordResetSchema = z
   .object({
@@ -26,6 +27,8 @@ const passwordResetSchema = z
     message: "Nowe hasła muszą się zgadzać!",
     path: ["confirmNewPassword"],
   });
+
+const LoggerScope = "Password Reset";
 
 const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
@@ -63,13 +66,13 @@ const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }),
     async (c) => {
       try {
-        console.log("Otrzymano żądanie zmiany hasła");
-
         const user = getUserFromContext(c);
         if (!user) {
-          console.log("Błąd autoryzacji");
+          log(LoggerScope, "info", "Błąd autoryzacji");
           return c.json({ error: "Błąd autoryzacji" }, 401);
         }
+
+        log(LoggerScope, "info", "Otrzymano żądanie zmiany hasła od " + user);
 
         const { oldPassword, newPassword } = c.req.valid("json");
 
@@ -80,7 +83,7 @@ const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           .then((res) => res[0]);
 
         if (!dbUser) {
-          console.log("Nie znaleziono użytkownika");
+          log(LoggerScope, "info", "Nie znaleziono użytkownika " + user);
           return c.json({ error: "Nie znaleziono użytkownika" }, 404);
         }
 
@@ -89,7 +92,7 @@ const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           dbUser.password
         );
         if (!isPasswordValid) {
-          console.log("Stare hasło jest nieprawidłowe");
+          log(LoggerScope, "info", "Stare hasło jest nieprawidłowe");
           return c.json({ error: "Stare hasło jest nieprawidłowe" }, 401);
         }
 
@@ -110,10 +113,10 @@ const restartRoutes = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
         // setCookie(c,ACCESS_TOKEN,tokens.accessToken,access_cookie_opts);
         // setCookie(c,REFRESH_TOKEN,tokens.refreshToken,refresh_cookie_opts);
 
-        // console.log("Hasło zostało zmienione!");
+        log(LoggerScope, "info", "Hasło zostało zmienione");
         return c.json({ message: "Hasło zostało zmienione!" }, 200);
       } catch (error) {
-        console.error("Błąd podczas zmiany hasła:", error);
+        log(LoggerScope, "info", "Błąd podczas zmiany hasła", error as Error);
         if (error instanceof z.ZodError) {
           return c.json(
             { error: { issues: error.issues, name: "ZodError" } },

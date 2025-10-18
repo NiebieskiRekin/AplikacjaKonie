@@ -16,6 +16,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
+import { log } from "@/backend/logs/logger";
 // import { z } from "@hono/zod-openapi";
 
 export const wydarzenia_horseId_eventType_get = new Hono<{
@@ -48,7 +49,11 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
   async (c) => {
     const horseId = Number(c.req.param("id"));
     const eventType = c.req.param("type").toLowerCase();
-    console.log(horseId, eventType);
+    log(
+      "Wydarzenia Get by horse",
+      "info",
+      `horseId: ${horseId}, eventType: ${eventType}`
+    );
 
     if (isNaN(horseId)) {
       return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
@@ -144,7 +149,12 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
 
       return c.json(events, 200);
     } catch (error) {
-      console.error("Błąd pobierania wydarzeń:", error);
+      log(
+        "Wydarzenia Get by horse",
+        "error",
+        "Błąd pobierania wydarzeń:",
+        error as Error
+      );
       return c.json({ error: "Błąd pobierania wydarzeń" }, 500);
     }
   }

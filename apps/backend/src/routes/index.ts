@@ -13,10 +13,43 @@ import images from "./images";
 import { healthcheck } from "./healthcheck";
 import raport from "./raport";
 import chatRoute from "./chat";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { openAPISpecs } from "hono-openapi";
+import { swaggerUI } from "@hono/swagger-ui";
+import { log } from "../logs/logger";
+import stripAnsi from "strip-ansi";
+
+const winstonHonoLogger = (message: string, ...rest: string[]) => {
+  const plainMessage = stripAnsi(message);
+  log("request", "info", plainMessage + " " + rest.join(" "));
+};
 
 export function registerRoutes(app: Hono) {
   return app
     .basePath("/api")
+    .use("*", cors())
+    .use("*", logger(winstonHonoLogger))
+    .get(
+      "/openapi",
+      openAPISpecs(app, {
+        documentation: {
+          info: {
+            title: "Konie API",
+            version: "0.1.0",
+            description: "API do aplikacji koni i weterynarzy",
+          },
+          servers: [
+            { url: "http://localhost:3000", description: "Local Server" },
+            {
+              url: "https://konie-dev.at2k.pl",
+              description: "Development server",
+            },
+          ],
+        },
+      })
+    )
+    .use("/ui", swaggerUI({ url: "/api/openapi" }))
     .route("/refresh", refresh)
     .route("/login", login)
     .route("/register", register)
