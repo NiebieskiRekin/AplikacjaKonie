@@ -39,7 +39,7 @@
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.9",
-    "hono-openapi": "^0.4.8",
+    "hono-openapi": "^1.1.0",
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.2",

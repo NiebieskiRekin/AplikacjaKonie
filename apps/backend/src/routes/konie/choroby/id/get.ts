@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { choroby, chorobySelectSchema } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 

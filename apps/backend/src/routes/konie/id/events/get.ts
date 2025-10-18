@@ -11,7 +11,7 @@ import {
   zdarzeniaProfilaktyczne,
 } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
@@ -57,7 +57,7 @@ export const konie_id_events_get = new Hono<{
         },
       },
       500: {
-        desciption: "Błąd serwera",
+        description: "Błąd serwera",
         content: {
           [JsonMime]: {
             schema: resolver(response_failure_schema),

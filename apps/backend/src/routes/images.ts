@@ -23,7 +23,7 @@ import {
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { ProcessEnv } from "@/backend/env";
 import { JsonMime, response_failure_schema } from "./constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 

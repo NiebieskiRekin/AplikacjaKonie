@@ -5,7 +5,7 @@ import { eq, or } from "drizzle-orm";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver, validator as zValidator } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { zdarzenieProfilaktyczneSchema } from "./schema";
 import { log } from "@/backend/logs/logger";

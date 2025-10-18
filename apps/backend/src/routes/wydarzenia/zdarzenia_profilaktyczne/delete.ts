@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { UserPayload } from "@/backend/middleware/auth";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";

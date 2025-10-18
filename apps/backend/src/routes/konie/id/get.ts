@@ -5,7 +5,7 @@ import { db } from "@/backend/db";
 import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
@@ -45,7 +45,7 @@ export const konie_id_get = new Hono<{
         },
       },
       404: {
-        desciption: "Błąd serwera",
+        description: "Błąd serwera",
         content: {
           [JsonMime]: {
             schema: resolver(response_failure_schema),
