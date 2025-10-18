@@ -31,6 +31,7 @@
     "@google-cloud/storage": "^7.16.0",
     "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.14.0",
+    "@hono/standard-validator": "^0.1.5",
     "@hono/swagger-ui": "^0.5.1",
     "@hono/zod-openapi": "^0.19.6",
     "@hono/zod-validator": "^0.5.0",
