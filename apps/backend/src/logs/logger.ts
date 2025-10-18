@@ -1,4 +1,5 @@
 import winston from "winston";
+import { __prod__ } from "../env";
 // import path from "path";
 // import fs from "fs";
 
@@ -71,7 +72,7 @@ export function log(
 }
 
 // dodatkowo na konsole dla Nas
-if (process.env.NODE_ENV !== "production") {
+if (__prod__) {
   logger.add(new winston.transports.Console());
 }
 

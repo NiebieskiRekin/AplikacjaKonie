@@ -32,7 +32,7 @@ app.use("/ui", swaggerUI({ url: "/api/openapi" }));
 app.use("*", cors());
 if (ProcessEnv.NODE_ENV != "production") {
   app.use("*", logger()); // Only for testing and development
-  log("Server", "info", "Połączono z Serwerem");
 }
+log("Server", "info", "Mode: " + ProcessEnv.NODE_ENV);
 
 export default app;
