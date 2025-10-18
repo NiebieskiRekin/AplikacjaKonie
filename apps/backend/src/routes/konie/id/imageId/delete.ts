@@ -7,6 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const konie_id_imageId_delete_response_success = z.object({
   message: z.string(),
@@ -98,7 +99,12 @@ export const konie_id_imageId_delete = new Hono<{
 
       return c.json({ message: "Usunięto zdjęcie konia" }, 200);
     } catch (error) {
-      console.error("Błąd podczas usuwania zdjęcia konia:", error);
+      log(
+        "Konie Image Delete",
+        "error",
+        "Błąd podczas usuwania zdjęcia konia:",
+        error as Error
+      );
       return c.json({ error: "Błąd podczas usuwania zdjęcia konia" }, 500);
     }
   }

@@ -11,6 +11,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const successful_response = z.object({
   updatedEvent: podkuciaSelectSchema,
@@ -67,7 +68,12 @@ export const wydarzenia_podkucie_put = new Hono<{
 
       return c.json({ updatedEvent: updateQuery[0] }, 200);
     } catch (error) {
-      console.error("Błąd aktualizacji wydarzenia:", error);
+      log(
+        "Podkucie Put",
+        "error",
+        "Błąd aktualizacji wydarzenia:",
+        error as Error
+      );
       return c.json({ error: "Błąd aktualizacji wydarzenia" }, 500);
     }
   }

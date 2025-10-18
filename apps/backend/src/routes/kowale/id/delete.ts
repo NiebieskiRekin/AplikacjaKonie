@@ -7,6 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "@/backend/logs/logger";
 
 const response_success_schema = z.object({ success: z.string() });
 
@@ -80,7 +81,12 @@ export const kowale_id_delete = new Hono<{
 
       return c.json({ success: "Kowal został usunięty" });
     } catch (error) {
-      console.error("Błąd podczas usuwania Kowal:", error);
+      log(
+        "Kowale Delete",
+        "error",
+        "Błąd podczas usuwania Kowal:",
+        error as Error
+      );
       return c.json({ error: "Błąd podczas usuwania Kowal" }, 500);
     }
   }

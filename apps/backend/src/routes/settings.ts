@@ -16,6 +16,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { log } from "../logs/logger";
 
 const common_settings = z.object({
   days: z.number().int().nonnegative(),
@@ -25,6 +26,7 @@ const common_settings = z.object({
 });
 
 const settings_schema = z.record(z.enum(RodzajePowiadomien), common_settings);
+const LoggerScope = "Ustawienia";
 
 const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
   .use(authMiddleware)
@@ -89,7 +91,7 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
 
         return c.json(formattedSettings, 200);
       } catch (error) {
-        console.error("Błąd pobierania ustawień:", error);
+        log(LoggerScope, "error", "Błąd pobierania ustawień:", error as Error);
         return c.json({ error: "Błąd pobierania ustawień" }, 500);
       }
     }
@@ -184,7 +186,12 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
           200
         );
       } catch (error) {
-        console.error("Błąd aktualizacji ustawień:", error);
+        log(
+          LoggerScope,
+          "error",
+          "Błąd aktualizacji ustawień:",
+          error as Error
+        );
         return c.json({ error: "Błąd aktualizacji ustawień" }, 500);
       }
     }

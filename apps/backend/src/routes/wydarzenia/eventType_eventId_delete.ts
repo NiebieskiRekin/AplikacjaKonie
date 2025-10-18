@@ -13,6 +13,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi/zod";
 import { describeRoute } from "hono-openapi";
+import { log } from "@/backend/logs/logger";
 
 export const wydarzenia_eventType_eventId_delete = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -99,7 +100,12 @@ export const wydarzenia_eventType_eventId_delete = new Hono<{
 
       return c.json(deleted[0], 200);
     } catch (error) {
-      console.error("Błąd usuwania wydarzenia:", error);
+      log(
+        "Wydarzenia Delete",
+        "error",
+        "Błąd usuwania wydarzenia:",
+        error as Error
+      );
       return c.json({ error: "Błąd usuwania wydarzenia" }, 500);
     }
   }

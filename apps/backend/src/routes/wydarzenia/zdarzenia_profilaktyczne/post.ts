@@ -8,6 +8,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { z } from "@hono/zod-openapi";
 import { zdarzenieProfilaktyczneSchema } from "./schema";
+import { log } from "@/backend/logs/logger";
 
 export const wydarzenia_zdarzenia_profilaktyczne_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
@@ -98,9 +99,11 @@ export const wydarzenia_zdarzenia_profilaktyczne_post = new Hono<{
         200
       );
     } catch (error) {
-      console.error(
+      log(
+        "Zdarzenia Profilaktyczne Post",
+        "error",
         "Błąd podczas dodawania zdarzenia profilaktycznego:",
-        error
+        error as Error
       );
       return c.json({ error: "Błąd serwera podczas dodawania zdarzenia" }, 500);
     }
