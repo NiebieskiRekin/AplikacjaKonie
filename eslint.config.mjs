@@ -66,7 +66,7 @@ export default tseslint.config(
   },
   {
     // --- WYŁĄCZENIE REGUŁY DLA KALOGU LOGS ---
-    files: ["apps/backend/logs/**/*.{ts,tsx}"],
+    files: ["apps/backend/src/logs/**/*.{ts,tsx}", "apps/backend/src/env.ts"],
     rules: {
       "no-console": "off",
     },

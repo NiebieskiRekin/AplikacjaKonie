@@ -1,7 +1,6 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 import { LogFormat, LogLevel } from "./logs/schema";
-console.log = function () {};
 dotenv.config({
   path: __dirname + "/../../../.env",
   quiet: true,
