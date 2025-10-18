@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { ProcessEnv } from "./env";
+import { __prod__, ProcessEnv } from "./env";
 import { registerRoutes } from "./routes";
 import { log } from "./logs/logger";
 import "./crons/index";
@@ -9,6 +9,15 @@ import { openAPISpecs } from "hono-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 
 const app = registerRoutes(new Hono());
+
+const winstonHonoLogger = (message: string) => {
+  // Hono logger domyślnie dodaje timestamp i poziom w tekście, np.:
+  // "[Hono] 127.0.0.1 - GET /api/users - 200 - 15ms"
+
+  // Zazwyczaj logi żądań traktuje się jako 'info' lub 'debug'
+  // W Hono wiadomość jest pojedynczym stringiem, więc użyjemy go jako 'message'.
+  log("request", "info", message);
+};
 
 app.get(
   "/openapi",
@@ -30,9 +39,9 @@ app.get(
 app.use("/ui", swaggerUI({ url: "/api/openapi" }));
 
 app.use("*", cors());
-if (ProcessEnv.NODE_ENV != "production") {
-  app.use("*", logger()); // Only for testing and development
-}
+
+app.use("*", logger(winstonHonoLogger));
+
 log("Server", "info", "Mode: " + ProcessEnv.NODE_ENV);
 
 export default app;

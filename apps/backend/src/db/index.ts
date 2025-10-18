@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { ProcessEnv } from "../env";
+import { DrizzleWinstonLogger } from "./logger";
+import { __prod__, ProcessEnv } from "../env";
 import pg from "pg";
 import * as schema from "./schema";
 
@@ -10,7 +11,7 @@ export const db = drizzle({
     connectionString: ProcessEnv.DATABASE_URL,
   }),
   schema: { ...schema },
-  logger: ProcessEnv.NODE_ENV != "production" ? true : false,
+  logger: new DrizzleWinstonLogger(),
 });
 
 export { eq } from "drizzle-orm";

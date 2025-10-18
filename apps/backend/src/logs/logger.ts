@@ -1,36 +1,7 @@
 import winston from "winston";
 import { __prod__, ProcessEnv } from "../env";
+import { LogEntry, LogEntrySchema } from "./schema";
 import { z } from "zod";
-
-// --- Definicja Schematu Logu za pomocą Zod ---
-
-// 1. Schemat dla danych METADANYCH logu
-const LogMetaSchema = z.object({
-  category: z.string().describe("Kategoria logu (np. db, server, mail)"),
-  stack: z.string().optional().describe("Plik i linia kodu wywołującego log"),
-});
-
-// 2. Schemat dla pełnego obiektu, który jest przekazywany do logger.log()
-// Używamy z.union dla level, aby wymusić tylko dozwolone wartości
-export const LogEntrySchema = LogMetaSchema.extend({
-  level: z.union([
-    z.literal("info"),
-    z.literal("warn"),
-    z.literal("error"),
-    z.literal("debug"),
-  ]),
-  message: z.string(),
-  // Error nie jest walidowany jako pełny Error object,
-  // ponieważ winston i logform często manipulują tym polem
-  // ale sprawdzamy, czy jest to opcjonalne.
-  error: z.instanceof(Error).optional().nullable(),
-});
-
-// 3. Wygenerowanie Typu TypeScript z Schematu Zod
-// Użyjemy tego typu, aby zastąpić 'any' i typować dane wejściowe.
-export type LogEntry = z.infer<typeof LogEntrySchema>;
-
-// --- Definicja Formatów Logowania ---
 
 // Format NDJSON
 const ndjsonFormat = winston.format.printf((info) => {
@@ -92,7 +63,7 @@ const consoleTransportFormat =
     : finalFormat;
 
 const logger = winston.createLogger({
-  level: __prod__ ? "debug" : "info",
+  level: ProcessEnv.LOG_LEVEL,
   format: winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
     winston.format.errors({ stack: true }), // Wstawia pełny stos błędu do obiektu 'info'
