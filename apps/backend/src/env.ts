@@ -1,7 +1,12 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 import { LogFormat, LogLevel } from "./logs/schema";
-dotenv.config({ path: __dirname + "/../../../.env" });
+console.log = function () {};
+dotenv.config({
+  path: __dirname + "/../../../.env",
+  quiet: true,
+  override: true,
+});
 
 const ServeEnv = z.object({
   PORT: z
