@@ -19,6 +19,6 @@ cron.schedule("0 * * * *", () => {
       void (await sendEmailNotifications(userNotifications));
     })
     .catch((error) => {
-      log("Cron", "error", "Błąd CRON:", error);
+      log("Cron", "error", "Błąd CRON:", error as Error);
     });
 });

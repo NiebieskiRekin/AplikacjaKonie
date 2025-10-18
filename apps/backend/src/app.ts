@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { __prod__, ProcessEnv } from "./env";
+import { ProcessEnv } from "./env";
 import { registerRoutes } from "./routes";
 import { log } from "./logs/logger";
 import "./crons/index";

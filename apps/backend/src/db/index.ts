@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { DrizzleWinstonLogger } from "./logger";
-import { __prod__, ProcessEnv } from "../env";
+import { ProcessEnv } from "../env";
 import pg from "pg";
 import * as schema from "./schema";
 

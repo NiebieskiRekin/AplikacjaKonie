@@ -90,7 +90,7 @@ export const wydarzenia_get = new Hono<{
         .from(konie)
         .where(konie_condition);
 
-      log("Wydarzenia", "debug", `Konie: ${konieUzytkownika.toString()}`);
+      log("Wydarzenia", "debug", `Konie: ${JSON.stringify(konieUzytkownika)}`);
 
       const konieMap = Object.fromEntries(
         konieUzytkownika.map((kon) => [kon.id, kon.nazwa])
@@ -118,7 +118,7 @@ export const wydarzenia_get = new Hono<{
       log(
         "Wydarzenia",
         "debug",
-        `Zdarzenia Profilaktyczne: ${zdarzenia.toString()}`
+        `Zdarzenia Profilaktyczne: ${JSON.stringify(zdarzenia)}`
       );
 
       const podkuciaData = await db
@@ -135,7 +135,7 @@ export const wydarzenia_get = new Hono<{
         .innerJoin(konie, eq(podkucia.kon, konie.id))
         .where(konie_condition);
 
-      log("Wydarzenia", "debug", `Podkucia: ${podkuciaData.toString()}`);
+      log("Wydarzenia", "debug", `Podkucia: ${JSON.stringify(podkuciaData)}`);
 
       const events = [
         ...zdarzenia.map((event) => ({
@@ -158,7 +158,7 @@ export const wydarzenia_get = new Hono<{
         })),
       ];
 
-      log("Wydarzenia", "debug", `Events: ${events.toString()}`);
+      log("Wydarzenia", "debug", `Events: ${JSON.stringify(events)}`);
 
       const latestByCategory = new Map<
         string,
