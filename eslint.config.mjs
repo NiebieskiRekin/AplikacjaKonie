@@ -56,5 +56,19 @@ export default tseslint.config(
       ],
       ...drizzle.configs.recommended.rules,
     },
+  },
+  {
+    files: ["apps/backend/**/*.{ts,tsx}"],
+    rules: {
+      // Wymusza ostrzeżenie dla console.log, console.info, console.debug itd.
+      "no-console": ["warn"],
+    },
+  },
+  {
+    // --- WYŁĄCZENIE REGUŁY DLA KALOGU LOGS ---
+    files: ["apps/backend/logs/**/*.{ts,tsx}"],
+    rules: {
+      "no-console": "off",
+    },
   }
 );
