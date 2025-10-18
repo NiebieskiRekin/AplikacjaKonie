@@ -28,7 +28,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.16.0",
+    "@google-cloud/storage": "^7.17.2",
     "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.14.0",
     "@hono/standard-validator": "^0.1.5",
