@@ -16,7 +16,7 @@ class DrizzleWinstonLogger implements Logger {
     // Używamy "db" jako kategorii.
     // Przekazujemy pełną wiadomość jako "message", a zapytanie SQL jako część błędu/stos,
     // aby było ładnie wyświetlone w formacie NDJSON/tekstowym.
-    log("db", "debug", fullMessage, new Error(query));
+    log("db", "debug", fullMessage);
   }
 
   /**
