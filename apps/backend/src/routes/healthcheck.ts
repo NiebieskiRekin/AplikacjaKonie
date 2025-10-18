@@ -3,7 +3,7 @@ import { db } from "@/backend/db";
 import { sql } from "drizzle-orm";
 
 import { JsonMime } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 

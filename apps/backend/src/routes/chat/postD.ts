@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { hodowcyKoni, users } from "@/backend/db/schema";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
 
+// TODO: Add schema
 export const liczba_requestow_decrease = new Hono<{
   Variables: { jwtPayload: UserPayload };
 }>().post("/decrease", async (c) => {

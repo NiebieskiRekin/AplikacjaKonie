@@ -1,6 +1,6 @@
 import { RodzajeKoni } from "@/backend/db/types";
 import { Hono } from "hono";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";

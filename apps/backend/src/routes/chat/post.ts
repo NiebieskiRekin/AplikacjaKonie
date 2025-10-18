@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { validator as zValidator } from "hono-openapi/zod";
+import { validator as zValidator, resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
@@ -163,20 +163,22 @@ export const gemini_chat_post = new Hono<{
         description: "Odpowiedź Gemini + wynik zapytania",
         content: {
           [JsonMime]: {
-            schema: z.object({
-              endpoint: z.string(),
-              generated: z.any(),
-              curl: z.string(),
-              response: z.any(),
-              status: z.number(),
-            }),
+            schema: resolver(
+              z.object({
+                endpoint: z.string(),
+                generated: z.any(),
+                curl: z.string(),
+                response: z.any(),
+                status: z.number(),
+              })
+            ),
           },
         },
       },
       400: {
         description: "Błąd walidacji lub odpowiedzi",
         content: {
-          [JsonMime]: { schema: response_failure_schema },
+          [JsonMime]: { schema: resolver(response_failure_schema) },
         },
       },
     },

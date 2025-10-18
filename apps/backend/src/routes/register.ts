@@ -11,7 +11,7 @@ import {
 import { db } from "@/backend/db";
 import { adminAuthMiddleware } from "@/backend/middleware/adminauth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 

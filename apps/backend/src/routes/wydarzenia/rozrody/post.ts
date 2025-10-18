@@ -7,7 +7,7 @@ import {
 import { Hono } from "hono";
 import { UserPayload } from "@/backend/middleware/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 // import { z } from "@hono/zod-openapi";
 

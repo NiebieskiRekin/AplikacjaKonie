@@ -5,7 +5,7 @@ import { db } from "@/backend/db";
 import { users, zdjeciaKoni } from "@/backend/db/schema";
 import { InsertZdjecieKonia } from "@/backend/db/types";
 import { JsonMime } from "@/backend/routes/constants";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
@@ -43,7 +43,7 @@ export const konie_id_upload_post = new Hono<{
         },
       },
       500: {
-        desciption: "Błąd serwera",
+        description: "Błąd serwera",
         content: {
           [JsonMime]: {
             schema: resolver(konie_id_upload_post_response_error),

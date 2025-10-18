@@ -9,7 +9,7 @@ import {
   users,
 } from "@/backend/db/schema";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { resolver } from "hono-openapi/zod";
+import { resolver } from "hono-openapi";
 
 export const liczba_requestow_get = new Hono<{
   Variables: { jwtPayload: UserPayload };

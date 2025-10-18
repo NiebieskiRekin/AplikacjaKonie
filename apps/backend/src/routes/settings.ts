@@ -13,7 +13,7 @@ import {
   RodzajePowiadomien,
 } from "@/backend/db/types";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "../logs/logger";

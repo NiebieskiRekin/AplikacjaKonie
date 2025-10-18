@@ -1,7 +1,7 @@
 import { InsertZdjecieKonia } from "@/backend/db/types";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver, validator as zValidator } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";

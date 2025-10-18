@@ -15,7 +15,7 @@ import raport from "./raport";
 import chatRoute from "./chat";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { openAPISpecs } from "hono-openapi";
+import { openAPIRouteHandler } from "hono-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import { log } from "../logs/logger";
 import stripAnsi from "strip-ansi";
@@ -32,7 +32,7 @@ export function registerRoutes(app: Hono) {
     .use("*", logger(winstonHonoLogger))
     .get(
       "/openapi",
-      openAPISpecs(app, {
+      openAPIRouteHandler(app, {
         documentation: {
           info: {
             title: "Konie API",
