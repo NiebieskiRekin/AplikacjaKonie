@@ -33,9 +33,14 @@
             state: directory
             mode: '0777'
 
-        - name: Get UUID
-          ansible.builtin.command: lsblk -no UUID {{ disk_device_path }}
-          register: disk_uuid
+        - name: Get disk device facts
+          ansible.builtin.stat:
+            path: "{{ disk_device_path }}"
+          register: disk_stats
+
+        # - name: Get UUID
+        #   ansible.builtin.command: lsblk -no UUID {{ disk_device_path }}
+        #   register: disk_uuid
 
         # - name: Get UUID
           # ansible.builtin.set_fact:
@@ -44,7 +49,7 @@
         - name: Mount using fstab
           ansible.posix.mount:
             path: "{{ mount_point }}"
-            src: "UUID={{ disk_uuid }}"
+            src: "UUID={{ disk_stats.stat.f_uuid }}"
             fstype: ext4
             opts: discard,defaults,nofail
             state: mounted
