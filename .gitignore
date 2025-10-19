@@ -165,3 +165,4 @@ dist
 .pnp.*
 key.json
 infra/Ansible/group_vars/main.yml
+infra/Ansible/inventory/group_vars/main.yml

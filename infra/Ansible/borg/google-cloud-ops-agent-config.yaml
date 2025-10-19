@@ -1,0 +1,18 @@
+logging:
+  receivers:
+    borgmatic_log_receiver:
+      type: files
+      include_paths:
+        - /var/log/borgmatic/borgmatic.log
+    traefik_log_receiver:
+      type: files
+      include_paths:
+        - /var/log/traefik/traefik.log
+        - /var/log/traefik/access.log
+  service:
+    pipelines:
+      borgmatic_pipeline:
+        receivers: [borgmatic_log_receiver]
+
+      traefik_pipeline:
+        receivers: [traefik_log_receiver]

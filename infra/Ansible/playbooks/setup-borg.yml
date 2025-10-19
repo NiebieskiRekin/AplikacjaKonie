@@ -1,6 +1,8 @@
-- name: Setup borg backup
+- name: Setup borg backup and Google Cloud Ops Agent
   hosts: main
   become: true
+  vars:
+    borgmatic_log_file: /var/log/borgmatic/borgmatic.log
   roles:
     - role: borgbase.ansible_role_borgbackup
       borg_repository: /mnt/disks/pg_backup/backup
@@ -9,6 +11,12 @@
         postgresql_databases:
           - name: "{{ dbname }}"
             username: "{{ dbname }}"
+            hostname: 127.0.0.1
+            pg_dump_command: docker exec postgres pg_dump
+            pg_restore_command: docker exec postgres pg_restore
+            psql_command: docker exec postgres psql
+          - name: "{{ dbname2 }}"
+            username: "{{ dbname2 }}"
             hostname: 127.0.0.1
             pg_dump_command: docker exec postgres pg_dump
             pg_restore_command: docker exec postgres pg_restore
@@ -38,3 +46,35 @@
         keep_daily: 2
         keep_weekly: 5
         keep_monthly: 10
+
+    - role: googlecloudplatform.google_cloud_ops_agents
+      vars:
+        agent_type: ops-agent
+        main_config_file: "{{ playbook_dir }}/../borg/google-cloud-ops-agent-config.yaml"
+
+  tasks:
+    - name: Ensure borgmatic log directory exists
+      ansible.builtin.file:
+        path: "{{ borgmatic_log_file | dirname }}"
+        state: directory
+        mode: '0755'
+
+    - name: Inject custom borgmatic options into systemd unit file
+      ansible.builtin.lineinfile:
+        path: /lib/systemd/system/borgmatic.service
+        regexp: '^ExecStart=(.*)'
+        line: 'ExecStart=/usr/local/bin/borgmatic -c /etc/borgmatic/config.yaml --syslog-verbosity 1 --verbosity 1 --log-file /var/log/borgmatic/borgmatic.log'
+        backrefs: yes
+        backup: yes
+      notify: 
+        - Reload systemd daemon
+
+  handlers:
+    - name: Restart Ops Agent
+      ansible.builtin.service:
+        name: google-cloud-ops-agent
+        state: restarted
+
+    - name: Reload systemd daemon
+      ansible.builtin.systemd:
+        daemon_reload: yes
