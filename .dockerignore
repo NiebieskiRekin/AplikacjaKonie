@@ -15,8 +15,8 @@ infra
 .git
 
 # Ignore build folder
-# **/dist
-# **/build
+**/dist
+**/build
 **/.react-router
 
 # Ignore ESLint, Prettier, and other configuration files that aren't needed in the final image
