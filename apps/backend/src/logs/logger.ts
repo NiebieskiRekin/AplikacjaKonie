@@ -88,7 +88,7 @@ export function log(
       level: "error",
       message: "Log validation error",
       category: "logger",
-      validationDetails: (validationError as z.ZodError).errors,
+      validationDetails: validationError as z.ZodError,
       originalLog: logData,
     });
   }
