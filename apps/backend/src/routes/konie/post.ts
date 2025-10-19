@@ -31,10 +31,10 @@ export const konie_post = new Hono<{
     "form",
     konieInsertSchema
       .extend({
-        rocznikUrodzenia: z.number({ coerce: true }),
+        rocznikUrodzenia: z.coerce.number(),
         dataPrzybyciaDoStajni: z.optional(z.string()),
         dataOdejsciaZeStajni: z.optional(z.string()),
-        file: z.boolean({ coerce: true }),
+        file: z.coerce.boolean(),
         // .custom<File | undefined>()
         // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
         //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
