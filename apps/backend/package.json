@@ -32,7 +32,6 @@
     "@hono/node-server": "^1.19.5",
     "@hono/standard-validator": "^0.1.5",
     "@hono/swagger-ui": "^0.5.2",
-    "@hono/zod-openapi": "^1.1.4",
     "@hono/zod-validator": "^0.7.4",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
@@ -46,6 +45,6 @@
     "pg": "^8.16.3",
     "winston": "^3.18.3",
     "zod": "^4.0.17",
-    "zod-openapi": "^4.2.4"
+    "zod-openapi": "^5"
   }
 }
