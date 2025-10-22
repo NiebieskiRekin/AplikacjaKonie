@@ -47,10 +47,10 @@
         keep_weekly: 5
         keep_monthly: 10
 
-    - role: googlecloudplatform.google_cloud_ops_agents
-      vars:
-        agent_type: ops-agent
-        main_config_file: "{{ playbook_dir }}/../borg/google-cloud-ops-agent-config.yaml"
+    # - role: googlecloudplatform.google_cloud_ops_agents
+    #   vars:
+    #     agent_type: ops-agent
+    #     main_config_file: "{{ playbook_dir }}/../borg/google-cloud-ops-agent-config.yaml"
 
   tasks:
     - name: Ensure borgmatic log directory exists
@@ -70,10 +70,10 @@
         - Reload systemd daemon
 
   handlers:
-    - name: Restart Ops Agent
-      ansible.builtin.service:
-        name: google-cloud-ops-agent
-        state: restarted
+    # - name: Restart Ops Agent
+    #   ansible.builtin.service:
+    #     name: google-cloud-ops-agent
+    #     state: restarted
 
     - name: Reload systemd daemon
       ansible.builtin.systemd:
