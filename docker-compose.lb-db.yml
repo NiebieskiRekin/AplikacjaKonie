@@ -15,7 +15,6 @@ services:
     environment:
       TRAEFIK_ENTRYPOINTS_HTTPS: true
       TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
-      # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: crowdsec@docker
       TRAEFIK_PROVIDERS_DOCKER: true
       TRAEFIK_PROVIDERS_DOCKER_NETWORK: traefik
       TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: false
@@ -43,9 +42,9 @@ services:
       retries: 5
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.dashboard.rule=Host(`${DASHBOARD_DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
       - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.middlewares=auth,crowdsec"
+      - "traefik.http.routers.dashboard.middlewares=auth"
       - "traefik.http.routers.dashboard.entrypoints=https"
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certResolver=myresolver"
