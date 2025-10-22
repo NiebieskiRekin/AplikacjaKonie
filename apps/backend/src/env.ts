@@ -73,6 +73,9 @@ const ServeEnv = z.object({
   EMAIL_PASS: z.string(),
   LOG_FORMAT: LogFormat,
   LOG_LEVEL: LogLevel,
+
+  BUCKET_NAME: z.string(),
+  AISTUDIO_API_KEY: z.string(),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);

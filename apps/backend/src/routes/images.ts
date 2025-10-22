@@ -50,7 +50,7 @@ const storage = new Storage({
   credentials: key,
 });
 
-const bucketName = "aplikacjakonie-zdjecia-koni";
+const bucketName = ProcessEnv.BUCKET_NAME;
 
 // const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 MB
 // const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];

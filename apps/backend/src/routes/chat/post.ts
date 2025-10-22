@@ -4,16 +4,14 @@ import { describeRoute } from "hono-openapi";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { z } from "zod";
-import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
-
-dotenv.config();
+import { ProcessEnv } from "@/backend/env";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
-const API_KEY = process.env.AISTUDIO_API_KEY;
+const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
 
 const schemaPrompt = fs
   .readFileSync(path.join(BASE_DIR, "schema.txt"), "utf-8")
