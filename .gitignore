@@ -12,6 +12,7 @@ infra/Terraform/.terraform.lock.hcl
 infra/Terraform/.terraform/
 infra/Terraform/notes.md
 infra/Ansible/inventory/gcp.yaml
+infra/Ansible/inventory/digitalocean.yaml
 infra/Ansible/postgres/.env
 infra/Ansible/postgres/cloudflare.ini
 infra/Ansible/certbot/cloudflare.ini
