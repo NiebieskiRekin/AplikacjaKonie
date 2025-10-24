@@ -2,7 +2,6 @@
   "name": "@aplikacja-konie/backend",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "exports": {
     "./routes": "./src/routes/index.ts",
     "./schema": "./src/db/types.ts"
