@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@aplikacja-konie/backend": "*",
-    "@types/node": "^22.18.11",
+    "@types/node": "^24.9.1",
     "hono": "^4.10.2"
   },
   "devDependencies": {
