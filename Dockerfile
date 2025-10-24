@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:22-slim AS build-env
+FROM node:24-slim AS build-env
 WORKDIR /app
 COPY --link package.json package-lock.json /app/
 COPY --link apps/frontend/package.json /app/apps/frontend/package.json
@@ -9,7 +9,7 @@ RUN npm pkg delete scripts.prepare && npm ci --mount=type=cache,target=/root/.np
 COPY . .
 RUN npm run build
 
-FROM node:22-slim AS production-dependencies-env
+FROM node:24-slim AS production-dependencies-env
 WORKDIR /app
 COPY --link package.json package-lock.json /app/
 COPY --link apps/backend/package.json /app/apps/backend/package.json
@@ -21,7 +21,7 @@ COPY --from=build-env /app/apps/frontend/build/client /usr/share/nginx/html
 EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"] 
 
-FROM gcr.io/distroless/nodejs22:nonroot AS production-backend
+FROM gcr.io/distroless/nodejs24:nonroot AS production-backend
 WORKDIR /app
 ENV NODE_ENV=production
 EXPOSE 3001
