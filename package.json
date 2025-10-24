@@ -5,7 +5,7 @@
     "packages/api-client",
     "apps/frontend"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "dev": "concurrently -p \"[{name}]\" -n \"b,f,a\" -c \"bgGray.bold,bgCyan.bold,bgMagenta.bold\" \"npm --prefix apps/backend run dev\" \"npm --prefix apps/frontend run dev\" \"npm --prefix packages/api-client run dev\"",
     "build": "npm --prefix apps/backend run build && npm --prefix packages/api-client run build && npm --prefix apps/frontend run build",
