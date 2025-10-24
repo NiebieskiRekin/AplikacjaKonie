@@ -104,7 +104,7 @@ export async function checkTokens(tokens: {
     );
     const user = (
       await db.select().from(users).where(eq(users.id, data.userId)).limit(1)
-    ).at(0);
+    )[0];
     if (!user || user.refreshTokenVersion !== data.refreshTokenVersion) {
       return null; // unauthorized
     }

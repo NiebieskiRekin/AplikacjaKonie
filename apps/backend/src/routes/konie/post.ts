@@ -99,7 +99,7 @@ export const konie_post = new Hono<{
       //Wstawienie danych do bazy
       const newHorse = (
         await db.insert(konie).values(kon_to_insert).returning()
-      ).at(0)!;
+      )[0];
 
       if (formData.file == true) {
         // const dimensions = imageSize(await formData.file!.bytes());
