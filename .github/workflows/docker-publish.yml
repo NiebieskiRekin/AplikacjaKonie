@@ -16,13 +16,18 @@ on:
         "Dockerfile",
         "docker-bake.hcl",
       ]
-
+  workflow_run:
+    workflows:
+      - Create Release
+    types:
+      - completed
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
