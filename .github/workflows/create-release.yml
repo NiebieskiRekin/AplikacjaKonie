@@ -1,0 +1,44 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: "The bump type (patch, minor, major) XOR a specific version (e.g. 1.2.0)"
+        required: true
+        default: "patch"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configure Git User
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 1. Updates package.json
+      # 2. Creates a Git commit (e.g., "1.2.0")
+      # 3. Creates a Git tag (e.g., "v1.2.0")
+      - name: Update version and create tag
+        run: |
+          npm version ${{ github.event.inputs.version_bump }} -m "release: %s"
+
+      - name: Push commit and tag
+        run: |
+          git push
+          git push --tags
