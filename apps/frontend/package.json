@@ -22,7 +22,7 @@
     "react-icons": "^5.5.0",
     "react-router": "^v7.9.4",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.15",
+    "tailwindcss": "^4.1.16",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
