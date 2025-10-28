@@ -16,6 +16,13 @@ const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
 const schemaPrompt = fs
   .readFileSync(path.join(BASE_DIR, "schema.txt"), "utf-8")
   .trim();
+
+const schemaJson = JSON.parse(
+  fs.readFileSync(path.join(BASE_DIR, "schema.json"), "utf-8").trim()
+);
+
+const TESTSET_PATH = path.join(BASE_DIR, "testset_response.json");
+
 const files = [
   "examples_konie.tsv",
   "Inzynierka-choroby.tsv",
@@ -61,12 +68,11 @@ function extractJsonBlock(text: string): string {
     .trim();
 }
 
-function extractEndpointAndJson(text: string): [string, string] {
+function extractJsonFromText(text: string): string {
   text = extractJsonBlock(text);
-  const match = text.match(/Endpoint:\s*`?(\/api\/[^\s`]+)`?/);
-  const endpoint = match ? match[1].trim() : "NIEZNANY";
-  const cleaned = text.replace(/Endpoint:\s*`?(\/api\/[^\s`]+)`?/, "").trim();
-  return [endpoint, cleaned];
+  text = text.replace(/Endpoint:\s*`?(\/api\/[^\s`]+)`?/i, "").trim();
+
+  return text;
 }
 
 const sendRequest = async (
@@ -148,6 +154,144 @@ const sendRequest = async (
   }
 };
 
+// TODO
+async function predictEndpoint(prompt: string) {
+  const url = process.env.PREDICTOR_URL;
+  if (!url) {
+    throw new Error("PREDICTOR_URL is not defined");
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Prediction API error (${res.status}): ${txt}`);
+    }
+
+    const data = (await res.json()) as { endpoint: string };
+    return data.endpoint || "";
+  } catch (err) {
+    console.error("Błąd komunikacji:", err);
+    return "";
+  }
+}
+
+export function getSchemaPrompt(
+  endpoint: string,
+  schemaData: Record<string, any>
+): string {
+  if (!schemaData || !(endpoint in schemaData)) {
+    return `(Brak schematu dla endpointu: ${endpoint})`;
+  }
+
+  const content = schemaData[endpoint];
+  for (const [contentType, data] of Object.entries(content)) {
+    if (typeof data === "object" && data !== null && "schema" in data) {
+      try {
+        const schemaPrompt = JSON.stringify(
+          (data as { schema: unknown })["schema"],
+          null,
+          2
+        );
+        return schemaPrompt;
+      } catch {
+        return "(Błąd podczas serializacji schematu)";
+      }
+    }
+  }
+
+  return "(Brak sekcji 'schema' w tym endpointzie)";
+}
+
+export interface TestExample {
+  description: string;
+  informations: string;
+  output: string;
+}
+
+function normEp(ep: string): string {
+  const trimmed = (ep || "").trim();
+  return trimmed.startsWith("/") ? trimmed.slice(1) : trimmed;
+}
+
+function joinDescInfo(desc: string, info: string): string {
+  if (!info) return desc.trim();
+  return `${desc.trim()}\n${info.trim()}`;
+}
+
+/**
+ * Wczytuje wszystkie przykłady dla danego endpointu z testset_response.json.
+ * Zwraca tablicę krotek [prompt, output] lub [prompt, output_dict].
+ */
+export function loadAllExamplesForEndpoint(
+  filePath: string,
+  endpoint: string,
+  decodeOutput = false
+): Array<[string, any]> {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Nie znaleziono pliku: ${filePath}`);
+  }
+
+  const rawText = fs.readFileSync(filePath, "utf-8");
+  const data = JSON.parse(rawText);
+
+  if (typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("Plik musi być słownikiem endpoint -> [lista obiektów].");
+  }
+
+  const epKey = normEp(endpoint);
+  const candidates: Record<string, string> = {};
+
+  for (const key of Object.keys(data)) {
+    candidates[normEp(key)] = key;
+  }
+
+  if (!(epKey in candidates)) {
+    const available = Object.keys(candidates).sort().join(", ");
+    throw new Error(
+      `Endpoint '${endpoint}' nie znaleziony. Dostępne: ${available}`
+    );
+  }
+
+  const rawList = data[candidates[epKey]];
+  if (!Array.isArray(rawList)) {
+    throw new Error(`Wartość dla '${endpoint}' musi być listą obiektów.`);
+  }
+
+  const out: Array<[string, any]> = [];
+
+  rawList.forEach((item: TestExample, i: number) => {
+    if (
+      typeof item !== "object" ||
+      !item.description ||
+      !item.informations ||
+      !item.output
+    ) {
+      throw new Error(
+        `[${endpoint}][${i}] musi być obiektem z polami description/informations/output.`
+      );
+    }
+
+    const prompt = joinDescInfo(item.description, item.informations);
+
+    try {
+      const parsed = JSON.parse(item.output);
+      out.push([prompt, decodeOutput ? parsed : item.output]);
+    } catch (e: any) {
+      throw new Error(
+        `[${endpoint}][${i}] 'output' nie jest poprawnym JSON-em: ${e}`
+      );
+    }
+  });
+
+  return out;
+}
+
 export const gemini_chat_post = new Hono<{
   Variables: { jwtPayload: UserPayload };
 }>().post(
@@ -195,23 +339,21 @@ export const gemini_chat_post = new Hono<{
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const chat = model.startChat({ history: [] });
 
-      const examples: [string, string, string][] = [];
-      for (const file of files) {
-        const endpoint = fileToEndpoint[file];
-        const rows = fs
-          .readFileSync(path.join(BASE_DIR, file), "utf-8")
-          .split("\n")
-          .map((line) => line.split("\t"))
-          .filter((r) => r.length >= 4 && r[0].trim() && r[1].trim())
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 4);
-        for (const [p, j] of rows)
-          examples.push([endpoint, p.trim(), j.trim()]);
-      }
+      // TODO
+      const predictedEndpoint = await predictEndpoint(prompt);
+      const schema_prompt = getSchemaPrompt(predictedEndpoint, schemaJson);
+      const examples = loadAllExamplesForEndpoint(
+        TESTSET_PATH,
+        predictedEndpoint,
+        false
+      );
 
-      let fullPrompt = `Schemat danych wejściowych dla koni (format JSON):\n${schemaPrompt}\n\nTwoim zadaniem jest wygenerować poprawny obiekt JSON na podstawie opisu użytkownika. Podaj również endpoint, do którego należy wysłać ten JSON.\nOto przykłady:\n\n`;
-      for (const [endpoint, user, json] of examples) {
-        fullPrompt += `Endpoint: ${endpoint}\nUżytkownik: ${user}\nOdpowiedź JSON:\n${json}\n\n`;
+      let fullPrompt = `Schemat danych wejściowych dla ${predictedEndpoint} (format JSON):\n${schema_prompt}\n\n
+        Twoim zadaniem jest wygenerować poprawny obiekt JSON na podstawie opisu użytkownika.\n
+        Oto przykłady treningowe, które pomogą Ci zrozumieć, jak powinien wyglądać format JSON odpowiedzi:\n\n`;
+
+      for (const [user, json] of examples) {
+        fullPrompt += `Użytkownik: ${user}\nOdpowiedź JSON:\n${json}\n\n`;
       }
       fullPrompt += `Poniżej masz aktualny stan bazy danych:\n`;
       fullPrompt += `Konie:\n${konie}\n`;
@@ -227,7 +369,7 @@ export const gemini_chat_post = new Hono<{
 
       const result = await chat.sendMessage(fullPrompt);
 
-      const [endpoint, clean] = extractEndpointAndJson(result.response.text());
+      const clean = extractJsonFromText(result.response.text());
       let jsonData;
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -244,13 +386,13 @@ export const gemini_chat_post = new Hono<{
         );
       }
       const { fetchText, curlCommand, status } = await sendRequest(
-        endpoint,
+        predictedEndpoint,
         jsonData,
         token
       );
 
       return c.json({
-        endpoint,
+        endpoint: predictedEndpoint,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         generated: jsonData,
         curl: curlCommand,
