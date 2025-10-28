@@ -23,6 +23,12 @@ const schemaJson = JSON.parse(
 
 const TESTSET_PATH = path.join(BASE_DIR, "testset_response.json");
 
+const API_HOST =
+  process.env.API_HOST ||
+  (process.env.NODE_ENV === "production"
+    ? "https://moje-konie.at2k.pl"
+    : "http://localhost:3001");
+
 const files = [
   "examples_konie.tsv",
   "Inzynierka-choroby.tsv",
@@ -102,11 +108,11 @@ const sendRequest = async (
     formData.append("file", "false");
 
     // Generowanie komendy curl
-    const curlCommand = `curl --location 'http://localhost:3001${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
+    const curlCommand = `curl --location '${API_HOST}${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
 
     // Wysłanie zapytania jako multipart/form-data
     try {
-      const fetchRes = await fetch(`http://localhost:3001${endpoint}`, {
+      const fetchRes = await fetch(`${API_HOST}${endpoint}`, {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -128,10 +134,10 @@ const sendRequest = async (
   } else {
     // Standardowe JSON dla innych endpointów
     const curlJson = JSON.stringify(jsonData, null, 2).replace(/'/g, "\\'");
-    const curlCommand = `curl --location 'http://localhost:3001${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
+    const curlCommand = `curl --location '${API_HOST}${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
 
     try {
-      const fetchRes = await fetch(`http://localhost:3001${endpoint}`, {
+      const fetchRes = await fetch(`${API_HOST}${endpoint}`, {
         method: "POST",
         headers: {
           accept: "application/json",
