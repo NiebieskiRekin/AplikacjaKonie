@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { fetchUserEvents } from "./eventHandlers";
-import { sendEmailNotifications } from "./mailer";
 import { log } from "../logs/logger";
+import { sendEmailNotifications } from "../mailer/reminderMailer";
 
 /**
  * Zadanie cykliczne uruchamiane codziennie co godzinę

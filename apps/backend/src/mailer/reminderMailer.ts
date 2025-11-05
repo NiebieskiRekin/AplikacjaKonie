@@ -1,17 +1,7 @@
-import nodemailer from "nodemailer";
-import { ProcessEnv } from "../env";
 import { generateEmailTemplate } from "./emailTemplate";
+import { ProcessEnv } from "../env";
 import { log } from "../logs/logger";
-
-export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  service: "gmail",
-  auth: {
-    user: ProcessEnv.EMAIL_USER,
-    pass: ProcessEnv.EMAIL_PASS,
-  },
-});
+import { transporter } from "./mailer";
 
 /**
  * Wysyła wiadomości e-mail do użytkowników

@@ -7,6 +7,12 @@ dotenv.config({
   override: true,
 });
 
+const splitAndTrim = (val: string) =>
+  val
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
 const ServeEnv = z.object({
   PORT: z
     .string()
@@ -67,15 +73,24 @@ const ServeEnv = z.object({
 
   ADMIN_PASSWORD_BCRYPT: z.string(),
 
-  GOOGLE_API_KEY_BASE64: z.string().base64(),
+  GOOGLE_API_KEY_BASE64: z.base64(),
 
-  EMAIL_USER: z.string().email(),
+  EMAIL_USER: z.email(),
   EMAIL_PASS: z.string(),
+  EMAIL_HOST: z.string(),
+  EMAIL_PORT: z
+    .string()
+    .regex(/^\d+$/, "Port must be a numeric string")
+    .default("587")
+    .transform(Number),
+  EMAIL_SERVICE_TYPE: z.string().default("gmail"),
+
   LOG_FORMAT: LogFormat,
   LOG_LEVEL: LogLevel,
 
   BUCKET_NAME: z.string(),
   AISTUDIO_API_KEY: z.string(),
+  TRUSTED_ORIGINS: z.string().transform(splitAndTrim).pipe(z.array(z.url())),
   INTERNAL_PREDICT_URL: z.string(),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
 });
