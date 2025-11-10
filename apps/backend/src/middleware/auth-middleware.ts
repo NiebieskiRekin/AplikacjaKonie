@@ -1,6 +1,5 @@
-import { auth_vars } from "@/backend/lib/auth";
+import { auth_vars, auth } from "@/backend/auth";
 import { MiddlewareHandler } from "hono";
-import { auth } from "../lib/auth";
 
 export const auth_middleware: MiddlewareHandler<auth_vars> = async (
   c,

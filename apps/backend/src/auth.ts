@@ -6,7 +6,13 @@ import {
   sendAccountConfirmationEmail,
   sendResetPasswordEmail,
 } from "./mailer/accountMailer";
-import { bearer, jwt, openAPI, organization } from "better-auth/plugins";
+import {
+  bearer,
+  jwt,
+  openAPI,
+  organization,
+  apiKey,
+} from "better-auth/plugins";
 import { ProcessEnv } from "./env";
 
 export const auth = betterAuth({
@@ -33,7 +39,14 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendOnSignUp: true,
   },
-  plugins: [bearer(), organization(), openAPI(), jwt()],
+  plugins: [bearer(), organization(), openAPI(), jwt(), apiKey()],
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      partitioned: true,
+    },
+  },
 });
 
 export type auth_vars = {
