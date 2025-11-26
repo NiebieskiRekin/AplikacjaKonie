@@ -162,7 +162,15 @@ const sendRequest = async (
 
 // TODO
 async function predictEndpoint(prompt: string) {
-  const url = process.env.PREDICTOR_URL;
+  const baseURL = `${ProcessEnv.NODE_ENV}-klasyfikator:8000`;
+  const url = `${baseURL}/predict`;
+
+  if (!ProcessEnv.NODE_ENV) {
+    throw new Error(
+      "ProcessEnv.NODE_ENV is not defined and is required to form the URL."
+    );
+  }
+
   if (!url) {
     throw new Error("PREDICTOR_URL is not defined");
   }
@@ -175,12 +183,28 @@ async function predictEndpoint(prompt: string) {
     });
 
     if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Prediction API error (${res.status}): ${txt}`);
+      let errorBody = "Brak treści błędu";
+      try {
+        const jsonError = await res.json();
+        errorBody = JSON.stringify(jsonError);
+      } catch (e) {
+        errorBody = await res.text();
+      }
+
+      throw new Error(
+        `Prediction API error (Status: ${res.status}, URL: ${url}): ${errorBody}`
+      );
     }
 
-    const data = (await res.json()) as { endpoint: string };
-    return data.endpoint || "";
+    if (res.status === 204) {
+      return "";
+    }
+
+    const data = await res.json();
+    const typedData = data as { endpoint: string };
+    console.log("Predicted endpoint:", typedData.endpoint);
+
+    return typedData.endpoint ?? "";
   } catch (err) {
     console.error("Błąd komunikacji:", err);
     return "";
@@ -354,6 +378,8 @@ export const gemini_chat_post = new Hono<{
         false
       );
 
+      console.log("Przewidziany endpoint:", predictedEndpoint);
+
       let fullPrompt = `Schemat danych wejściowych dla ${predictedEndpoint} (format JSON):\n${schema_prompt}\n\n
         Twoim zadaniem jest wygenerować poprawny obiekt JSON na podstawie opisu użytkownika.\n
         Oto przykłady treningowe, które pomogą Ci zrozumieć, jak powinien wyglądać format JSON odpowiedzi:\n\n`;
@@ -373,7 +399,11 @@ export const gemini_chat_post = new Hono<{
       fullPrompt += `Teraz wygeneruj JSON na podstawie poniższego opisu użytkownika:\n\n`;
       fullPrompt += `Użytkownik: ${prompt}\nOdpowiedź JSON:\n`;
 
+      console.log("Wysyłam:", fullPrompt);
+
       const result = await chat.sendMessage(fullPrompt);
+
+      console.log("Odpowiedź Gemini:", result.response.text());
 
       const clean = extractJsonFromText(result.response.text());
       let jsonData;
