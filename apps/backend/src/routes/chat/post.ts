@@ -13,9 +13,9 @@ import { ProcessEnv } from "@/backend/env";
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
 
-const schemaPrompt = fs
-  .readFileSync(path.join(BASE_DIR, "schema.txt"), "utf-8")
-  .trim();
+// const schemaPrompt = fs
+//   .readFileSync(path.join(BASE_DIR, "schema.txt"), "utf-8")
+//   .trim();
 
 const schemaJson = JSON.parse(
   fs.readFileSync(path.join(BASE_DIR, "schema.json"), "utf-8").trim()
@@ -29,26 +29,26 @@ const API_HOST =
     ? "https://moje-konie.at2k.pl"
     : "http://localhost:3001");
 
-const files = [
-  "examples_konie.tsv",
-  "Inzynierka-choroby.tsv",
-  "Inzynierka-kowale.tsv",
-  "Inzynierka-podkucia.tsv",
-  "Inzynierka-rozrody.tsv",
-  "Inzynierka-weterynarze.tsv",
-  "Inzynierka-wydarzenia_profilaktyczne.tsv",
-];
+// const files = [
+//   "examples_konie.tsv",
+//   "Inzynierka-choroby.tsv",
+//   "Inzynierka-kowale.tsv",
+//   "Inzynierka-podkucia.tsv",
+//   "Inzynierka-rozrody.tsv",
+//   "Inzynierka-weterynarze.tsv",
+//   "Inzynierka-wydarzenia_profilaktyczne.tsv",
+// ];
 
-const fileToEndpoint: Record<string, string> = {
-  "examples_konie.tsv": "/api/konie",
-  "Inzynierka-choroby.tsv": "/api/wydarzenia/choroby",
-  "Inzynierka-kowale.tsv": "/api/kowale",
-  "Inzynierka-podkucia.tsv": "/api/wydarzenia/podkucie",
-  "Inzynierka-rozrody.tsv": "/api/wydarzenia/rozrody",
-  "Inzynierka-weterynarze.tsv": "/api/weterynarze",
-  "Inzynierka-wydarzenia_profilaktyczne.tsv":
-    "/api/wydarzenia/zdarzenia_profilaktyczne",
-};
+// const fileToEndpoint: Record<string, string> = {
+//   "examples_konie.tsv": "/api/konie",
+//   "Inzynierka-choroby.tsv": "/api/wydarzenia/choroby",
+//   "Inzynierka-kowale.tsv": "/api/kowale",
+//   "Inzynierka-podkucia.tsv": "/api/wydarzenia/podkucie",
+//   "Inzynierka-rozrody.tsv": "/api/wydarzenia/rozrody",
+//   "Inzynierka-weterynarze.tsv": "/api/weterynarze",
+//   "Inzynierka-wydarzenia_profilaktyczne.tsv":
+//     "/api/wydarzenia/zdarzenia_profilaktyczne",
+// };
 
 const promptSchema = z.object({
   konie: z.string(),
@@ -228,6 +228,8 @@ export function getSchemaPrompt(
           null,
           2
         );
+        const a = contentType;
+        console.log(a);
         return schemaPrompt;
       } catch {
         return "(Błąd podczas serializacji schematu)";
