@@ -9,7 +9,7 @@ import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
-import { isMapIterator } from "util/types";
+// import { isMapIterator } from "util/types";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
