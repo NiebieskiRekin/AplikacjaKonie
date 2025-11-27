@@ -28,7 +28,9 @@ const API_HOST =
   process.env.API_HOST ||
   (process.env.NODE_ENV === "production"
     ? "https://moje-konie.at2k.pl"
-    : "http://localhost:3001");
+    : process.env.NODE_ENV === "development"
+      ? "https://konie-dev.at2k.pl"
+      : "http://localhost:3001");
 
 // const files = [
 //   "examples_konie.tsv",
