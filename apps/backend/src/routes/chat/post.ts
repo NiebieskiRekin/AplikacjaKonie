@@ -162,8 +162,7 @@ const sendRequest = async (
 
 // TODO
 async function predictEndpoint(prompt: string) {
-  const baseURL = `${ProcessEnv.NODE_ENV}-klasyfikator:8000`;
-  const url = `${baseURL}/predict`;
+  const url = `${ProcessEnv.INTERNAL_PREDICT_URL}`;
 
   if (!ProcessEnv.NODE_ENV) {
     throw new Error(

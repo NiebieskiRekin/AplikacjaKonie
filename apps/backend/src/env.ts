@@ -76,6 +76,7 @@ const ServeEnv = z.object({
 
   BUCKET_NAME: z.string(),
   AISTUDIO_API_KEY: z.string(),
+  INTERNAL_PREDICT_URL: z.string(),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
