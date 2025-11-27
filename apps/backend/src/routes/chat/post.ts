@@ -307,12 +307,7 @@ export function loadAllExamplesForEndpoint(
     console.log(item.informations);
     console.log(item.output);
 
-    if (
-      typeof item !== "object" ||
-      !item.description ||
-      !item.informations ||
-      !item.output
-    ) {
+    if (!item.description || !item.informations || !item.output) {
       throw new Error(
         `[${endpoint}][${i}] musi być obiektem z polami description/informations/output.`
       );
