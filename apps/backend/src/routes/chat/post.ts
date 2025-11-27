@@ -9,6 +9,7 @@ import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
+import { isMapIterator } from "util/types";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -297,6 +298,15 @@ export function loadAllExamplesForEndpoint(
   const out: Array<[string, any]> = [];
 
   rawList.forEach((item: TestExample, i: number) => {
+    console.log("Przykład", i, item);
+    console.log(item);
+    console.log("----");
+    console.log(JSON.stringify(item));
+    console.log("====");
+    console.log(item.description);
+    console.log(item.informations);
+    console.log(item.output);
+
     if (
       typeof item !== "object" ||
       !item.description ||
