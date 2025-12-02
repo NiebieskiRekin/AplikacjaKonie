@@ -11,7 +11,7 @@ import { UserPayload } from "@/backend/middleware/auth";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
 // import { hc } from "hono/client";
-import type { ApiRoutes } from "@/backend/routes";
+// import type { ApiRoutes } from "@/backend/routes";
 // import { apiRoutes } from "@/backend/routes";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
