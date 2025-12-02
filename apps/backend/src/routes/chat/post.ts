@@ -10,9 +10,9 @@ import { UserPayload } from "@/backend/middleware/auth";
 // import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
-import { hc } from "hono/client";
+// import { hc } from "hono/client";
 import type { ApiRoutes } from "@/backend/routes";
-import { apiRoutes } from "@/backend/routes";
+// import { apiRoutes } from "@/backend/routes";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -480,8 +480,8 @@ export const gemini_chat_post = new Hono<{
   }
 );
 
-type ApiMap = ApiRoutes;
-type ApiKey = keyof ApiMap;
+// type ApiMap = ApiRoutes;
+// type ApiKey = keyof ApiMap;
 
 async function callInternalApi(
   endpoint: string,
