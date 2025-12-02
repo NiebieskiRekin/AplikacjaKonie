@@ -488,34 +488,20 @@ async function callInternalApi(
   jsonData: unknown,
   token: string
 ): Promise<{ status: number; responseText: string; curl: string }> {
-  const client = hc<typeof apiRoutes>("", {
-    fetch: (input: string | Request | URL, init: any = {}) => {
-      init.headers = {
-        ...init.headers,
-        Cookie: `ACCESS_TOKEN=${token}`,
-      };
-      return fetch(input, init);
+  const response = await fetch(`${API_HOST}/${endpoint}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `ACCESS_TOKEN=${token}`,
     },
-  });
-  console.log("Dostępne klucze klienta:", Object.keys(client));
-
-  const ep = endpoint.replace(/^\/api\//, "") as ApiKey;
-
-  if (!(ep in client)) {
-    throw new Error(
-      `Endpoint '${endpoint}' nie istnieje w ApiRoutes. Klucze dostępne: ${Object.keys(client).join(", ")}`
-    );
-  }
-
-  const response: Response = await client.api[ep].$post({
-    json: jsonData,
+    body: JSON.stringify(jsonData),
   });
 
-  const responseText = await response.text();
+  const text = await response.text();
 
   return {
     status: response.status,
-    responseText,
+    responseText: text,
     curl: `curl -X POST '${API_HOST}${endpoint}' \\
 -H 'Cookie: ACCESS_TOKEN=${token}' \\
 -H 'Content-Type: application/json' \\
