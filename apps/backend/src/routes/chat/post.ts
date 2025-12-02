@@ -7,7 +7,7 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
-import { konieInsertSchema } from "@/backend/db/schema";
+// import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
 import { hc } from "hono/client";
@@ -479,19 +479,16 @@ export const gemini_chat_post = new Hono<{
   }
 );
 
-interface InternalApiResult {
-  status: number;
-  responseText: string;
-  curl: string;
-}
+type ApiMap = ApiRoutes;
+type ApiKey = keyof ApiMap;
 
 async function callInternalApi(
   endpoint: string,
   jsonData: unknown,
   token: string
-): Promise<InternalApiResult> {
-  const client = hc<ApiRoutes>(API_HOST, {
-    fetch: (input: string | Request | URL, init: any = {}) => {
+) {
+  const client: any = hc<ApiRoutes>(API_HOST, {
+    fetch: (input: string | URL | Request, init: any = {}) => {
       init.headers = {
         ...init.headers,
         Cookie: `ACCESS_TOKEN=${token}`,
@@ -500,9 +497,13 @@ async function callInternalApi(
     },
   });
 
-  const ep = endpoint.replace(/^\/api\//, "");
+  const ep = endpoint.replace(/^\/api\//, "") as ApiKey;
 
-  const response = await client.api[ep].$post({
+  if (!(ep in client.api)) {
+    throw new Error(`Endpoint '${endpoint}' nie istnieje w ApiRoutes`);
+  }
+
+  const response: Response = await client.api[ep].$post({
     json: jsonData,
   });
 
@@ -511,7 +512,7 @@ async function callInternalApi(
   return {
     status: response.status,
     responseText,
-    curl: `curl -X POST '${API_HOST}/${endpoint}' \\
+    curl: `curl -X POST '${API_HOST}${endpoint}' \\
 -H 'Cookie: ACCESS_TOKEN=${token}' \\
 -H 'Content-Type: application/json' \\
 --data '${JSON.stringify(jsonData).replace(/'/g, "\\'")}'`,
