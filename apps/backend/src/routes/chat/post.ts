@@ -12,6 +12,7 @@ import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
 import { hc } from "hono/client";
 import type { ApiRoutes } from "@/backend/routes";
+import { apiRoutes } from "@/backend/routes";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -487,8 +488,8 @@ async function callInternalApi(
   jsonData: unknown,
   token: string
 ): Promise<{ status: number; responseText: string; curl: string }> {
-  const client = hc<typeof apiRoutes>(apiRoutes, {
-    fetch: (input, init: any = {}) => {
+  const client = hc<typeof apiRoutes>("", {
+    fetch: (input: string | Request | URL, init: any = {}) => {
       init.headers = {
         ...init.headers,
         Cookie: `ACCESS_TOKEN=${token}`,
