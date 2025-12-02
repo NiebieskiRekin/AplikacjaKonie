@@ -487,8 +487,8 @@ async function callInternalApi(
   jsonData: unknown,
   token: string
 ): Promise<{ status: number; responseText: string; curl: string }> {
-  const client: any = hc<ApiRoutes>(API_HOST, {
-    fetch: (input: string | URL | Request, init: any = {}) => {
+  const client = hc<typeof apiRoutes>(apiRoutes, {
+    fetch: (input, init: any = {}) => {
       init.headers = {
         ...init.headers,
         Cookie: `ACCESS_TOKEN=${token}`,
