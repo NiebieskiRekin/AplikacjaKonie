@@ -7,12 +7,9 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 import { UserPayload } from "@/backend/middleware/auth";
-// import { konieInsertSchema } from "@/backend/db/schema";
+import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
-// import { hc } from "hono/client";
-// import type { ApiRoutes } from "@/backend/routes";
-// import { apiRoutes } from "@/backend/routes";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -87,91 +84,91 @@ function extractJsonFromText(text: string): string {
   return text;
 }
 
-// const sendRequest = async (
-//   endpoint: string,
-//   jsonData: unknown,
-//   token: string
-// ) => {
-//   const formData = new FormData();
+const sendRequest = async (
+  endpoint: string,
+  jsonData: unknown,
+  token: string
+) => {
+  const formData = new FormData();
 
-//   if (endpoint === "/api/konie") {
-//     const kon_result = await konieInsertSchema.spa(jsonData);
-//     if (!kon_result.success) {
-//       throw new Error(
-//         `Błąd wysyłania zapytania: ${(kon_result.error as Error).message}`
-//       );
-//     }
-//     const kon = kon_result.data;
-//     // Dodajemy dane formularza
-//     formData.append("nazwa", kon.nazwa || "");
-//     formData.append("numerPrzyzyciowy", kon.numerPrzyzyciowy || "");
-//     formData.append("numerChipa", kon.numerChipa || "");
-//     formData.append("rocznikUrodzenia", kon.rocznikUrodzenia?.toString() || "");
-//     formData.append("dataPrzybyciaDoStajni", kon.dataPrzybyciaDoStajni || "");
-//     formData.append("dataOdejsciaZeStajni", kon.dataOdejsciaZeStajni || "");
-//     formData.append("rodzajKonia", kon.rodzajKonia || "");
-//     formData.append("plec", kon.plec || "");
-//     formData.append("file", "false");
+  if (endpoint === "/api/konie") {
+    const kon_result = await konieInsertSchema.spa(jsonData);
+    if (!kon_result.success) {
+      throw new Error(
+        `Błąd wysyłania zapytania: ${(kon_result.error as Error).message}`
+      );
+    }
+    const kon = kon_result.data;
+    // Dodajemy dane formularza
+    formData.append("nazwa", kon.nazwa || "");
+    formData.append("numerPrzyzyciowy", kon.numerPrzyzyciowy || "");
+    formData.append("numerChipa", kon.numerChipa || "");
+    formData.append("rocznikUrodzenia", kon.rocznikUrodzenia?.toString() || "");
+    formData.append("dataPrzybyciaDoStajni", kon.dataPrzybyciaDoStajni || "");
+    formData.append("dataOdejsciaZeStajni", kon.dataOdejsciaZeStajni || "");
+    formData.append("rodzajKonia", kon.rodzajKonia || "");
+    formData.append("plec", kon.plec || "");
+    formData.append("file", "false");
 
-//     // Generowanie komendy curl
-//     const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
-//     console.log(`[sendRequest] Mulst curlCommand: ${curlCommand}`);
+    // Generowanie komendy curl
+    const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
+    console.log(`[sendRequest] Mulst curlCommand: ${curlCommand}`);
 
-//     // Wysłanie zapytania jako multipart/form-data
-//     try {
-//       console.log(`[sendRequest] POST (Multipart) do: ${API_HOST}/${endpoint}`);
+    // Wysłanie zapytania jako multipart/form-data
+    try {
+      console.log(`[sendRequest] POST (Multipart) do: ${API_HOST}/${endpoint}`);
 
-//       const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
-//         method: "POST",
-//         headers: {
-//           accept: "application/json",
-//           Cookie: "ACCESS_TOKEN=" + token,
-//         },
-//         body: formData, // Wysłanie danych w formacie multipart/form-data
-//       });
+      const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          Cookie: "ACCESS_TOKEN=" + token,
+        },
+        body: formData, // Wysłanie danych w formacie multipart/form-data
+      });
 
-//       const fetchText = await fetchRes.text();
+      const fetchText = await fetchRes.text();
 
-//       return {
-//         fetchText,
-//         curlCommand,
-//         status: fetchRes.status,
-//       };
-//     } catch (err) {
-//       throw new Error(`Błąd wysyłania zapytania: ${(err as Error).message}`);
-//     }
-//   } else {
-//     // Standardowe JSON dla innych endpointów
-//     const curlJson = JSON.stringify(jsonData, null, 2).replace(/'/g, "\\'");
-//     const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
+      return {
+        fetchText,
+        curlCommand,
+        status: fetchRes.status,
+      };
+    } catch (err) {
+      throw new Error(`Błąd wysyłania zapytania: ${(err as Error).message}`);
+    }
+  } else {
+    // Standardowe JSON dla innych endpointów
+    const curlJson = JSON.stringify(jsonData, null, 2).replace(/'/g, "\\'");
+    const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
 
-//     console.log(`[sendRequest] curlCommand: ${curlCommand}`);
+    console.log(`[sendRequest] curlCommand: ${curlCommand}`);
 
-//     try {
-//       console.log(`[sendRequest] POST (JSON) do: ${API_HOST}/${endpoint}`);
+    try {
+      console.log(`[sendRequest] POST (JSON) do: ${API_HOST}/${endpoint}`);
 
-//       const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
-//         method: "POST",
-//         headers: {
-//           accept: "application/json",
-//           "Content-Type": "application/json",
-//           Cookie: "ACCESS_TOKEN=" + token,
-//         },
-//         body: JSON.stringify(jsonData),
-//       });
+      const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Cookie: "ACCESS_TOKEN=" + token,
+        },
+        body: JSON.stringify(jsonData),
+      });
 
-//       const fetchText = await fetchRes.text();
+      const fetchText = await fetchRes.text();
 
-//       return {
-//         fetchText,
-//         curlCommand,
-//         status: fetchRes.status,
-//       };
-//     } catch (err) {
-//       throw new Error(`Błąd wysyłania zapytania: ${(err as Error).message}`);
-//     }
-//   }
-// };
+      return {
+        fetchText,
+        curlCommand,
+        status: fetchRes.status,
+      };
+    } catch (err) {
+      throw new Error(`Błąd wysyłania zapytania: ${(err as Error).message}`);
+    }
+  }
+};
 
 // TODO
 async function predictEndpoint(prompt: string) {
@@ -439,13 +436,7 @@ export const gemini_chat_post = new Hono<{
           400
         );
       }
-      // const { fetchText, curlCommand, status } = await sendRequest(
-      //   predictedEndpoint,
-      //   jsonData,
-      //   token
-      // );
-
-      const internal = await callInternalApi(
+      const { fetchText, curlCommand, status } = await sendRequest(
         predictedEndpoint,
         jsonData,
         token
@@ -453,20 +444,12 @@ export const gemini_chat_post = new Hono<{
 
       return c.json({
         endpoint: predictedEndpoint,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         generated: jsonData,
-        response: internal.responseText,
-        status: internal.status,
-        curl: internal.curl,
+        curl: curlCommand,
+        response: fetchText,
+        status: status,
       });
-
-      // return c.json({
-      //   endpoint: predictedEndpoint,
-      //   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      //   generated: jsonData,
-      //   curl: curlCommand,
-      //   response: fetchText,
-      //   status: status,
-      // });
     } catch (err) {
       return c.json(
         {
@@ -479,32 +462,3 @@ export const gemini_chat_post = new Hono<{
     }
   }
 );
-
-// type ApiMap = ApiRoutes;
-// type ApiKey = keyof ApiMap;
-
-async function callInternalApi(
-  endpoint: string,
-  jsonData: unknown,
-  token: string
-): Promise<{ status: number; responseText: string; curl: string }> {
-  const response = await fetch(`${API_HOST}/${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `ACCESS_TOKEN=${token}`,
-    },
-    body: JSON.stringify(jsonData),
-  });
-
-  const text = await response.text();
-
-  return {
-    status: response.status,
-    responseText: text,
-    curl: `curl -X POST '${API_HOST}${endpoint}' \\
--H 'Cookie: ACCESS_TOKEN=${token}' \\
--H 'Content-Type: application/json' \\
---data '${JSON.stringify(jsonData).replace(/'/g, "\\'")}'`,
-  };
-}
