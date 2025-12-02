@@ -10,6 +10,8 @@ import { UserPayload } from "@/backend/middleware/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
+import { hc } from "hono/client";
+import type { ApiRoutes } from "@/backend/routes";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -436,11 +438,25 @@ export const gemini_chat_post = new Hono<{
           400
         );
       }
-      const { fetchText, curlCommand, status } = await sendRequest(
+      // const { fetchText, curlCommand, status } = await sendRequest(
+      //   predictedEndpoint,
+      //   jsonData,
+      //   token
+      // );
+
+      const internal = await callInternalApi(
         predictedEndpoint,
         jsonData,
         token
       );
+
+      return c.json({
+        endpoint: predictedEndpoint,
+        generated: jsonData,
+        response: internal.responseText,
+        status: internal.status,
+        curl: internal.curl,
+      });
 
       return c.json({
         endpoint: predictedEndpoint,
@@ -462,3 +478,42 @@ export const gemini_chat_post = new Hono<{
     }
   }
 );
+
+interface InternalApiResult {
+  status: number;
+  responseText: string;
+  curl: string;
+}
+
+async function callInternalApi(
+  endpoint: string,
+  jsonData: unknown,
+  token: string
+): Promise<InternalApiResult> {
+  const client = hc<ApiRoutes>(API_HOST, {
+    fetch: (input: string | Request | URL, init: any = {}) => {
+      init.headers = {
+        ...init.headers,
+        Cookie: `ACCESS_TOKEN=${token}`,
+      };
+      return fetch(input, init);
+    },
+  });
+
+  const ep = endpoint.replace(/^\/api\//, "");
+
+  const response = await client.api[ep].$post({
+    json: jsonData,
+  });
+
+  const responseText = await response.text();
+
+  return {
+    status: response.status,
+    responseText,
+    curl: `curl -X POST '${API_HOST}/${endpoint}' \\
+-H 'Cookie: ACCESS_TOKEN=${token}' \\
+-H 'Content-Type: application/json' \\
+--data '${JSON.stringify(jsonData).replace(/'/g, "\\'")}'`,
+  };
+}
