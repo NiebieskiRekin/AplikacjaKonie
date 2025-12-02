@@ -486,7 +486,7 @@ async function callInternalApi(
   endpoint: string,
   jsonData: unknown,
   token: string
-) {
+): Promise<{ status: number; responseText: string; curl: string }> {
   const client: any = hc<ApiRoutes>(API_HOST, {
     fetch: (input: string | URL | Request, init: any = {}) => {
       init.headers = {
@@ -496,11 +496,14 @@ async function callInternalApi(
       return fetch(input, init);
     },
   });
+  console.log("Dostępne klucze klienta:", Object.keys(client));
 
   const ep = endpoint.replace(/^\/api\//, "") as ApiKey;
 
-  if (!(ep in client.api)) {
-    throw new Error(`Endpoint '${endpoint}' nie istnieje w ApiRoutes`);
+  if (!(ep in client)) {
+    throw new Error(
+      `Endpoint '${endpoint}' nie istnieje w ApiRoutes. Klucze dostępne: ${Object.keys(client).join(", ")}`
+    );
   }
 
   const response: Response = await client.api[ep].$post({
