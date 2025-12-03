@@ -32,6 +32,8 @@ const API_HOST =
       ? "https://konie-dev.at2k.pl"
       : "http://localhost:3001");
 
+const PORT = ProcessEnv.PORT;
+
 // const files = [
 //   "examples_konie.tsv",
 //   "Inzynierka-choroby.tsv",
@@ -111,14 +113,16 @@ const sendRequest = async (
     formData.append("file", "false");
 
     // Generowanie komendy curl
-    const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
     console.log(`[sendRequest] Mulst curlCommand: ${curlCommand}`);
 
     // Wysłanie zapytania jako multipart/form-data
     try {
-      console.log(`[sendRequest] POST (Multipart) do: ${API_HOST}/${endpoint}`);
+      console.log(
+        `[sendRequest] POST (Multipart) do: http://localhost:${PORT}/${endpoint}`
+      );
 
-      const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
+      const fetchRes = await fetch(`http://localhost:${PORT}/${endpoint}`, {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -140,14 +144,16 @@ const sendRequest = async (
   } else {
     // Standardowe JSON dla innych endpointów
     const curlJson = JSON.stringify(jsonData, null, 2).replace(/'/g, "\\'");
-    const curlCommand = `curl --location '${API_HOST}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
 
     console.log(`[sendRequest] curlCommand: ${curlCommand}`);
 
     try {
-      console.log(`[sendRequest] POST (JSON) do: ${API_HOST}/${endpoint}`);
+      console.log(
+        `[sendRequest] POST (JSON) do: http://localhost:${PORT}/${endpoint}`
+      );
 
-      const fetchRes = await fetch(`${API_HOST}/${endpoint}`, {
+      const fetchRes = await fetch(`http://localhost:${PORT}/${endpoint}`, {
         method: "POST",
         headers: {
           accept: "application/json",
