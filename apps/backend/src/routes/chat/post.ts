@@ -24,13 +24,13 @@ const schemaJson = JSON.parse(
 
 const TESTSET_PATH = path.join(BASE_DIR, "testset_response.json");
 
-const API_HOST =
-  process.env.API_HOST ||
-  (process.env.NODE_ENV === "production"
-    ? "https://moje-konie.at2k.pl"
-    : process.env.NODE_ENV === "development"
-      ? "https://konie-dev.at2k.pl"
-      : "http://localhost:3001");
+// const API_HOST =
+//   process.env.API_HOST ||
+//   (process.env.NODE_ENV === "production"
+//     ? "https://moje-konie.at2k.pl"
+//     : process.env.NODE_ENV === "development"
+//       ? "https://konie-dev.at2k.pl"
+//       : "http://localhost:3001");
 
 const PORT = ProcessEnv.PORT;
 
