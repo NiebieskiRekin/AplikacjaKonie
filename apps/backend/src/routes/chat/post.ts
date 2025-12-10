@@ -10,6 +10,9 @@ import { UserPayload } from "@/backend/middleware/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 // import { isMapIterator } from "util/types";
+import { db } from "@/backend/db";
+import { choroby } from "@/backend/db/schema";
+import { eq } from "drizzle-orm";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -400,6 +403,23 @@ export const gemini_chat_post = new Hono<{
       );
 
       console.log("Przewidziany endpoint:", predictedEndpoint);
+      let _result;
+      let chorobaList: { id: number; opis: string | null }[] = [];
+
+      if (predictedEndpoint == "api/wydarzenia/leczenia") {
+        let _prompt = `Poniżej znajdują się dane o koniach, podaj mi tylko id konia, o którym mowa jest tekście.`;
+        _prompt += `Konie:\n${konie}\n`;
+        _prompt += `Tekst: ${prompt}`;
+        _result = await chat.sendMessage(_prompt);
+        const konId = parseInt(_result.response.text(), 10);
+        console.log(_result.response.text());
+        console.log("Parsed konId:", konId);
+
+        chorobaList = await db
+          .select({ id: choroby.id, opis: choroby.opisZdarzenia })
+          .from(choroby)
+          .where(eq(choroby.kon, konId));
+      }
 
       let fullPrompt = `Schemat danych wejściowych dla ${predictedEndpoint} (format JSON):\n${schema_prompt}\n\n
         Twoim zadaniem jest wygenerować poprawny obiekt JSON na podstawie opisu użytkownika.\n
@@ -411,7 +431,12 @@ export const gemini_chat_post = new Hono<{
       fullPrompt += `Poniżej masz aktualny stan bazy danych:\n`;
       fullPrompt += `Konie:\n${konie}\n`;
       fullPrompt += `Kowale:\n${kowale}\n`;
-      fullPrompt += `Weterynarze:\n${weterynarze}\n\n`;
+      fullPrompt += `Weterynarze:\n${weterynarze}\n`;
+
+      if (predictedEndpoint == "api/wydarzenia/leczenia") {
+        fullPrompt += `Choroby konia ${chorobaList}:\n\n`;
+      }
+
       fullPrompt += `Dziś jest ${new Date().toLocaleDateString("pl-PL", {
         year: "numeric",
         month: "2-digit",
