@@ -132,5 +132,12 @@
       "informations": "Stan hodowli: Konie sportowe-Błysk:1;Cyklon:2;Wicher:3;Simba:4;Flash:5 Konie hodowlane-Selena:6;Fanta:7;Milka:8;Aura:9;Bella:10 Konie rekreacyjne-Bambi:11;Czarek:12;Tofik:13;Mustang:14;Luzak:15 Źrebaki-Zefir:16;Figa:17;Oliwka:18;Leo:19;Mgiełka:20 Kowale-Karol Buczek:1;Wiktor Machowski:2;Paweł Kaczmarek:3 Weterynarze-Ewelina Maj:1;Hanna Wrona:2;Tomasz Żuk:3 Dzisiaj jest 14.04.2025",
       "output": "{ \"konieId\": [1], \"weterynarz\": 3, \"dataZdarzenia\": \"2025-04-14\", \"dataWaznosci\": \"2025-10-14\", \"rodzajZdarzenia\": \"Szczepienie\" }"
     }
+  ],
+  "api/wydarzenia/leczenia": [
+    {
+      "description": "Patrycja Lewandowska podała Neonowi maść na złamaną nogę dziś",
+      "informations": "Stan hodowli: Konie sportowe-Neon:1 Konie hodowlane-Kleo:2;Aura:3 Konie rekreacyjne-Borys:4;Nela:5;Czarek:6 Źrebaki-Zefir:7;Mała:8;Leo:9 Weterynarze-Patrycja Lewandowska:1 Choroby: ID 14-Złamana noga; ID 16-Wrzody; ID 17-Grypa; ID 18-Brak opisu. Dzisiaj jest 12.02.2025",
+      "output": "{ \"kon\": 1, \"weterynarz\": 1, \"dataZdarzenia\": \"2025-12-10\", \"choroba\": 14, \"opisZdarzenia\": \"Patrycja Lewandowska podała maść na złamaną nogę\"}"
+    }
   ]
 }
