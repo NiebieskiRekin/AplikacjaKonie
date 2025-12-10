@@ -419,7 +419,7 @@ export const gemini_chat_post = new Hono<{
           .select({ id: choroby.id, opis: choroby.opisZdarzenia })
           .from(choroby)
           .where(eq(choroby.kon, konId));
-        await setTimeout(1000);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       let fullPrompt = `Schemat danych wejściowych dla ${predictedEndpoint} (format JSON):\n${schema_prompt}\n\n
