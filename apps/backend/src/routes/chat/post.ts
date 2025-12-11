@@ -406,6 +406,7 @@ export const gemini_chat_post = new Hono<{
       console.log("Przewidziany endpoint:", predictedEndpoint);
       let _result;
       let chorobaList: { id: number; opis: string | null }[] = [];
+      let chorobyText = "";
 
       if (predictedEndpoint == "api/wydarzenia/leczenia") {
         let _prompt = `Poniżej znajdują się dane o koniach, podaj mi tylko id konia, o którym mowa jest tekście.`;
@@ -420,6 +421,10 @@ export const gemini_chat_post = new Hono<{
           .select({ id: choroby.id, opis: choroby.opisZdarzenia })
           .from(choroby)
           .where(eq(choroby.kon, konId));
+
+        chorobyText = chorobaList
+          .map((c) => `ID: ${c.id}, Opis: ${c.opis || "Brak opisu"}`)
+          .join("\n* ");
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
@@ -436,7 +441,7 @@ export const gemini_chat_post = new Hono<{
       fullPrompt += `Weterynarze:\n${weterynarze}\n`;
 
       if (predictedEndpoint == "api/wydarzenia/leczenia") {
-        fullPrompt += `Choroby konia ${chorobaList}:\n\n`;
+        fullPrompt += `Choroby konia ${chorobyText}:\n\n`;
       }
 
       fullPrompt += `Dziś jest ${new Date().toLocaleDateString("pl-PL", {
