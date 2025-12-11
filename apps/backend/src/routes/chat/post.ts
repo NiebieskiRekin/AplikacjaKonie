@@ -16,6 +16,7 @@ import { eq } from "drizzle-orm";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
+const GEMINI_MODEL = ProcessEnv.GEMINI_MODEL;
 
 // const schemaPrompt = fs
 //   .readFileSync(path.join(BASE_DIR, "schema.txt"), "utf-8")
@@ -390,7 +391,7 @@ export const gemini_chat_post = new Hono<{
         return c.json({ error: "Brak ACCESS_TOKEN w ciasteczkach" }, 401);
 
       const genAI = new GoogleGenerativeAI(API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
       const chat = model.startChat({ history: [] });
 
       // TODO

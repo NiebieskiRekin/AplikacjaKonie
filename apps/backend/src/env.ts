@@ -77,6 +77,7 @@ const ServeEnv = z.object({
   BUCKET_NAME: z.string(),
   AISTUDIO_API_KEY: z.string(),
   INTERNAL_PREDICT_URL: z.string(),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
