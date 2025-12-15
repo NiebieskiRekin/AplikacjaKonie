@@ -30,7 +30,7 @@
     "@google-cloud/storage": "^7.17.2",
     "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.19.5",
-    "@hono/standard-validator": "^0.2.0",
+    "@hono/standard-validator": "^0.2.1",
     "@hono/swagger-ui": "^0.5.2",
     "@hono/zod-openapi": "^1.1.4",
     "@hono/zod-validator": "^0.7.4",
@@ -39,14 +39,19 @@
     "drizzle-orm": "^0.45.0",
     "drizzle-zod": "^0.8.3",
     "hono": "^4.10.3",
-    "hono-openapi": "^1.1.0",
+    "hono-openapi": "^1.1.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.10",
     "pg": "^8.16.3",
     "strip-ansi": "^7.1.2",
     "winston": "^3.18.3",
-    "zod": "^4.0.17",
-    "zod-openapi": "^5"
+    "zod": "^4.2.0",
+    "zod-openapi": "^5.4.5"
+  },
+  "overrides": {
+    "@standard-community/standard-openapi": {
+      "zod-openapi": "5.4.5"
+    }
   }
 }
