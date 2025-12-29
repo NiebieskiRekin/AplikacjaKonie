@@ -13,7 +13,7 @@
   "dependencies": {
     "@aplikacja-konie/backend": "*",
     "@types/node": "^24.10.0",
-    "hono": "^4.10.3"
+    "hono": "^4.11.3"
   },
   "devDependencies": {
     "typescript": "~5.9.3"
