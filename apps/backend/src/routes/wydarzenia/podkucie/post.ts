@@ -2,7 +2,7 @@ import { db } from "@/backend/db";
 import { konie, podkucia } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq, or } from "drizzle-orm";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { podkucieSchema } from "./schema";
 import { resolver, validator as zValidator } from "hono-openapi";
@@ -10,9 +10,7 @@ import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
 
-export const wydarzenia_podkucie_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const wydarzenia_podkucie_post = new Hono<auth_vars>().post(
   "/podkucie",
   zValidator("json", podkucieSchema),
   describeRoute({

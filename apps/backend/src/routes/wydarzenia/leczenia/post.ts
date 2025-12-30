@@ -5,15 +5,13 @@ import {
   leczeniaSelectSchema,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_leczenia_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const wydarzenia_leczenia_post = new Hono<auth_vars>().post(
   "/leczenia",
   zValidator("json", leczeniaInsertSchema),
   describeRoute({

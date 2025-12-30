@@ -7,15 +7,13 @@ import {
   weterynarzeInsertSchema,
   weterynarzeSelectSchema,
 } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
-export const weterynarze_id_put = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().put(
+export const weterynarze_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
   zValidator("json", weterynarzeInsertSchema),
   describeRoute({

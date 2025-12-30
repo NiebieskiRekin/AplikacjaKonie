@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { choroby, chorobySelectSchema } from "@/backend/db/schema";
@@ -8,9 +8,7 @@ import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
-export const konie_choroby_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_choroby_get = new Hono<auth_vars>().get(
   "/choroby/:id{[0-9]+}",
   describeRoute({
     description: "Wyświetl informacje o chorobach danego konia",

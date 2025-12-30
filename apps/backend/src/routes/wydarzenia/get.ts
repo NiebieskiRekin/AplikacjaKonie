@@ -9,7 +9,7 @@ import {
   podkucia,
   kowale,
 } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -35,9 +35,7 @@ const resultEventSchema = z.array(
   })
 );
 
-export const wydarzenia_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_get = new Hono<auth_vars>().get(
   "/",
   describeRoute({
     description: "Wyświetl listę zdarzeń",

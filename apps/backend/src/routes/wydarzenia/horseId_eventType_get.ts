@@ -11,7 +11,7 @@ import {
   leczenia,
   rozrody,
 } from "@/backend/db/schema";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi";
@@ -19,9 +19,7 @@ import { describeRoute } from "hono-openapi";
 import { log } from "@/backend/logs/logger";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_horseId_eventType_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_horseId_eventType_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}/:type{[A-Za-z_]+}",
   describeRoute({
     description: "Wyświetl listę wydarzeń danego typu dla wybranego konia",

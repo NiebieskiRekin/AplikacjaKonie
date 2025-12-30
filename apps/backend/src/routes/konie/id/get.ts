@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
@@ -13,9 +13,7 @@ const konie_id_get_response_success = konieSelectSchema.extend({
   images_signed_urls: z.array(z.string().url()),
 });
 
-export const konie_id_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_id_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}",
   describeRoute({
     description: "Wyświetl szczegółowe informacje o koniu",

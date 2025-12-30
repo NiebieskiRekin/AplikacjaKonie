@@ -4,7 +4,7 @@ import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, konie, zdjeciaKoni } from "@/backend/db/schema";
@@ -35,9 +35,7 @@ const konieGetResponseSchemaSuccess = z.object({
   ),
 });
 
-export const konie_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_get = new Hono<auth_vars>().get(
   "/",
   describeRoute({
     description: "Wyświetl listę koni z hodowli użytkownika",

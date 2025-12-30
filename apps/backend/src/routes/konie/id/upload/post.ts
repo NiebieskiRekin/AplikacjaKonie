@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, zdjeciaKoni } from "@/backend/db/schema";
@@ -19,9 +19,7 @@ const konie_id_upload_post_response_error = z
   .object({ error: z.string() })
   .openapi({ example: { error: "Błąd zapytania" } });
 
-export const konie_id_upload_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const konie_id_upload_post = new Hono<auth_vars>().post(
   "/:id{[0-9]+}/upload",
   describeRoute({
     description: "Dodaj wpis o dodaniu nowego zdjęcia dla danego konia",

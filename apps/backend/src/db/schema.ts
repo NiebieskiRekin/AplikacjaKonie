@@ -302,9 +302,9 @@ export const apikeyRelations = relations(apikey, ({ one }) => ({
   }),
 }));
 
-// export const hodowcyKoniSelectSchema = createSelectSchema(hodowcyKoni);
-// export const hodowcyKoniUpdateSchema = createUpdateSchema(hodowcyKoni);
-// export const hodowcyKoniInsertSchema = createInsertSchema(hodowcyKoni);
+export const hodowcyKoniSelectSchema = createSelectSchema(organization);
+export const hodowcyKoniUpdateSchema = createUpdateSchema(organization);
+export const hodowcyKoniInsertSchema = createInsertSchema(organization);
 
 // TODO: drzewo genealogiczne?
 export const konie = schemaTable(
@@ -343,6 +343,10 @@ export const konie = schemaTable(
     ),
   ]
 );
+
+export const konieSelectSchema = createSelectSchema(konie);
+export const konieUpdateSchema = createUpdateSchema(konie);
+export const konieInsertSchema = createInsertSchema(konie);
 
 export const zdjeciaKoni = schemaTable("zdjecia_koni", {
   id: uuid("id")

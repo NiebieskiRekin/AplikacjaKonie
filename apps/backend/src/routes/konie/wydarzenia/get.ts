@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq, isNull, and, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, konie } from "@/backend/db/schema";
@@ -17,9 +17,7 @@ const konie_wydarzenia_get_response_success = z.array(
   })
 );
 
-export const konie_wydarzenia_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_wydarzenia_get = new Hono<auth_vars>().get(
   "/wydarzenia",
   describeRoute({
     description: "Wyświetl listę koni ponownie???",

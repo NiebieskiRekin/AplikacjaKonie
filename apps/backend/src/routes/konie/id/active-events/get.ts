@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { desc, eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
@@ -19,9 +19,7 @@ const konie_id_active_events_get_response_success = z.object({
   profilaktyczne: z.array(zdarzeniaProfilaktyczneSelectSchema),
 });
 
-export const konie_id_active_events_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_id_active_events_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}/active-events",
   describeRoute({
     description:

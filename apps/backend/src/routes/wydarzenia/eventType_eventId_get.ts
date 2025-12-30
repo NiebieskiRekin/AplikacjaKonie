@@ -11,7 +11,7 @@ import {
 } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi";
@@ -19,9 +19,7 @@ import { describeRoute } from "hono-openapi";
 import { log } from "@/backend/logs/logger";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_eventType_eventId_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
   "/:type{[A-Za-z_-]+}/:id{[0-9]+}",
   describeRoute({
     description:

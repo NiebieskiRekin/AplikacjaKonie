@@ -1,36 +1,39 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq, sql } from "drizzle-orm";
-import { hodowcyKoni, users } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { and, eq, sql } from "drizzle-orm";
+import { member, organization } from "@/backend/db/schema";
+import { auth, auth_vars } from "@/backend/auth";
 
 // TODO: Add schema
-export const liczba_requestow_decrease = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post("/decrease", async (c) => {
-  try {
-    const userId = getUserFromContext(c);
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+// TODO: pobieranie liczby wolnych requestów z serwera, aby walidować po stronie klienta nie ma sensu
+export const liczba_requestow_decrease = new Hono<auth_vars>().post(
+  "/decrease",
+  async (c) => {
+    try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-    const hodowla = await db
-      .select({ hodowlaId: users.hodowla })
-      .from(users)
-      .where(eq(users.id, userId))
-      .then((res) => res[0]);
+      const userId = session?.user.id;
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-    if (!hodowla) {
-      return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      // eslint-disable-next-line drizzle/enforce-update-with-where
+      await db
+        .update(organization)
+        .set({
+          liczba_requestow: sql`${organization.liczba_requestow} - 1`,
+        })
+        .from(member)
+        .where(
+          and(
+            eq(member.userId, userId),
+            eq(organization.id, member.organizationId)
+          )
+        );
+
+      return c.json({ status: "OK" });
+    } catch {
+      return c.json({ error: "Błąd aktualizacji liczby requestów" }, 500);
     }
-
-    await db
-      .update(hodowcyKoni)
-      .set({
-        liczba_requestow: sql`${hodowcyKoni.liczba_requestow} - 1`,
-      })
-      .where(eq(hodowcyKoni.id, hodowla.hodowlaId));
-
-    return c.json({ status: "OK" });
-  } catch {
-    return c.json({ error: "Błąd aktualizacji liczby requestów" }, 500);
   }
-});
+);

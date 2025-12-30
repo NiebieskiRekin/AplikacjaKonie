@@ -6,13 +6,13 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { konieInsertSchema } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
-// import { isMapIterator } from "util/types";
 import { db } from "@/backend/db";
 import { choroby } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
+import { log } from "@/backend/logs/logger";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
 const API_KEY = ProcessEnv.AISTUDIO_API_KEY;
@@ -182,13 +182,7 @@ const sendRequest = async (
 
 // TODO
 async function predictEndpoint(prompt: string) {
-  const url = `${ProcessEnv.INTERNAL_PREDICT_URL}`;
-
-  if (!ProcessEnv.NODE_ENV) {
-    throw new Error(
-      "ProcessEnv.NODE_ENV is not defined and is required to form the URL."
-    );
-  }
+  const url = ProcessEnv.INTERNAL_PREDICT_URL;
 
   if (!url) {
     throw new Error("PREDICTOR_URL is not defined");
@@ -206,7 +200,7 @@ async function predictEndpoint(prompt: string) {
       try {
         const jsonError = await res.json();
         errorBody = JSON.stringify(jsonError);
-      } catch (e) {
+      } catch {
         errorBody = await res.text();
       }
 
@@ -221,11 +215,11 @@ async function predictEndpoint(prompt: string) {
 
     const data = await res.json();
     const typedData = data as { endpoint: string };
-    console.log("Predicted endpoint:", typedData.endpoint);
+    log("Chat", "info", "Predicted endpoint:" + typedData.endpoint);
 
     return typedData.endpoint ?? "";
   } catch (err) {
-    console.error("Błąd komunikacji:", err);
+    log("Chat", "error", String(err));
     return "";
   }
 }
@@ -247,8 +241,7 @@ export function getSchemaPrompt(
           null,
           2
         );
-        const a = contentType;
-        console.log(a);
+        log("Chat", "info", contentType);
         return schemaPrompt;
       } catch {
         return "(Błąd podczas serializacji schematu)";
@@ -347,9 +340,7 @@ export function loadAllExamplesForEndpoint(
   return out;
 }
 
-export const gemini_chat_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const gemini_chat_post = new Hono<auth_vars>().post(
   "/",
   zValidator("json", promptSchema),
   describeRoute({
@@ -405,7 +396,7 @@ export const gemini_chat_post = new Hono<{
 
       console.log("Przewidziany endpoint:", predictedEndpoint);
       let _result;
-      let chorobaList: { id: number; opis: string | null }[] = [];
+      let chorobaList: { id: string; opis: string | null }[] = [];
       let chorobyText = "";
 
       if (predictedEndpoint == "api/wydarzenia/leczenia") {
@@ -413,7 +404,7 @@ export const gemini_chat_post = new Hono<{
         _prompt += `Konie:\n${konie}\n`;
         _prompt += `Tekst: ${prompt}`;
         _result = await chat.sendMessage(_prompt);
-        const konId = parseInt(_result.response.text(), 10);
+        const konId = _result.response.text();
         console.log(_result.response.text());
         console.log("Parsed konId:", konId);
 

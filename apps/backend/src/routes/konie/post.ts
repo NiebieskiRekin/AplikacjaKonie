@@ -4,7 +4,7 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
@@ -23,9 +23,7 @@ const konie_post_response_success = z.object({
 
 const LoggerScope = "Konie Post";
 
-export const konie_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const konie_post = new Hono<auth_vars>().post(
   "/",
   zValidator(
     "form",

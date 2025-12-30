@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq, sql, desc } from "drizzle-orm";
 import { union } from "drizzle-orm/pg-core";
 import { db } from "@/backend/db";
@@ -24,9 +24,7 @@ const konie_id_events_get_response_success = z.array(
   })
 );
 
-export const konie_id_events_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_id_events_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}/events",
   describeRoute({
     description: "Wyświetl informacje o wydarzeniach dla danego konia",

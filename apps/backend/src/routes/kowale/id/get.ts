@@ -2,15 +2,13 @@ import { Hono } from "hono";
 import { db } from "@/backend/db";
 import { eq, and } from "drizzle-orm";
 import { kowale, kowaleSelectSchema, users } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 // import { z } from "@hono/zod-openapi";
 
-export const kowale_id_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const kowale_id_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}",
   describeRoute({
     description: "Wyświetl szczegóły wskazanego kowala z hodowli użytkownika",

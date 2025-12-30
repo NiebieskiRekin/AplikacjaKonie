@@ -2,7 +2,7 @@ import { db } from "@/backend/db";
 import { podkucia, podkuciaSelectSchema } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -13,9 +13,7 @@ const successful_response = z.object({
   deletedEvent: podkuciaSelectSchema,
 });
 
-export const wydarzenia_podkucie_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const wydarzenia_podkucie_delete = new Hono<auth_vars>().delete(
   "/podkucie/:id{[0-9]+}",
   describeRoute({
     description: "Usuń wskazane podkucie",

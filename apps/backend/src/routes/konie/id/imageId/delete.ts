@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, desc } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { users, zdjeciaKoni } from "@/backend/db/schema";
@@ -13,9 +13,7 @@ const konie_id_imageId_delete_response_success = z.object({
   message: z.string(),
 });
 
-export const konie_id_imageId_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}/:imageId{[A-Za-z0-9-]+}",
   describeRoute({
     description: "Usuń wskazane zdjęcie danego konia",

@@ -6,7 +6,7 @@ import {
 } from "@/backend/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -17,9 +17,7 @@ const successful_response = z.object({
   updatedEvent: podkuciaSelectSchema,
 });
 
-export const wydarzenia_podkucie_put = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().put(
+export const wydarzenia_podkucie_put = new Hono<auth_vars>().put(
   "/podkucie/:id{[0-9]+}",
   zValidator("json", podkuciaUpdateSchema),
   describeRoute({

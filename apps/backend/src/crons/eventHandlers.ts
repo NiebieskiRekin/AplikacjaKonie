@@ -4,8 +4,9 @@ import {
   notifications,
   podkucia,
   konie,
-  users,
+  user,
   zdarzeniaProfilaktyczne,
+  member,
 } from "../db/schema";
 
 /**
@@ -14,16 +15,17 @@ import {
 export async function fetchUserEvents() {
   const n1 = db
     .select({
-      userId: users.id,
-      hodowlaId: users.hodowla,
+      userId: user.id,
+      hodowlaId: member.organizationId,
       rodzajZdarzenia: notifications.rodzajZdarzenia,
       rodzajWysylania: notifications.rodzajWysylania,
       time: notifications.time,
       days: notifications.days,
-      email: users.email,
+      email: user.email,
     })
     .from(notifications)
-    .innerJoin(users, eq(notifications.userId, users.id))
+    .innerJoin(member, eq(notifications.userId, member.userId))
+    .innerJoin(user, eq(notifications.userId, user.id))
     .where(
       and(
         or(

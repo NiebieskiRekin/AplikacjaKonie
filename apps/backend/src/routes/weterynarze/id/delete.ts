@@ -2,16 +2,14 @@ import { Hono } from "hono";
 import { db } from "@/backend/db";
 import { eq } from "drizzle-orm";
 import { weterynarze, users } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
 
-export const weterynarze_id_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const weterynarze_id_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}",
   describeRoute({
     description:

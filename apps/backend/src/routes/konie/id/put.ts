@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
@@ -18,9 +18,7 @@ const konie_id_put_response_success = z.object({
   horse: konieSelectSchema,
 });
 
-export const konie_id_put = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().put(
+export const konie_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
   zValidator(
     "json",

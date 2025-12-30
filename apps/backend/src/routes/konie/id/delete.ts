@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { konie } from "@/backend/db/schema";
@@ -13,9 +13,7 @@ const konie_id_delete_response_success = z.object({ success: z.string() });
 
 const LoggerScope = "Konie ID Delete";
 
-export const konie_id_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const konie_id_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}",
   describeRoute({
     description: "Usuń konia z hodowli",
