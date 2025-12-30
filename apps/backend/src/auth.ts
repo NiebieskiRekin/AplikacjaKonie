@@ -44,7 +44,21 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendOnSignUp: true,
   },
-  plugins: [bearer(), organization(), openAPI(), jwt(), apiKey(), admin()],
+  plugins: [
+    bearer(),
+    organization({
+      allowUserToCreateOrganization: (user) => {
+        return user.role === "admin";
+      },
+    }),
+    openAPI(),
+    jwt(),
+    apiKey(),
+    admin({
+      defaultRole: "user",
+      adminRole: "admin",
+    }),
+  ],
   advanced: {
     defaultCookieAttributes: {
       sameSite: "none",
