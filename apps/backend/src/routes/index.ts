@@ -19,7 +19,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { log } from "../logs/logger";
 import stripAnsi from "strip-ansi";
 import { auth } from "../auth";
-import { auth_middleware } from "../middleware/auth-middleware";
+// import { auth_middleware } from "../middleware/auth-middleware";
 
 const winstonHonoLogger = (message: string, ...rest: string[]) => {
   const plainMessage = stripAnsi(message);
@@ -30,7 +30,6 @@ export function registerRoutes(app: Hono) {
   return app
     .basePath("/api")
     .use("*", logger(winstonHonoLogger))
-    .use(auth_middleware)
     .on(["POST", "GET"], "/auth/**", (c) => auth.handler(c.req.raw))
     .get(
       "/openapi",

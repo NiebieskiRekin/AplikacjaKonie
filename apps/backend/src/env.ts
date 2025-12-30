@@ -21,13 +21,12 @@ const ServeEnv = z.object({
     .transform(Number),
 
   DATABASE_URL: z
-    .string()
     .url("Must be a valid URL string")
     .default("postgres://postgres:mysecretpassword@localhost:5432/postgres"),
 
   NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
+    .enum(["local", "development", "test", "production"])
+    .default("local"),
 
   DOMAIN: z.string().default("localhost"),
 

@@ -287,7 +287,7 @@ export const zdjeciaKoni = schemaTable("zdjecia_koni", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  kon: integer("kon")
+  kon: uuid("kon")
     .notNull()
     .references(() => konie.id),
   // file: varchar("file").notNull(),
@@ -306,10 +306,10 @@ export const podkucia = schemaTable("podkucia", {
     .default(sql`gen_random_uuid()`),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   dataWaznosci: date("data_waznosci"),
-  kon: integer("kon")
+  kon: uuid("kon")
     .notNull()
     .references(() => konie.id),
-  kowal: integer("kowal")
+  kowal: uuid("kowal")
     .notNull()
     .references(() => kowale.id),
 });
@@ -425,7 +425,7 @@ export const weterynarze = schemaTable("weterynarze", {
   id: uuid("id").primaryKey(),
   imieINazwisko: text("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: uuid("hodowla")
+  hodowla: text("hodowla")
     .notNull()
     .references(() => organization.id),
   active: boolean("active").notNull().default(true),

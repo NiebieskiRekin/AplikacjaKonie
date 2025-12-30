@@ -2,7 +2,7 @@ import { MiddlewareHandler, Context } from "hono";
 import { __prod__, ProcessEnv } from "../env";
 
 import { sign, verify } from "hono/jwt";
-import { db, eq } from "../db";
+import { db } from "../db";
 import { users } from "../db/schema";
 
 import { getCookie, deleteCookie, setCookie } from "hono/cookie";
