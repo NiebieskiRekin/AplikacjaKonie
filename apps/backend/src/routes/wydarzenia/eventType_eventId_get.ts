@@ -10,8 +10,8 @@ import {
   kowale,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { auth_vars } from "@/backend/auth";
+import { eq, and, inArray } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi";
@@ -59,6 +59,19 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
+      const horsesSubquery = db
+        .select({ id: konie.id })
+        .from(konie)
+        .where(eq(konie.hodowla, orgId));
+
       let events;
 
       switch (eventType) {
@@ -73,7 +86,9 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             })
             .from(choroby)
             .innerJoin(konie, eq(choroby.kon, konie.id))
-            .where(eq(choroby.id, eventId));
+            .where(
+              and(eq(choroby.id, eventId), inArray(choroby.kon, horsesSubquery))
+            );
           break;
         case "leczenia":
           events = await db
@@ -89,7 +104,12 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .innerJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
             .innerJoin(choroby, eq(leczenia.choroba, choroby.id))
             .innerJoin(konie, eq(leczenia.kon, konie.id))
-            .where(eq(leczenia.id, eventId));
+            .where(
+              and(
+                eq(leczenia.id, eventId),
+                inArray(leczenia.kon, horsesSubquery)
+              )
+            );
           break;
         case "rozrody":
           events = await db
@@ -104,7 +124,9 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .from(rozrody)
             .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
             .innerJoin(konie, eq(rozrody.kon, konie.id))
-            .where(eq(rozrody.id, eventId));
+            .where(
+              and(eq(rozrody.id, eventId), inArray(rozrody.kon, horsesSubquery))
+            );
           break;
         case "zdarzenia_profilaktyczne":
           events = await db
@@ -123,7 +145,12 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
               weterynarze,
               eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id)
             )
-            .where(eq(zdarzeniaProfilaktyczne.id, eventId));
+            .where(
+              and(
+                eq(zdarzeniaProfilaktyczne.id, eventId),
+                inArray(zdarzeniaProfilaktyczne.kon, horsesSubquery)
+              )
+            );
           break;
         case "podkucie":
           events = await db
@@ -137,7 +164,12 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .from(podkucia)
             .innerJoin(konie, eq(podkucia.kon, konie.id))
             .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
-            .where(eq(podkucia.id, eventId));
+            .where(
+              and(
+                eq(podkucia.id, eventId),
+                inArray(podkucia.kon, horsesSubquery)
+              )
+            );
           break;
         default:
           return c.json({ error: "Nieznany typ zdarzenia" }, 400);
