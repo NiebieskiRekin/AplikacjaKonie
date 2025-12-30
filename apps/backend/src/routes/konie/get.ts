@@ -7,14 +7,13 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, konie, zdjeciaKoni } from "@/backend/db/schema";
+import { member, konie, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 
 const konieGetResponseSchemaSuccess = z.object({
   data: z.array(
     z.object({
       img_url: z
-        .string()
         .url()
         .nullable()
         .openapi({
@@ -30,7 +29,7 @@ const konieGetResponseSchemaSuccess = z.object({
         .nullable()
         .openapi({ examples: ["POL007530107098", "POL0008660043801"] }),
       rodzajKonia: z.enum(RodzajeKoni),
-      imageId: z.string().uuid().nullable(),
+      imageId: z.uuid().nullable(),
     })
   ),
 });
@@ -55,16 +54,14 @@ export const konie_get = new Hono<auth_vars>().get(
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
     try {
-      const user = db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .as("user_hodowla");
-
-      // Pobieramy konie tylko tej samej hodowli
-
       const horsesList = await db
         .select({
           id: konie.id,
@@ -79,10 +76,14 @@ export const konie_get = new Hono<auth_vars>().get(
           // plec: konie.plec,
           imageId: zdjeciaKoni.id,
         })
-        .from(user)
+        .from(konie)
         .innerJoin(
-          konie,
-          and(eq(user.hodowla, konie.hodowla), eq(konie.active, true))
+          member,
+          and(
+            eq(member.organizationId, konie.hodowla),
+            eq(member.userId, userId),
+            eq(konie.active, true)
+          )
         )
         .leftJoin(
           zdjeciaKoni,
