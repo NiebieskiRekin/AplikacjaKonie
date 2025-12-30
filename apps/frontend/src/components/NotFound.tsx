@@ -1,18 +1,14 @@
-import { NavLink } from "react-router";
+import { redirect } from "react-router";
+import Home from "./Home";
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function clientLoader() {
+  // eslint-disable-next-line @typescript-eslint/only-throw-error
+  throw redirect("/konie");
+}
 
 function NotFound() {
-  return (
-    <>
-      <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
-        <div className="rounded-4xl bg-white p-4">
-          <h1>Strona o tym adresie gdzieś nam uciekła...</h1>
-          <NavLink className="underline" to="/konie">
-            Wracam na stronę główną!
-          </NavLink>
-        </div>
-      </div>
-    </>
-  );
+  return <Home />;
 }
 
 export default NotFound;

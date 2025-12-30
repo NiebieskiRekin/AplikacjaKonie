@@ -6,6 +6,7 @@ import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import Kon from "../components/Kon";
 import BigImageOverlay from "../components/BigImageOverlay";
 import { type Horse } from "../components/Kon";
+import PWABadge from "../PWABadge.tsx";
 
 const default_img = "/horses/default.png";
 
@@ -95,6 +96,7 @@ function Konie() {
         selectedImage={selectedImage}
         setSelectedImage={setSelectedImage}
       ></BigImageOverlay>
+      <PWABadge />
     </div>
   );
 }
