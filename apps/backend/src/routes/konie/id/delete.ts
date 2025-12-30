@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { konie } from "@/backend/db/schema";
+import { konie, member } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -63,30 +63,38 @@ export const konie_id_delete = new Hono<auth_vars>().delete(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
-      if (!userId) {
-        return c.json({ error: "Błąd autoryzacji" }, 401);
-      }
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const horseId = Number(c.req.param("id"));
       if (isNaN(horseId)) {
         return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
       }
 
-      const horse = await db
-        .select()
-        .from(konie)
-        .where(eq(konie.id, horseId))
-        .then((res) => res[0]);
-      if (!horse) {
-        return c.json({ error: "Koń nie istnieje" }, 404);
-      }
-
       // Usuwamy konia
-      await db
+      // eslint-disable-next-line drizzle/enforce-update-with-where
+      const kon = await db
         .update(konie)
         .set({ active: false })
-        .where(eq(konie.id, horseId));
+        .from(member)
+        .where(
+          and(
+            eq(konie.id, horseId),
+            eq(konie.hodowla, member.organizationId),
+            eq(member.userId, userId)
+          )
+        )
+        .returning({
+          id: konie.id,
+        });
+
+      if (kon.length == 0) {
+        return c.json({ error: "Koń nie istnieje" }, 404);
+      }
 
       return c.json({ success: "Koń został usunięty" });
     } catch (error) {
