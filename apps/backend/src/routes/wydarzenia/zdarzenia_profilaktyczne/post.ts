@@ -1,7 +1,7 @@
 import { db } from "@/backend/db";
 import { konie, zdarzeniaProfilaktyczne } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq, or } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { auth, auth_vars } from "@/backend/auth";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
@@ -39,8 +39,14 @@ export const wydarzenia_zdarzenia_profilaktyczne_post =
     }),
     async (c) => {
       try {
-        const user = getUserFromContext(c);
-        if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+        const session = await auth.api.getSession({
+          headers: c.req.raw.headers,
+        });
+
+        const userId = session?.user.id;
+        const orgId = session?.session.activeOrganizationId;
+        if (!userId || !orgId)
+          return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const {
           konieId,
@@ -54,7 +60,11 @@ export const wydarzenia_zdarzenia_profilaktyczne_post =
         const konieInfo = await db
           .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
           .from(konie)
-          .where(or(...konieId.map((konieId) => eq(konie.id, konieId))));
+          .where(and(inArray(konie.id, konieId), eq(konie.hodowla, orgId)));
+
+        if (konieInfo.length === 0) {
+          return c.json({ error: "Błąd przy wyborze koni do podkucia" }, 400);
+        }
 
         const valuesToInsert = konieInfo.map((kon) => {
           let calculatedDate = dataWaznosci;

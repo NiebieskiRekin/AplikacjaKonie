@@ -1,12 +1,13 @@
 import { db } from "@/backend/db";
 import {
+  konie,
   zdarzeniaProfilaktyczne,
   zdarzeniaProfilaktyczneSelectSchema,
   zdarzeniaProfilaktyczneUpdateSchema,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { auth_vars } from "@/backend/auth";
+import { and, eq } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
@@ -55,10 +56,27 @@ export const wydarzenia_zdarzenia_profilaktyczne_put =
       }
 
       try {
+        const session = await auth.api.getSession({
+          headers: c.req.raw.headers,
+        });
+
+        const userId = session?.user.id;
+        const orgId = session?.session.activeOrganizationId;
+        if (!userId || !orgId)
+          return c.json({ error: "Błąd autoryzacji" }, 401);
+
+        // eslint-disable-next-line drizzle/enforce-update-with-where
         const updateQuery = await db
           .update(zdarzeniaProfilaktyczne)
           .set(updatedData)
-          .where(eq(zdarzeniaProfilaktyczne.id, eventId))
+          .from(konie)
+          .where(
+            and(
+              eq(zdarzeniaProfilaktyczne.id, eventId),
+              eq(konie.id, zdarzeniaProfilaktyczne.kon),
+              eq(konie.hodowla, orgId)
+            )
+          )
           .returning();
         if (updateQuery.length === 0) {
           return c.json(
