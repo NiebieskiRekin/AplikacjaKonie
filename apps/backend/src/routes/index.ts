@@ -13,7 +13,6 @@ import images from "./images";
 import { healthcheck } from "./healthcheck";
 import raport from "./raport";
 import chatRoute from "./chat";
-import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { openAPIRouteHandler } from "hono-openapi";
 import { swaggerUI } from "@hono/swagger-ui";

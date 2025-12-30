@@ -13,11 +13,15 @@ import {
   organization,
   apiKey,
 } from "better-auth/plugins";
+import { schema } from "@/backend/db";
 import { ProcessEnv } from "./env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema: {
+      ...schema,
+    },
   }),
   emailAndPassword: {
     enabled: true,

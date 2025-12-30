@@ -93,6 +93,7 @@ const ServeEnv = z.object({
   TRUSTED_ORIGINS: z.string().transform(splitAndTrim).pipe(z.array(z.url())),
   INTERNAL_PREDICT_URL: z.string(),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
+  DATABASE_SCHEMA: z.string().default("public"),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);
