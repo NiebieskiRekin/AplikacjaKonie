@@ -28,30 +28,61 @@ const renderFriendlyDetails = (
 ) => {
   if (!obj || typeof obj !== "object") return null;
 
-  return Object.entries(obj).map(([key, value]) => {
-    let displayValue: string;
+  const keyLabels: Record<string, string> = {
+    imieINazwisko: "Imię i Nazwisko",
+    numerTelefonu: "Numer Telefonu",
+    dataZdarzenia: "Data Zdarzenia",
+    dataWaznosci: "Data Ważności",
+    dataZakonczenia: "Data Zakończenia",
+    dataRozpoczecia: "Data Rozpoczęcia",
+    konieId: "Koń",
+    konId: "Koń",
+    kon: "Koń",
+    kowal: "Kowal",
+    weterynarz: "Weterynarz",
+    opisZdarzenia: "Opis",
+    nazwa: "Nazwa",
+    numerPrzyzyciowy: "Numer Przyżyciowy",
+    numerChipa: "Numer Chipa",
+    rocznikUrodzenia: "Rocznik Urodzenia",
+    dataPrzybyciaDoStajni: "Data Przybycia do Stajni",
+    dataOdejsciaZeStajni: "Data Odejścia ze Stajni",
+    rodzajKonia: "Rodzaj Konia",
+    plec: "Płeć",
+    choroba: "Choroba",
+    rodzajZdarzenia: "Rodzaj Zdarzenia",
+  };
 
-    if (value === null || value === "") {
-      displayValue = "Brak";
-    } else if (Array.isArray(value)) {
-      const names = value.map((v) =>
-        getDisplayName(key, v, horses, kowale, weterynarze)
+  const keysToHide = ["hodowla", "id", "imageId", "img_url", "active"];
+
+  return Object.entries(obj)
+    .filter(([key]) => !keysToHide.includes(key))
+    .map(([key, value]) => {
+      let displayValue: string;
+
+      if (value === null || value === "") {
+        displayValue = "Brak";
+      } else if (Array.isArray(value)) {
+        const names = value.map((v) =>
+          getDisplayName(key, v, horses, kowale, weterynarze)
+        );
+        displayValue = names.length > 0 ? names.join(", ") : "Brak";
+      } else {
+        displayValue = getDisplayName(key, value, horses, kowale, weterynarze);
+      }
+
+      const label = keyLabels[key] || key;
+
+      return (
+        <div
+          key={key}
+          className="grid grid-cols-2 gap-2 border-b border-gray-100 py-1 last:border-0"
+        >
+          <span className="font-semibold text-gray-600">{label}:</span>
+          <span className="text-gray-800">{displayValue}</span>
+        </div>
       );
-      displayValue = names.length > 0 ? names.join(", ") : "Brak";
-    } else {
-      displayValue = getDisplayName(key, value, horses, kowale, weterynarze);
-    }
-
-    return (
-      <div
-        key={key}
-        className="grid grid-cols-2 gap-2 border-b border-gray-100 py-1 last:border-0"
-      >
-        <span className="font-semibold text-gray-600 italic">"{key}":</span>
-        <span className="text-gray-800">{displayValue}</span>
-      </div>
-    );
-  });
+    });
 };
 
 const getDisplayName = (
