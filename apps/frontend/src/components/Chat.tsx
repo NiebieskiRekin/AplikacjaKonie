@@ -59,6 +59,7 @@ const renderFriendlyDetails = (
     .filter(([key]) => !keysToHide.includes(key))
     .map(([key, value]) => {
       let displayValue: string;
+      console.log("Rendering key:", key, "with value:", value);
 
       if (value === null || value === "") {
         displayValue = "Brak";
@@ -72,6 +73,8 @@ const renderFriendlyDetails = (
       }
 
       const label = keyLabels[key] || key;
+      console.log("Display for", key, ":", displayValue);
+      console.log("Label for", key, ":", label);
 
       return (
         <div
