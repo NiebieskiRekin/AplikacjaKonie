@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, and } from "drizzle-orm";
 import { union } from "drizzle-orm/pg-core";
 import { db } from "@/backend/db";
 import {
@@ -9,6 +9,8 @@ import {
   leczenia,
   podkucia,
   zdarzeniaProfilaktyczne,
+  konie,
+  member,
 } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
@@ -19,7 +21,7 @@ import { log } from "@/backend/logs/logger";
 const konie_id_events_get_response_success = z.array(
   z.object({
     type: z.enum(["rozród", "choroba", "leczenie", "podkucie", "profilaktyka"]),
-    date: z.string().date(),
+    date: z.iso.date(),
     description: z.string(),
   })
 );
@@ -65,10 +67,12 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -84,7 +88,9 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
             description: rozrody.opisZdarzenia,
           })
           .from(rozrody)
-          .where(eq(rozrody.kon, horseId))
+          .innerJoin(konie, eq(konie.id, rozrody.kon))
+          .innerJoin(member, eq(member.organizationId, konie.hodowla))
+          .where(and(eq(rozrody.kon, horseId), eq(member.userId, userId)))
           .orderBy(desc(rozrody.dataZdarzenia))
           .limit(5),
         db
@@ -94,7 +100,9 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
             description: choroby.opisZdarzenia,
           })
           .from(choroby)
-          .where(eq(choroby.kon, horseId))
+          .innerJoin(konie, eq(konie.id, choroby.kon))
+          .innerJoin(member, eq(member.organizationId, konie.hodowla))
+          .where(and(eq(choroby.kon, horseId), eq(member.userId, userId)))
           .orderBy(desc(choroby.dataRozpoczecia))
           .limit(5),
         db
@@ -104,17 +112,21 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
             description: leczenia.opisZdarzenia,
           })
           .from(leczenia)
-          .where(eq(leczenia.kon, horseId))
+          .innerJoin(konie, eq(konie.id, leczenia.kon))
+          .innerJoin(member, eq(member.organizationId, konie.hodowla))
+          .where(and(eq(leczenia.kon, horseId), eq(member.userId, userId)))
           .orderBy(desc(leczenia.dataZdarzenia))
           .limit(5),
         db
           .select({
             type: sql<string>`'podkucie'`,
             date: podkucia.dataZdarzenia,
-            description: sql<string>`coalesce(to_char(data_waznosci, 'DD-MM-YYYY'),'nie podano daty ważności')`,
+            description: sql<string>`coalesce(to_char(${podkucia.dataWaznosci}, 'DD-MM-YYYY'), 'nie podano daty ważności')`,
           })
           .from(podkucia)
-          .where(eq(podkucia.kon, horseId))
+          .innerJoin(konie, eq(konie.id, podkucia.kon))
+          .innerJoin(member, eq(member.organizationId, konie.hodowla))
+          .where(and(eq(podkucia.kon, horseId), eq(member.userId, userId)))
           .orderBy(desc(podkucia.dataZdarzenia))
           .limit(5),
         db
@@ -124,11 +136,18 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
             description: zdarzeniaProfilaktyczne.opisZdarzenia,
           })
           .from(zdarzeniaProfilaktyczne)
-          .where(eq(zdarzeniaProfilaktyczne.kon, horseId))
+          .innerJoin(konie, eq(konie.id, zdarzeniaProfilaktyczne.kon))
+          .innerJoin(member, eq(member.organizationId, konie.hodowla))
+          .where(
+            and(
+              eq(zdarzeniaProfilaktyczne.kon, horseId),
+              eq(member.userId, userId)
+            )
+          )
           .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
           .limit(5)
       )
-        .orderBy(sql`2 desc`)
+        .orderBy(desc(sql`date`))
         .limit(5);
 
       return c.json(after_union);

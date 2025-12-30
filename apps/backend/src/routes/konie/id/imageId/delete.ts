@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, desc } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, zdjeciaKoni } from "@/backend/db/schema";
+import { member, zdjeciaKoni, konie } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -46,7 +46,13 @@ export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const horseId = Number(c.req.param("id"));
       const imageId = String(c.req.param("imageId"));
 
@@ -57,21 +63,19 @@ export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
         return c.json({ error: "Nieprawidłowy identyfikator zdjęcia" }, 400);
       }
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
-
       const imageToDelete = await db
         .select()
         .from(zdjeciaKoni)
-        .where(and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.id, imageId)))
-        .then((res) => res[0]);
+        .innerJoin(konie, eq(konie.id, zdjeciaKoni.kon))
+        .innerJoin(member, eq(member.organizationId, konie.hodowla))
+        .where(
+          and(
+            eq(zdjeciaKoni.kon, horseId),
+            eq(member.userId, userId),
+            eq(zdjeciaKoni.id, imageId)
+          )
+        )
+        .then((res) => res[0].zdjecia_koni);
 
       if (imageToDelete.default == true) {
         const nextDefaultImage = await db

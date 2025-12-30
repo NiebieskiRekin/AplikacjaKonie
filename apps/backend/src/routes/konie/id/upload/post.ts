@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, zdjeciaKoni } from "@/backend/db/schema";
+import { konie, member, zdjeciaKoni } from "@/backend/db/schema";
 import { InsertZdjecieKonia } from "@/backend/db/types";
 import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
@@ -52,27 +52,42 @@ export const konie_id_upload_post = new Hono<auth_vars>().post(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 400);
+
       const horseId = Number(c.req.param("id"));
       if (isNaN(horseId)) {
         return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
       }
 
       const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
+        .select({ hodowlaId: member.organizationId })
+        .from(member)
+        .where(eq(member.userId, userId))
         .then((res) => res[0]);
 
-      if (!hodowla) {
+      if (!hodowla.hodowlaId) {
         return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
       }
 
       const defaultImage = await db
-        .select()
+        .select({
+          id: zdjeciaKoni.id,
+          kon: zdjeciaKoni.kon,
+          default: zdjeciaKoni.default,
+        })
         .from(zdjeciaKoni)
+        .innerJoin(konie, eq(konie.id, zdjeciaKoni.kon))
         .where(
-          and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.default, true))
+          and(
+            eq(konie.hodowla, hodowla.hodowlaId),
+            eq(zdjeciaKoni.kon, horseId),
+            eq(zdjeciaKoni.default, true)
+          )
         );
 
       const img: InsertZdjecieKonia = {
