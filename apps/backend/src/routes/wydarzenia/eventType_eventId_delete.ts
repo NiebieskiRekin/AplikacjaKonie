@@ -5,10 +5,11 @@ import {
   rozrody,
   zdarzeniaProfilaktyczne,
   podkucia,
+  konie,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { auth_vars } from "@/backend/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi";
@@ -49,43 +50,70 @@ export const wydarzenia_eventType_eventId_delete = new Hono<auth_vars>().delete(
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
+      const horsesSubquery = db
+        .select({ id: konie.id })
+        .from(konie)
+        .where(eq(konie.hodowla, orgId));
+
       let deleted;
 
       switch (eventType) {
         case "choroby":
           deleted = await db
             .delete(choroby)
-            .where(eq(choroby.id, eventId))
+            .where(
+              and(eq(choroby.id, eventId), inArray(choroby.kon, horsesSubquery))
+            )
             .returning();
           break;
         case "leczenia":
           deleted = await db
             .delete(leczenia)
-            .where(eq(leczenia.id, eventId))
+            .where(
+              and(
+                eq(leczenia.id, eventId),
+                inArray(leczenia.kon, horsesSubquery)
+              )
+            )
             .returning();
           break;
         case "rozrody":
           deleted = await db
             .delete(rozrody)
-            .where(eq(rozrody.id, eventId))
+            .where(
+              and(eq(rozrody.id, eventId), inArray(rozrody.kon, horsesSubquery))
+            )
             .returning();
           break;
         case "zdarzenia_profilaktyczne":
           deleted = await db
             .delete(zdarzeniaProfilaktyczne)
-            .where(eq(zdarzeniaProfilaktyczne.id, eventId))
+            .where(
+              and(
+                eq(zdarzeniaProfilaktyczne.id, eventId),
+                inArray(zdarzeniaProfilaktyczne.kon, horsesSubquery)
+              )
+            )
             .returning();
           break;
         case "podkucie":
-          deleted = await db
-            .delete(podkucia)
-            .where(eq(podkucia.id, eventId))
-            .returning();
-          break;
         case "podkucia":
           deleted = await db
             .delete(podkucia)
-            .where(eq(podkucia.id, eventId))
+            .where(
+              and(
+                eq(podkucia.id, eventId),
+                inArray(podkucia.kon, horsesSubquery)
+              )
+            )
             .returning();
           break;
         default:
