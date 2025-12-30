@@ -70,40 +70,45 @@ const renderFriendlyDetails = (
         Array.isArray(value) &&
         ["konieId", "konId", "kon"].includes(key)
       ) {
-        const selectedIds = value.map(Number);
+        const selectedIds = value.map((v) => Number(v));
         const selectedHorses = horses.filter((h) => selectedIds.includes(h.id));
         const names = selectedHorses.map((h) => h.nazwa).join(", ");
 
         let suffix = "";
 
         if (selectedIds.length > 0) {
-          if (selectedIds.length === horses.length) {
+          if (selectedIds.length === horses.length && horses.length > 1) {
             suffix = " (wszystkie konie)";
           } else {
             const typesInSelection = [
-              ...new Set(selectedHorses.map((h) => h.rodzajKonia)),
+              ...new Set(
+                selectedHorses.map((h) => String(h.rodzajKonia).trim())
+              ),
             ];
 
             for (const type of typesInSelection) {
+              if (!type || type === "null") continue;
+
               const allHorsesOfThisType = horses.filter(
-                (h) => h.rodzajKonia === type
+                (h) => String(h.rodzajKonia).trim() === type
               );
               const selectedHorsesOfThisType = selectedHorses.filter(
-                (h) => h.rodzajKonia === type
+                (h) => String(h.rodzajKonia).trim() === type
               );
 
               if (
+                allHorsesOfThisType.length > 0 &&
                 allHorsesOfThisType.length ===
                   selectedHorsesOfThisType.length &&
                 allHorsesOfThisType.length > 1
               ) {
-                suffix = ` (wszystkie ${type.toLowerCase()})`;
+                const typeLower = type.toLowerCase();
+                suffix = ` (wszystkie ${typeLower})`;
                 break;
               }
             }
           }
         }
-
         displayValue = names + suffix;
       } else if (Array.isArray(value)) {
         const names = value.map((v) =>
