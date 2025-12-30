@@ -1,11 +1,9 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
 import {
   kowale,
   kowaleInsertSchema,
   kowaleSelectSchema,
-  users,
 } from "@/backend/db/schema";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
@@ -41,24 +39,20 @@ export const kowale_post = new Hono<auth_vars>().post(
   zValidator("json", kowaleInsertSchema),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
-
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
 
       const newKowal = {
         imieINazwisko,
         numerTelefonu,
-        hodowla: Number(hodowla.hodowlaId),
+        hodowla: orgId,
       };
 
       const result = await db
@@ -67,8 +61,7 @@ export const kowale_post = new Hono<auth_vars>().post(
         .returning()
         .then((res) => res[0]);
 
-      c.status(201);
-      return c.json(result);
+      return c.json(result, 201);
     } catch {
       return c.json({ error: "Błąd pdodania kowala" }, 500);
     }
