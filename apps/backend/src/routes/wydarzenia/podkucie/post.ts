@@ -1,7 +1,7 @@
 import { db } from "@/backend/db";
 import { konie, podkucia } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq, or } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { podkucieSchema } from "./schema";
@@ -38,8 +38,13 @@ export const wydarzenia_podkucie_post = new Hono<auth_vars>().post(
   }),
   async (c) => {
     try {
-      const user = getUserFromContext(c);
-      if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const { konieId, kowal, dataZdarzenia, dataWaznosci } =
         c.req.valid("json");
@@ -47,7 +52,11 @@ export const wydarzenia_podkucie_post = new Hono<auth_vars>().post(
       const konieInfo = await db
         .select({ id: konie.id, rodzajKonia: konie.rodzajKonia })
         .from(konie)
-        .where(or(...konieId.map((konieId) => eq(konie.id, konieId))));
+        .where(and(inArray(konie.id, konieId), eq(konie.hodowla, orgId)));
+
+      if (konieInfo.length === 0) {
+        return c.json({ error: "Błąd przy wyborze koni do podkucia" }, 400);
+      }
 
       // Obliczamy datę ważności na podstawie rodzaju konia
       const valuesToInsert = konieInfo.map((kon) => {
