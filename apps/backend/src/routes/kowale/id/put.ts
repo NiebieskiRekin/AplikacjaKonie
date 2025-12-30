@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { kowale, kowaleUpdateSchema } from "@/backend/db/schema";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
+import { InsertKowal } from "@/backend/db/types";
 // import { z } from "@hono/zod-openapi";
 
 export const kowale_id_put = new Hono<auth_vars>().put(
@@ -52,21 +53,31 @@ export const kowale_id_put = new Hono<auth_vars>().put(
 
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-      const newKowal = {
-        imieINazwisko,
+      const newKowal: InsertKowal = {
+        imieINazwisko: imieINazwisko ?? "",
         numerTelefonu,
         hodowla: orgId,
+        active: true,
       };
 
       const result = await db
         .update(kowale)
         .set(newKowal)
-        .where(eq(kowale.id, Number(c.req.param("id"))))
+        .where(
+          and(
+            eq(kowale.id, Number(c.req.param("id"))),
+            eq(kowale.hodowla, orgId)
+          )
+        )
         .returning();
+
+      if (result.length === 0) {
+        return c.json({ error: "Błąd dodania kowala" }, 500);
+      }
 
       return c.json(result, 201);
     } catch {
-      return c.json({ error: "Błąd dodania weterynarza" }, 500);
+      return c.json({ error: "Błąd dodania kowala" }, 500);
     }
   }
 );

@@ -1,9 +1,7 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
 import {
   weterynarze,
-  users,
   weterynarzeSelectSchema,
   weterynarzeInsertSchema,
 } from "@/backend/db/schema";
@@ -47,24 +45,20 @@ export const weterynarze_post = new Hono<auth_vars>().post(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
-
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
 
       const newWeterynarz = {
         imieINazwisko,
         numerTelefonu,
-        hodowla: Number(hodowla.hodowlaId),
+        hodowla: orgId,
       };
 
       const result = await db

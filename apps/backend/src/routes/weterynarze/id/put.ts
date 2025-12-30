@@ -1,9 +1,8 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   weterynarze,
-  users,
   weterynarzeInsertSchema,
   weterynarzeSelectSchema,
 } from "@/backend/db/schema";
@@ -12,6 +11,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { InsertWeterynarz } from "@/backend/db/types";
 
 export const weterynarze_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
@@ -41,30 +41,28 @@ export const weterynarze_id_put = new Hono<auth_vars>().put(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
-
-      const newWeterynarz = {
+      const newWeterynarz: InsertWeterynarz = {
         imieINazwisko,
         numerTelefonu,
-        hodowla: Number(hodowla.hodowlaId),
+        hodowla: orgId,
+        active: true,
       };
+      const wetId = Number(c.req.param("id"));
 
       const result = await db
         .update(weterynarze)
         .set(newWeterynarz)
-        .where(eq(weterynarze.id, Number(c.req.param("id"))))
+        .where(and(eq(weterynarze.id, wetId), eq(weterynarze.hodowla, orgId)))
         .returning();
 
       return c.json(result, 201);
