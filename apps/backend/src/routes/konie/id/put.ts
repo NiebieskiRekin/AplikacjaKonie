@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
   konie,
   konieSelectSchema,
   konieUpdateSchema,
+  member,
 } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
@@ -67,10 +68,12 @@ export const konie_id_put = new Hono<auth_vars>().put(
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -85,6 +88,7 @@ export const konie_id_put = new Hono<auth_vars>().put(
       const dataOdejscia =
         d.dataOdejsciaZeStajni === "" ? null : d.dataOdejsciaZeStajni;
 
+      // eslint-disable-next-line drizzle/enforce-update-with-where
       const updatedHorse = await db
         .update(konie)
         .set({
@@ -97,7 +101,14 @@ export const konie_id_put = new Hono<auth_vars>().put(
           rodzajKonia: d.rodzajKonia,
           plec: d.plec,
         })
-        .where(eq(konie.id, horseId))
+        .from(member)
+        .where(
+          and(
+            eq(konie.id, horseId),
+            eq(konie.hodowla, member.organizationId),
+            eq(member.userId, userId)
+          )
+        )
         .returning();
 
       if (!updatedHorse) {
