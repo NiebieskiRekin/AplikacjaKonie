@@ -112,7 +112,7 @@ function Settings() {
   }, [error]);
 
   return (
-    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-6">
       <h2 className="mb-6 text-center text-3xl font-bold text-white sm:text-left">
         ⚙️ Ustawienia Powiadomień
       </h2>
@@ -140,7 +140,7 @@ function Settings() {
                   type="checkbox"
                   checked={value.active}
                   onChange={(e) => handleInputChange(e, key, "active")}
-                  className="h-5 w-5 flex-shrink-0"
+                  className="h-5 w-5 shrink-0"
                 />
                 <span className="text-sm text-gray-700 sm:hidden">Aktywne</span>
               </div>
@@ -191,7 +191,7 @@ function Settings() {
 
         <button
           onClick={() => void handleSaveSettings()}
-          className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
+          className="w-full rounded-lg bg-linear-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
         >
           💾 Zapisz ustawienia
         </button>
@@ -199,7 +199,7 @@ function Settings() {
         <div className="mt-6">
           <Link
             to="/restart"
-            className="block w-full rounded-lg bg-gradient-to-r from-red-600 to-red-700 py-3 text-center text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
+            className="block w-full rounded-lg bg-linear-to-r from-red-600 to-red-700 py-3 text-center text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
           >
             🔄 Zmień hasło
           </Link>

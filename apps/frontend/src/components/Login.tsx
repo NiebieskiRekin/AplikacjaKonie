@@ -49,7 +49,7 @@ function Login() {
   };
 
   return (
-    <div className="to-brown-600 flex min-h-screen items-center justify-center bg-gradient-to-br from-green-800">
+    <div className="to-brown-600 flex min-h-screen items-center justify-center bg-linear-to-br from-green-800">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
         <h2 className="text-center text-2xl font-bold text-green-900">
           Logowanie

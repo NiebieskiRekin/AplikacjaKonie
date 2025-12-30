@@ -106,7 +106,7 @@ function EditWeterynarz() {
   };
 
   return (
-    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-6">
       <h2 className="mb-6 text-3xl font-bold text-white">
         ✏️ Edytuj Weterynarza
       </h2>
@@ -151,7 +151,7 @@ function EditWeterynarz() {
 
       <button
         onClick={() => setIsDeletePopupOpen(true)}
-        className="mt-4 w-full max-w-md rounded-lg bg-gradient-to-r from-rose-900 to-red-700 py-3 text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
+        className="mt-4 w-full max-w-md rounded-lg bg-linear-to-r from-rose-900 to-red-700 py-3 text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
       >
         ❌ Usuń weterynarza
       </button>

@@ -163,7 +163,7 @@ function GeminiChat() {
   }, []);
 
   return (
-    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-4 md:p-6">
       <div className="mb-6 w-full max-w-2xl text-center text-3xl font-bold text-white">
         🧠 Chat z Asystentem
       </div>

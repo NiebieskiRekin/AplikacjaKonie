@@ -61,7 +61,7 @@ function Konie() {
   }, [search, horses]);
 
   return (
-    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-4 md:p-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-4 md:p-6">
       <div className="mb-6 flex w-full max-w-2xl flex-col items-center gap-4 md:flex-row">
         <input
           type="text"
