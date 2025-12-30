@@ -16,6 +16,7 @@ import {
 } from "better-auth/plugins";
 import { schema } from "@/backend/db";
 import { ProcessEnv } from "./env";
+import { localization } from "better-auth-localization";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -33,6 +34,16 @@ export const auth = betterAuth({
       await sendResetPasswordEmail(user.email, user.name, url);
     },
     resetPasswordTokenExpiresIn: 24 * 60 * 60,
+    disableSignUp: true,
+  },
+  appName: "Moje konie",
+  user: {
+    changeEmail: {
+      enabled: false,
+    },
+    deleteUser: {
+      enabled: false,
+    },
   },
   trustedOrigins: ProcessEnv.TRUSTED_ORIGINS,
   emailVerification: {
@@ -57,6 +68,10 @@ export const auth = betterAuth({
     admin({
       defaultRole: "user",
       adminRole: "admin",
+    }),
+    localization({
+      defaultLocale: "pl-PL",
+      fallbackLocale: "default", // Fallback to English
     }),
   ],
   advanced: {
