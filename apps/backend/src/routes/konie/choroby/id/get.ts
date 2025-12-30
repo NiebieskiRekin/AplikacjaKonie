@@ -1,8 +1,13 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { choroby, chorobySelectSchema } from "@/backend/db/schema";
+import {
+  choroby,
+  chorobySelectSchema,
+  konie,
+  member,
+} from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -54,9 +59,17 @@ export const konie_choroby_get = new Hono<auth_vars>().get(
     }
 
     const chorobaList = await db
-      .select()
+      .select({
+        id: choroby.id,
+        kon: choroby.kon,
+        dataRozpoczecia: choroby.dataRozpoczecia,
+        dataZakonczenia: choroby.dataZakonczenia,
+        opisZdarzenia: choroby.opisZdarzenia,
+      })
       .from(choroby)
-      .where(eq(choroby.kon, horseId));
+      .innerJoin(konie, eq(konie.id, choroby.kon))
+      .innerJoin(member, eq(member.organizationId, konie.hodowla))
+      .where(and(eq(choroby.kon, horseId), eq(member.userId, userId)));
 
     return c.json(chorobaList, 200);
   }
