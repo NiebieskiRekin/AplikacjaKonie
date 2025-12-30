@@ -12,6 +12,7 @@ import {
   index,
   uniqueIndex,
   serial,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { sql, relations } from "drizzle-orm";
 import {
@@ -347,7 +348,9 @@ export const konieUpdateSchema = createUpdateSchema(konie);
 export const konieInsertSchema = createInsertSchema(konie);
 
 export const zdjeciaKoni = schemaTable("zdjecia_koni", {
-  id: serial("id").primaryKey(),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   kon: integer("kon")
     .notNull()
     .references(() => konie.id),
