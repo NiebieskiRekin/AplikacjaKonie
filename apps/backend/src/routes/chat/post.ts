@@ -59,6 +59,17 @@ const PORT = ProcessEnv.PORT;
 //     "/api/wydarzenia/zdarzenia_profilaktyczne",
 // };
 
+const endpointNames: Record<string, string> = {
+  "api/konie": "konia",
+  "api/kowale": "kowala",
+  "api/weterynarze": "weterynarza",
+  "api/wydarzenia/choroby": "chorobę",
+  "api/wydarzenia/podkucie": "podkucie",
+  "api/wydarzenia/leczenia": "leczenie",
+  "api/wydarzenia/zdarzenia_profilaktyczne": "zdarzenie profilaktyczne",
+  "api/wydarzenia/rozrody": "rozród",
+};
+
 const promptSchema = z.object({
   konie: z.string(),
   prompt: z.string(),
@@ -363,6 +374,7 @@ export const gemini_chat_post = new Hono<{
             schema: resolver(
               z.object({
                 endpoint: z.string(),
+                actionName: z.string(),
                 generated: z.any(),
                 curl: z.string(),
                 response: z.any(),
@@ -459,6 +471,7 @@ export const gemini_chat_post = new Hono<{
       console.log("Odpowiedź Gemini:", result.response.text());
 
       const clean = extractJsonFromText(result.response.text());
+      const actionName = endpointNames[predictedEndpoint] || "element";
       let jsonData;
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -482,6 +495,7 @@ export const gemini_chat_post = new Hono<{
 
       return c.json({
         endpoint: predictedEndpoint,
+        actionName: actionName,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         generated: jsonData,
         curl: curlCommand,

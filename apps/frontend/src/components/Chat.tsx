@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { APIClient } from "@/frontend/lib/api-client";
-import type { RodzajKonia } from "@aplikacja-konie/backend/schema";
+// import type { RodzajKonia } from "@aplikacja-konie/backend/schema";
 
 type Message = {
   role: "user" | "gemini";
@@ -8,6 +8,17 @@ type Message = {
 };
 import { type Horse } from "../components/components/Kon";
 type Person = { id: number; imieINazwisko: string };
+
+const formatEmptyValues = (obj: any): any => {
+  if (obj === null || obj === "") return "Brak";
+  if (Array.isArray(obj)) return obj.map(formatEmptyValues);
+  if (typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [key, formatEmptyValues(value)])
+    );
+  }
+  return obj;
+};
 
 function GeminiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -88,25 +99,25 @@ function GeminiChat() {
       const data = await res.json();
 
       try {
-        const parsedResponse = JSON.parse(data.response);
+        // const parsedResponse = JSON.parse(data.response);
 
-        if (parsedResponse.message) {
+        if (data.status === 200 || data.status === 201) {
           setMessages((prev) => [
             ...prev,
-            { role: "gemini", text: parsedResponse.message },
+            {
+              role: "gemini",
+              text: `Dodano ${data.actionName}:`,
+              jsonData: data.generated,
+            },
           ]);
         } else {
-          if (data.status == 200 || data.status == 201) {
-            setMessages((prev) => [
-              ...prev,
-              { role: "gemini", text: "Dodano" },
-            ]);
-          } else {
-            setMessages((prev) => [
-              ...prev,
-              { role: "gemini", text: "Błąd podczas dodawania" },
-            ]);
-          }
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "gemini",
+              text: `Błąd podczas dodawania: ${data.response}`,
+            },
+          ]);
         }
       } catch (e) {
         // fallback jeśli JSON.parse się nie uda
@@ -173,16 +184,29 @@ function GeminiChat() {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`w-fit max-w-full rounded-xl px-4 py-2 ${
+              className={`w-fit max-w-[90%] rounded-xl px-4 py-2 ${
                 msg.role === "user"
                   ? "ml-auto bg-green-100 text-right"
                   : "mr-auto bg-gray-200 text-left"
               }`}
             >
-              <span className="block text-sm font-semibold text-gray-700">
-                {msg.role === "user" ? "Ty" : "Gemini"}:
+              <span className="block text-xs font-bold text-gray-500 uppercase">
+                {msg.role === "user" ? "Ty" : "Gemini"}
               </span>
-              <pre className="whitespace-pre-wrap">{msg.text}</pre>
+
+              <p className="font-medium whitespace-pre-wrap">{msg.text}</p>
+
+              {(msg as any).jsonData && (
+                <div className="mt-2 rounded-lg border border-gray-300 bg-white/50 p-2 text-xs">
+                  <pre className="whitespace-pre-wrap">
+                    {JSON.stringify(
+                      formatEmptyValues((msg as any).jsonData),
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+              )}
             </div>
           ))}
           {loading && (
