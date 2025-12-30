@@ -26,6 +26,8 @@ const renderFriendlyDetails = (
   kowale: Person[],
   weterynarze: Person[]
 ) => {
+  console.log("Rendering details for object:", obj);
+  console.log("type of obj:", typeof obj);
   if (!obj || typeof obj !== "object") return null;
 
   const keyLabels: Record<string, string> = {
