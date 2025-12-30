@@ -10,7 +10,7 @@ import {
   kowale,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
@@ -67,11 +67,6 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
       const orgId = session?.session.activeOrganizationId;
       if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-      const horsesSubquery = db
-        .select({ id: konie.id })
-        .from(konie)
-        .where(eq(konie.hodowla, orgId));
-
       let events;
 
       switch (eventType) {
@@ -87,7 +82,11 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .from(choroby)
             .innerJoin(konie, eq(choroby.kon, konie.id))
             .where(
-              and(eq(choroby.id, eventId), inArray(choroby.kon, horsesSubquery))
+              and(
+                eq(choroby.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
             );
           break;
         case "leczenia":
@@ -107,7 +106,8 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .where(
               and(
                 eq(leczenia.id, eventId),
-                inArray(leczenia.kon, horsesSubquery)
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
               )
             );
           break;
@@ -125,7 +125,11 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
             .innerJoin(konie, eq(rozrody.kon, konie.id))
             .where(
-              and(eq(rozrody.id, eventId), inArray(rozrody.kon, horsesSubquery))
+              and(
+                eq(rozrody.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
             );
           break;
         case "zdarzenia_profilaktyczne":
@@ -148,7 +152,8 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .where(
               and(
                 eq(zdarzeniaProfilaktyczne.id, eventId),
-                inArray(zdarzeniaProfilaktyczne.kon, horsesSubquery)
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
               )
             );
           break;
@@ -167,7 +172,8 @@ export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
             .where(
               and(
                 eq(podkucia.id, eventId),
-                inArray(podkucia.kon, horsesSubquery)
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
               )
             );
           break;
