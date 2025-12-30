@@ -12,32 +12,32 @@ const common = z.object({
 export const eventTypeUnionSchema = z.array(
   z.union([
     common.extend({
-      dataRozpoczecia: z.string().date(),
-      dataZakonczenia: z.string().date().nullable(),
+      dataRozpoczecia: z.iso.date(),
+      dataZakonczenia: z.iso.date().nullable(),
       opisZdarzenia: z.string().nullable(),
     }),
     common.extend({
-      dataZdarzenia: z.string().date(),
+      dataZdarzenia: z.iso.date(),
       weterynarz: z.string(),
       choroba: z.string().nullable(),
       opisZdarzenia: z.string().nullable(),
     }),
     common.extend({
-      dataZdarzenia: z.string().date(),
+      dataZdarzenia: z.iso.date(),
       weterynarz: z.string(),
       rodzajZdarzenia: z.enum(RodzajeZdarzenRozrodczych),
       opisZdarzenia: z.string().nullable(),
     }),
     common.extend({
-      dataZdarzenia: z.string().date(),
-      dataWaznosci: z.string().date().nullable(),
+      dataZdarzenia: z.iso.date(),
+      dataWaznosci: z.iso.date().nullable(),
       weterynarz: z.string(),
       rodzajZdarzenia: z.enum(RodzajeZdarzenProfilaktycznych),
       opisZdarzenia: z.string().nullable(),
     }),
     common.extend({
-      dataZdarzenia: z.string().date(),
-      dataWaznosci: z.string().date().nullable(),
+      dataZdarzenia: z.iso.date(),
+      dataWaznosci: z.iso.date().nullable(),
       kowal: z.string(),
     }),
   ])
