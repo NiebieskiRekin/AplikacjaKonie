@@ -1,7 +1,7 @@
 import { redirect } from "react-router";
 
 // eslint-disable-next-line @typescript-eslint/require-await
-async function clientLoader() {
+export async function clientLoader() {
   // eslint-disable-next-line @typescript-eslint/only-throw-error
   throw redirect("/konie");
 }
@@ -14,5 +14,4 @@ function Home() {
   );
 }
 
-Home.clientLoader = clientLoader;
 export default Home;

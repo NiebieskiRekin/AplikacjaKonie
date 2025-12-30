@@ -39,7 +39,7 @@ export default tseslint.config(
       globals: globals.browser,
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
       },
     },
     plugins: {
@@ -52,7 +52,21 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
-        { allowConstantExport: true },
+        {
+          allowExportNames: [
+            "loader",
+            "clientLoader",
+            "action",
+            "clientAction",
+            "ErrorBoundary",
+            "HydrateFallback",
+            "headers",
+            "handle",
+            "links",
+            "meta",
+            "shouldRevalidate",
+          ],
+        },
       ],
       ...drizzle.configs.recommended.rules,
     },
@@ -65,7 +79,7 @@ export default tseslint.config(
     },
   },
   {
-    // --- WYŁĄCZENIE REGUŁY DLA KALOGU LOGS ---
+    // --- WYŁĄCZENIE REGUŁY DLA KATALOGU LOGS ---
     files: ["apps/backend/src/logs/**/*.{ts,tsx}", "apps/backend/src/env.ts"],
     rules: {
       "no-console": "off",
