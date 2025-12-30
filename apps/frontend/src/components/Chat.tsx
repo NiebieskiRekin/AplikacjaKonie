@@ -20,7 +20,12 @@ const formatEmptyValues = (obj: any): any => {
   return obj;
 };
 
-const renderFriendlyDetails = (obj: any) => {
+const renderFriendlyDetails = (
+  obj: any,
+  horses: Horse[],
+  kowale: Person[],
+  weterynarze: Person[]
+) => {
   if (!obj || typeof obj !== "object") return null;
 
   return Object.entries(obj).map(([key, value]) => {
@@ -29,9 +34,12 @@ const renderFriendlyDetails = (obj: any) => {
     if (value === null || value === "") {
       displayValue = "Brak";
     } else if (Array.isArray(value)) {
-      displayValue = value.length > 0 ? value.join(", ") : "Brak";
+      const names = value.map((v) =>
+        getDisplayName(key, v, horses, kowale, weterynarze)
+      );
+      displayValue = names.length > 0 ? names.join(", ") : "Brak";
     } else {
-      displayValue = String(value);
+      displayValue = getDisplayName(key, value, horses, kowale, weterynarze);
     }
 
     return (
@@ -44,6 +52,33 @@ const renderFriendlyDetails = (obj: any) => {
       </div>
     );
   });
+};
+
+const getDisplayName = (
+  key: string,
+  value: any,
+  horses: Horse[],
+  kowale: Person[],
+  weterynarze: Person[]
+) => {
+  const id = Number(value);
+  if (isNaN(id)) return String(value);
+
+  if (["kon", "konieId", "konId"].includes(key)) {
+    return horses.find((h) => h.id === id)?.nazwa || `Koń (ID: ${id})`;
+  }
+  if (["kowal", "kowalId"].includes(key)) {
+    return (
+      kowale.find((k) => k.id === id)?.imieINazwisko || `Kowal (ID: ${id})`
+    );
+  }
+  if (["weterynarz", "weterynarzId", "lekarz"].includes(key)) {
+    return (
+      weterynarze.find((w) => w.id === id)?.imieINazwisko ||
+      `Weterynarz (ID: ${id})`
+    );
+  }
+  return String(value);
 };
 
 function GeminiChat() {
@@ -224,7 +259,12 @@ function GeminiChat() {
 
               {(msg as any).jsonData && (
                 <div className="mt-1 rounded-lg border-l-4 border-green-500 bg-gray-50 p-3 text-sm">
-                  {renderFriendlyDetails((msg as any).jsonData)}
+                  {renderFriendlyDetails(
+                    (msg as any).jsonData,
+                    horses,
+                    kowalRes,
+                    weterynarzRes
+                  )}
                 </div>
               )}
             </div>
