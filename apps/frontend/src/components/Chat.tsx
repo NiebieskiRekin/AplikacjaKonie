@@ -61,10 +61,50 @@ const renderFriendlyDetails = (
     .filter(([key]) => !keysToHide.includes(key))
     .map(([key, value]) => {
       let displayValue: string;
-      console.log("Rendering key:", key, "with value:", value);
 
       if (value === null || value === "") {
         displayValue = "Brak";
+      }
+      // LOGIKA DLA WIELU KONI
+      else if (
+        Array.isArray(value) &&
+        ["konieId", "konId", "kon"].includes(key)
+      ) {
+        const selectedIds = value.map(Number);
+        const selectedHorses = horses.filter((h) => selectedIds.includes(h.id));
+        const names = selectedHorses.map((h) => h.nazwa).join(", ");
+
+        let suffix = "";
+
+        if (selectedIds.length > 0) {
+          if (selectedIds.length === horses.length) {
+            suffix = " (wszystkie konie)";
+          } else {
+            const typesInSelection = [
+              ...new Set(selectedHorses.map((h) => h.rodzajKonia)),
+            ];
+
+            for (const type of typesInSelection) {
+              const allHorsesOfThisType = horses.filter(
+                (h) => h.rodzajKonia === type
+              );
+              const selectedHorsesOfThisType = selectedHorses.filter(
+                (h) => h.rodzajKonia === type
+              );
+
+              if (
+                allHorsesOfThisType.length ===
+                  selectedHorsesOfThisType.length &&
+                allHorsesOfThisType.length > 1
+              ) {
+                suffix = ` (wszystkie ${type.toLowerCase()})`;
+                break;
+              }
+            }
+          }
+        }
+
+        displayValue = names + suffix;
       } else if (Array.isArray(value)) {
         const names = value.map((v) =>
           getDisplayName(key, v, horses, kowale, weterynarze)
@@ -75,8 +115,6 @@ const renderFriendlyDetails = (
       }
 
       const label = keyLabels[key] || key;
-      console.log("Display for", key, ":", displayValue);
-      console.log("Label for", key, ":", label);
 
       return (
         <div
