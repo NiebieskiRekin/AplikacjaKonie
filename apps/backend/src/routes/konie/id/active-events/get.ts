@@ -3,6 +3,8 @@ import { auth, auth_vars } from "@/backend/auth";
 import { desc, eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
+  konie,
+  member,
   podkucia,
   podkuciaSelectSchema,
   zdarzeniaProfilaktyczne,
@@ -61,10 +63,12 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -75,43 +79,29 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
       const latestPodkucie = await db
         .select()
         .from(podkucia)
-        .where(eq(podkucia.kon, horseId))
+        .innerJoin(konie, eq(konie.id, podkucia.kon))
+        .innerJoin(member, eq(member.organizationId, konie.hodowla))
+        .where(and(eq(podkucia.kon, horseId), eq(member.userId, userId)))
         .orderBy(desc(podkucia.dataZdarzenia))
         .limit(1)
         .then((res) => res[0]);
 
       // Pobieramy najnowsze zdarzenia profilaktyczne dla każdego unikalnego rodzaju zdarzenia
-      const eventTypes = [
-        "Odrobaczanie",
-        "Podanie suplementów",
-        "Szczepienie",
-        "Dentysta",
-      ];
-
-      const latestProfilaktyczneEvents = await Promise.all(
-        eventTypes.map(async (eventType) => {
-          return db
-            .select()
-            .from(zdarzeniaProfilaktyczne)
-            .where(
-              and(
-                eq(zdarzeniaProfilaktyczne.kon, horseId),
-                eq(
-                  zdarzeniaProfilaktyczne.rodzajZdarzenia,
-                  eventType as
-                    | "Odrobaczanie"
-                    | "Podanie suplementów"
-                    | "Szczepienie"
-                    | "Dentysta"
-                    | "Inne"
-                )
-              )
-            )
-            .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
-            .limit(1)
-            .then((res) => res[0] || null);
-        })
-      );
+      const latestProfilaktyczneEvents = await db
+        .selectDistinctOn([zdarzeniaProfilaktyczne.rodzajZdarzenia])
+        .from(zdarzeniaProfilaktyczne)
+        .innerJoin(konie, eq(konie.id, zdarzeniaProfilaktyczne.kon))
+        .innerJoin(member, eq(member.organizationId, konie.hodowla))
+        .where(
+          and(
+            eq(zdarzeniaProfilaktyczne.kon, horseId),
+            eq(member.userId, userId)
+          )
+        )
+        .orderBy(
+          zdarzeniaProfilaktyczne.rodzajZdarzenia,
+          desc(zdarzeniaProfilaktyczne.dataZdarzenia)
+        );
 
       const activeEvents = {
         podkucie: latestPodkucie || null,
