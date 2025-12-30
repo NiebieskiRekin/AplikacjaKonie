@@ -1,1 +1,0 @@
-ALTER TABLE "hodowlakoni"."zdjecia_koni" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
