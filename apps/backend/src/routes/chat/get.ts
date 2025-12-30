@@ -3,9 +3,10 @@ import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { db } from "@/backend/db";
 import { eq } from "drizzle-orm";
-import { organization, hodowcyKoniSelectSchema } from "@/backend/db/schema";
+import { organization } from "@/backend/db/schema";
 import { resolver } from "hono-openapi";
 import { auth, auth_vars } from "@/backend/auth";
+import z from "zod";
 
 export const liczba_requestow_get = new Hono<auth_vars>().get(
   "/",
@@ -16,11 +17,7 @@ export const liczba_requestow_get = new Hono<auth_vars>().get(
         description: "Pomyślne zapytanie",
         content: {
           [JsonMime]: {
-            schema: resolver(
-              hodowcyKoniSelectSchema.openapi({
-                description: "Liczba requestów",
-              })
-            ),
+            schema: resolver(z.object({ liczba_requestow: z.int() })),
           },
         },
       },
@@ -54,7 +51,7 @@ export const liczba_requestow_get = new Hono<auth_vars>().get(
         .where(eq(organization.id, orgId))
         .then((res) => res[0]);
 
-      return c.json(result);
+      return c.json(result, 200);
     } catch {
       return c.json({ error: "Błąd pobierania liczby requestów" }, 500);
     }
