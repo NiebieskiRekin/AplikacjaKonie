@@ -1,8 +1,8 @@
 import { db } from "@/backend/db";
-import { leczenia, leczeniaSelectSchema } from "@/backend/db/schema";
+import { konie, leczenia, leczeniaSelectSchema } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { auth_vars } from "@/backend/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -50,9 +50,24 @@ export const wydarzenia_leczenia_delete = new Hono<auth_vars>().delete(
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
+      const horsesSubquery = db
+        .select({ id: konie.id })
+        .from(konie)
+        .where(eq(konie.hodowla, orgId));
+
       const deleteQuery = await db
         .delete(leczenia)
-        .where(eq(leczenia.id, eventId))
+        .where(
+          and(eq(leczenia.id, eventId), inArray(leczenia.kon, horsesSubquery))
+        )
         .returning();
 
       if (deleteQuery.length === 0) {
