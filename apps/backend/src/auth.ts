@@ -12,6 +12,7 @@ import {
   openAPI,
   organization,
   apiKey,
+  admin,
 } from "better-auth/plugins";
 import { schema } from "@/backend/db";
 import { ProcessEnv } from "./env";
@@ -43,7 +44,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendOnSignUp: true,
   },
-  plugins: [bearer(), organization(), openAPI(), jwt(), apiKey()],
+  plugins: [bearer(), organization(), openAPI(), jwt(), apiKey(), admin()],
   advanced: {
     defaultCookieAttributes: {
       sameSite: "none",
