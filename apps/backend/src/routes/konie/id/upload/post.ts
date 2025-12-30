@@ -1,9 +1,8 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { konie, member, zdjeciaKoni } from "@/backend/db/schema";
-import { InsertZdjecieKonia } from "@/backend/db/types";
 import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -64,40 +63,26 @@ export const konie_id_upload_post = new Hono<auth_vars>().post(
         return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
       }
 
-      const hodowla = await db
-        .select({ hodowlaId: member.organizationId })
-        .from(member)
-        .where(eq(member.userId, userId))
-        .then((res) => res[0]);
+      const kon = await db
+        .select({ kon: konie.id })
+        .from(konie)
+        .innerJoin(member, eq(member.organizationId, konie.hodowla))
+        .where(and(eq(member.userId, userId), eq(konie.id, horseId)));
 
-      if (!hodowla.hodowlaId) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      if (kon.length === 0) {
+        return c.json({ error: "Nie znaleziono konia" }, 400);
       }
-
-      const defaultImage = await db
-        .select({
-          id: zdjeciaKoni.id,
-          kon: zdjeciaKoni.kon,
-          default: zdjeciaKoni.default,
-        })
-        .from(zdjeciaKoni)
-        .innerJoin(konie, eq(konie.id, zdjeciaKoni.kon))
-        .where(
-          and(
-            eq(konie.hodowla, hodowla.hodowlaId),
-            eq(zdjeciaKoni.kon, horseId),
-            eq(zdjeciaKoni.default, true)
-          )
-        );
-
-      const img: InsertZdjecieKonia = {
-        kon: horseId,
-        default: defaultImage.length === 0,
-      };
 
       const uuid_of_image = await db
         .insert(zdjeciaKoni)
-        .values(img)
+        .values({
+          kon: horseId,
+          default: sql`NOT EXISTS (
+                SELECT 1 FROM ${zdjeciaKoni} 
+                WHERE ${zdjeciaKoni.kon} = ${horseId} 
+                AND ${zdjeciaKoni.default} = true
+              )`,
+        })
         .returning({ id: zdjeciaKoni.id });
 
       return c.json(
