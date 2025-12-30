@@ -108,7 +108,7 @@ const sendRequest = async (
 ) => {
   const formData = new FormData();
 
-  if (endpoint === "/api/konie") {
+  if (endpoint === "api/konie") {
     const kon_result = await konieInsertSchema.spa(jsonData);
     if (!kon_result.success) {
       throw new Error(
