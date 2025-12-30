@@ -190,8 +190,8 @@ function GeminiChat() {
                   : "mr-auto bg-gray-200 text-left"
               }`}
             >
-              <span className="block text-xs font-bold text-gray-500 uppercase">
-                {msg.role === "user" ? "Ty" : "Gemini"}
+              <span className="block text-xs text-gray-500 uppercase">
+                {msg.role === "user" ? "Ty" : "Asystent"}
               </span>
 
               <p className="font-medium whitespace-pre-wrap">{msg.text}</p>
