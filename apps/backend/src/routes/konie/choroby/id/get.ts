@@ -41,10 +41,12 @@ export const konie_choroby_get = new Hono<auth_vars>().get(
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {

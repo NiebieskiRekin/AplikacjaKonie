@@ -396,7 +396,7 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
 
       console.log("Przewidziany endpoint:", predictedEndpoint);
       let _result;
-      let chorobaList: { id: string; opis: string | null }[] = [];
+      let chorobaList: { id: number; opis: string | null }[] = [];
       let chorobyText = "";
 
       if (predictedEndpoint == "api/wydarzenia/leczenia") {
@@ -404,7 +404,7 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
         _prompt += `Konie:\n${konie}\n`;
         _prompt += `Tekst: ${prompt}`;
         _result = await chat.sendMessage(_prompt);
-        const konId = _result.response.text();
+        const konId = parseInt(_result.response.text(), 10);
         console.log(_result.response.text());
         console.log("Parsed konId:", konId);
 

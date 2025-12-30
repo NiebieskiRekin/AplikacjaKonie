@@ -4,7 +4,6 @@ import {
   integer,
   varchar,
   date,
-  uuid,
   customType,
   boolean,
   time,
@@ -12,6 +11,7 @@ import {
   timestamp,
   index,
   uniqueIndex,
+  serial,
 } from "drizzle-orm/pg-core";
 import { sql, relations } from "drizzle-orm";
 import {
@@ -310,9 +310,7 @@ export const hodowcyKoniInsertSchema = createInsertSchema(organization);
 export const konie = schemaTable(
   "konie",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: serial("id").primaryKey(),
     nazwa: text("nazwa").notNull(),
     numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 }), // Mogą być null'e, ale też mają być unique
     numerChipa: varchar("numer_chipa", { length: 15 }), // Mogą być null'e, ale też mają być unique
@@ -349,10 +347,8 @@ export const konieUpdateSchema = createUpdateSchema(konie);
 export const konieInsertSchema = createInsertSchema(konie);
 
 export const zdjeciaKoni = schemaTable("zdjecia_koni", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  kon: uuid("kon")
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
   // file: varchar("file").notNull(),
@@ -366,15 +362,13 @@ export const zdjeciaKoniUpdateSchema = createUpdateSchema(zdjeciaKoni);
 export const zdjeciaKoniInsertSchema = createInsertSchema(zdjeciaKoni);
 
 export const podkucia = schemaTable("podkucia", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   dataWaznosci: date("data_waznosci"),
-  kon: uuid("kon")
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  kowal: uuid("kowal")
+  kowal: integer("kowal")
     .notNull()
     .references(() => kowale.id),
 });
@@ -384,9 +378,7 @@ export const podkuciaUpdateSchema = createUpdateSchema(podkucia);
 export const podkuciaInsertSchema = createInsertSchema(podkucia);
 
 export const kowale = schemaTable("kowale", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
   hodowla: text("hodowla")
@@ -400,10 +392,8 @@ export const kowaleUpdateSchema = createUpdateSchema(kowale);
 export const kowaleInsertSchema = createInsertSchema(kowale);
 
 export const choroby = schemaTable("choroby", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  kon: uuid("kon")
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
   dataRozpoczecia: date("data_rozpoczecia").notNull().defaultNow(),
@@ -418,18 +408,16 @@ export const chorobyInsertSchema = createInsertSchema(choroby);
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
 export const leczenia = schemaTable("leczenia", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  kon: uuid("kon")
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  weterynarz: uuid("weterynarz")
+  weterynarz: integer("weterynarz")
     .notNull()
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   opisZdarzenia: varchar("opis_zdarzenia"),
-  choroba: uuid("choroba").references(() => choroby.id),
+  choroba: integer("choroba").references(() => choroby.id),
 });
 
 export const leczeniaSelectSchema = createSelectSchema(leczenia);
@@ -440,13 +428,11 @@ export const leczeniaInsertSchema = createInsertSchema(leczenia);
 // TODO: uwzględnienie potomstwa
 // TODO: uwzględnienie rodziców
 export const rozrody = schemaTable("rozrody", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  kon: uuid("kon")
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  weterynarz: uuid("weterynarz")
+  weterynarz: integer("weterynarz")
     .notNull()
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
@@ -461,13 +447,11 @@ export const rozrodyInsertSchema = createInsertSchema(rozrody);
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
 export const zdarzeniaProfilaktyczne = schemaTable("zdarzenia_profilaktyczne", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  kon: uuid("kon")
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
     .notNull()
     .references(() => konie.id),
-  weterynarz: uuid("weterynarz")
+  weterynarz: integer("weterynarz")
     .notNull()
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
@@ -487,7 +471,7 @@ export const zdarzeniaProfilaktyczneInsertSchema = createInsertSchema(
 );
 
 export const weterynarze = schemaTable("weterynarze", {
-  id: uuid("id").primaryKey(),
+  id: serial("id").primaryKey(),
   imieINazwisko: text("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
   hodowla: text("hodowla")
@@ -509,9 +493,7 @@ export const usersUpdateSchema = createUpdateSchema(user);
 
 // tabelka z preferencji użytkownika dot. powiadomień
 export const notifications = schemaTable("notifications", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => user.id),
