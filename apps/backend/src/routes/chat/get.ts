@@ -3,11 +3,7 @@ import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { db } from "@/backend/db";
 import { eq } from "drizzle-orm";
-import {
-  organization,
-  hodowcyKoniSelectSchema,
-  member,
-} from "@/backend/db/schema";
+import { organization, hodowcyKoniSelectSchema } from "@/backend/db/schema";
 import { resolver } from "hono-openapi";
 import { auth, auth_vars } from "@/backend/auth";
 
@@ -49,13 +45,13 @@ export const liczba_requestow_get = new Hono<auth_vars>().get(
       });
 
       const userId = session?.user.id;
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const result = await db
         .select({ liczba_requestow: organization.liczba_requestow })
-        .from(member)
-        .innerJoin(organization, eq(organization.id, member.organizationId))
-        .where(eq(member.userId, userId))
+        .from(organization)
+        .where(eq(organization.id, orgId))
         .then((res) => res[0]);
 
       return c.json(result);

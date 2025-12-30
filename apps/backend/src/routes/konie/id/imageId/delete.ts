@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, desc } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { member, zdjeciaKoni, konie } from "@/backend/db/schema";
+import { zdjeciaKoni, konie } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -51,7 +51,8 @@ export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
       });
 
       const userId = session?.user.id;
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const horseId = Number(c.req.param("id"));
       const imageId = String(c.req.param("imageId"));
@@ -67,11 +68,10 @@ export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
         .select()
         .from(zdjeciaKoni)
         .innerJoin(konie, eq(konie.id, zdjeciaKoni.kon))
-        .innerJoin(member, eq(member.organizationId, konie.hodowla))
         .where(
           and(
             eq(zdjeciaKoni.kon, horseId),
-            eq(member.userId, userId),
+            eq(konie.hodowla, orgId),
             eq(zdjeciaKoni.id, imageId)
           )
         )

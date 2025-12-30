@@ -6,7 +6,6 @@ import {
   konie,
   konieSelectSchema,
   konieUpdateSchema,
-  member,
 } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
@@ -73,7 +72,8 @@ export const konie_id_put = new Hono<auth_vars>().put(
     });
 
     const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -88,7 +88,6 @@ export const konie_id_put = new Hono<auth_vars>().put(
       const dataOdejscia =
         d.dataOdejsciaZeStajni === "" ? null : d.dataOdejsciaZeStajni;
 
-      // eslint-disable-next-line drizzle/enforce-update-with-where
       const updatedHorse = await db
         .update(konie)
         .set({
@@ -101,14 +100,7 @@ export const konie_id_put = new Hono<auth_vars>().put(
           rodzajKonia: d.rodzajKonia,
           plec: d.plec,
         })
-        .from(member)
-        .where(
-          and(
-            eq(konie.id, horseId),
-            eq(konie.hodowla, member.organizationId),
-            eq(member.userId, userId)
-          )
-        )
+        .where(and(eq(konie.id, horseId), eq(konie.hodowla, orgId)))
         .returning();
 
       if (!updatedHorse) {

@@ -2,12 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { eq, and, getTableColumns } from "drizzle-orm";
 import { db } from "@/backend/db";
-import {
-  konie,
-  konieSelectSchema,
-  member,
-  zdjeciaKoni,
-} from "@/backend/db/schema";
+import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
@@ -63,7 +58,8 @@ export const konie_id_get = new Hono<auth_vars>().get(
     });
 
     const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -73,11 +69,10 @@ export const konie_id_get = new Hono<auth_vars>().get(
     const horse = await db
       .select({ ...getTableColumns(konie) })
       .from(konie)
-      .innerJoin(member, eq(member.organizationId, konie.hodowla))
       .where(
         and(
           eq(konie.id, horseId),
-          eq(member.userId, userId),
+          eq(konie.hodowla, orgId),
           eq(konie.active, true)
         )
       )

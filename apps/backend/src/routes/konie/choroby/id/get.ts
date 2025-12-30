@@ -2,12 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import {
-  choroby,
-  chorobySelectSchema,
-  konie,
-  member,
-} from "@/backend/db/schema";
+import { choroby, chorobySelectSchema, konie } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -51,7 +46,8 @@ export const konie_choroby_get = new Hono<auth_vars>().get(
     });
 
     const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -68,8 +64,7 @@ export const konie_choroby_get = new Hono<auth_vars>().get(
       })
       .from(choroby)
       .innerJoin(konie, eq(konie.id, choroby.kon))
-      .innerJoin(member, eq(member.organizationId, konie.hodowla))
-      .where(and(eq(choroby.kon, horseId), eq(member.userId, userId)));
+      .where(and(eq(choroby.kon, horseId), eq(konie.hodowla, orgId)));
 
     return c.json(chorobaList, 200);
   }

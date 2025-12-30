@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { konie, member } from "@/backend/db/schema";
+import { konie } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -68,7 +68,8 @@ export const konie_id_delete = new Hono<auth_vars>().delete(
       });
 
       const userId = session?.user.id;
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const horseId = Number(c.req.param("id"));
       if (isNaN(horseId)) {
@@ -76,18 +77,10 @@ export const konie_id_delete = new Hono<auth_vars>().delete(
       }
 
       // Usuwamy konia
-      // eslint-disable-next-line drizzle/enforce-update-with-where
       const kon = await db
         .update(konie)
         .set({ active: false })
-        .from(member)
-        .where(
-          and(
-            eq(konie.id, horseId),
-            eq(konie.hodowla, member.organizationId),
-            eq(member.userId, userId)
-          )
-        )
+        .where(and(eq(konie.id, horseId), eq(konie.hodowla, orgId)))
         .returning({
           id: konie.id,
         });

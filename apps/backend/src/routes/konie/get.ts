@@ -7,7 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { member, konie, zdjeciaKoni } from "@/backend/db/schema";
+import { konie, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 
 const konieGetResponseSchemaSuccess = z.object({
@@ -54,14 +54,15 @@ export const konie_get = new Hono<auth_vars>().get(
     },
   }),
   async (c) => {
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    });
-
-    const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
-
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const horsesList = await db
         .select({
           id: konie.id,
@@ -77,14 +78,7 @@ export const konie_get = new Hono<auth_vars>().get(
           imageId: zdjeciaKoni.id,
         })
         .from(konie)
-        .innerJoin(
-          member,
-          and(
-            eq(member.organizationId, konie.hodowla),
-            eq(member.userId, userId),
-            eq(konie.active, true)
-          )
-        )
+        .where(and(eq(konie.hodowla, orgId), eq(konie.active, true)))
         .leftJoin(
           zdjeciaKoni,
           and(eq(konie.id, zdjeciaKoni.kon), eq(zdjeciaKoni.default, true))

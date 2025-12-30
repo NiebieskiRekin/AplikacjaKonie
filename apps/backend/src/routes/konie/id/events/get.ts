@@ -10,7 +10,6 @@ import {
   podkucia,
   zdarzeniaProfilaktyczne,
   konie,
-  member,
 } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
@@ -72,7 +71,8 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
     });
 
     const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -89,8 +89,7 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           })
           .from(rozrody)
           .innerJoin(konie, eq(konie.id, rozrody.kon))
-          .innerJoin(member, eq(member.organizationId, konie.hodowla))
-          .where(and(eq(rozrody.kon, horseId), eq(member.userId, userId)))
+          .where(and(eq(rozrody.kon, horseId), eq(konie.hodowla, orgId)))
           .orderBy(desc(rozrody.dataZdarzenia))
           .limit(5),
         db
@@ -101,8 +100,7 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           })
           .from(choroby)
           .innerJoin(konie, eq(konie.id, choroby.kon))
-          .innerJoin(member, eq(member.organizationId, konie.hodowla))
-          .where(and(eq(choroby.kon, horseId), eq(member.userId, userId)))
+          .where(and(eq(choroby.kon, horseId), eq(konie.hodowla, orgId)))
           .orderBy(desc(choroby.dataRozpoczecia))
           .limit(5),
         db
@@ -113,8 +111,7 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           })
           .from(leczenia)
           .innerJoin(konie, eq(konie.id, leczenia.kon))
-          .innerJoin(member, eq(member.organizationId, konie.hodowla))
-          .where(and(eq(leczenia.kon, horseId), eq(member.userId, userId)))
+          .where(and(eq(leczenia.kon, horseId), eq(konie.hodowla, orgId)))
           .orderBy(desc(leczenia.dataZdarzenia))
           .limit(5),
         db
@@ -125,8 +122,7 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           })
           .from(podkucia)
           .innerJoin(konie, eq(konie.id, podkucia.kon))
-          .innerJoin(member, eq(member.organizationId, konie.hodowla))
-          .where(and(eq(podkucia.kon, horseId), eq(member.userId, userId)))
+          .where(and(eq(podkucia.kon, horseId), eq(konie.hodowla, orgId)))
           .orderBy(desc(podkucia.dataZdarzenia))
           .limit(5),
         db
@@ -137,11 +133,10 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           })
           .from(zdarzeniaProfilaktyczne)
           .innerJoin(konie, eq(konie.id, zdarzeniaProfilaktyczne.kon))
-          .innerJoin(member, eq(member.organizationId, konie.hodowla))
           .where(
             and(
               eq(zdarzeniaProfilaktyczne.kon, horseId),
-              eq(member.userId, userId)
+              eq(konie.hodowla, orgId)
             )
           )
           .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))

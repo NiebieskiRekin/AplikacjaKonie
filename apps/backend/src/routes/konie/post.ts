@@ -5,10 +5,8 @@ import { resolver, validator as zValidator } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { auth, auth_vars } from "@/backend/auth";
-import { eq } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
-  users,
   konie,
   zdjeciaKoni,
   konieInsertSchema,
@@ -66,12 +64,13 @@ export const konie_post = new Hono<auth_vars>().post(
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      const hodowla = await db
-        .select({ hodowla: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId));
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const formData = c.req.valid("form");
 
@@ -91,7 +90,7 @@ export const konie_post = new Hono<auth_vars>().post(
         dataOdejsciaZeStajni: convert_empty_to_null(
           formData.dataOdejsciaZeStajni
         ),
-        hodowla: hodowla[0].hodowla,
+        hodowla: orgId,
       };
 
       //Wstawienie danych do bazy

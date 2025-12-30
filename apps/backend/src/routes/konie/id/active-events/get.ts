@@ -4,7 +4,6 @@ import { desc, eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
   konie,
-  member,
   podkucia,
   podkuciaSelectSchema,
   zdarzeniaProfilaktyczne,
@@ -68,7 +67,8 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
     });
 
     const userId = session?.user.id;
-    if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -80,8 +80,7 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
         .select()
         .from(podkucia)
         .innerJoin(konie, eq(konie.id, podkucia.kon))
-        .innerJoin(member, eq(member.organizationId, konie.hodowla))
-        .where(and(eq(podkucia.kon, horseId), eq(member.userId, userId)))
+        .where(and(eq(podkucia.kon, horseId), eq(konie.hodowla, orgId)))
         .orderBy(desc(podkucia.dataZdarzenia))
         .limit(1)
         .then((res) => res[0]);
@@ -91,11 +90,10 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
         .selectDistinctOn([zdarzeniaProfilaktyczne.rodzajZdarzenia])
         .from(zdarzeniaProfilaktyczne)
         .innerJoin(konie, eq(konie.id, zdarzeniaProfilaktyczne.kon))
-        .innerJoin(member, eq(member.organizationId, konie.hodowla))
         .where(
           and(
             eq(zdarzeniaProfilaktyczne.kon, horseId),
-            eq(member.userId, userId)
+            eq(konie.hodowla, orgId)
           )
         )
         .orderBy(
