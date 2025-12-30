@@ -20,6 +20,32 @@ const formatEmptyValues = (obj: any): any => {
   return obj;
 };
 
+const renderFriendlyDetails = (obj: any) => {
+  if (!obj || typeof obj !== "object") return null;
+
+  return Object.entries(obj).map(([key, value]) => {
+    let displayValue: string;
+
+    if (value === null || value === "") {
+      displayValue = "Brak";
+    } else if (Array.isArray(value)) {
+      displayValue = value.length > 0 ? value.join(", ") : "Brak";
+    } else {
+      displayValue = String(value);
+    }
+
+    return (
+      <div
+        key={key}
+        className="grid grid-cols-2 gap-2 border-b border-gray-100 py-1 last:border-0"
+      >
+        <span className="font-semibold text-gray-600 italic">"{key}":</span>
+        <span className="text-gray-800">{displayValue}</span>
+      </div>
+    );
+  });
+};
+
 function GeminiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [prompt, setPrompt] = useState("");
@@ -184,27 +210,21 @@ function GeminiChat() {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`w-fit max-w-[90%] rounded-xl px-4 py-2 ${
+              className={`w-fit max-w-[90%] rounded-xl px-4 py-3 shadow-sm ${
                 msg.role === "user"
                   ? "ml-auto bg-green-100 text-right"
-                  : "mr-auto bg-gray-200 text-left"
+                  : "mr-auto border border-gray-200 bg-white text-left"
               }`}
             >
-              <span className="block text-xs text-gray-500 uppercase">
+              <span className="mb-1 block text-xs font-bold text-gray-400 uppercase">
                 {msg.role === "user" ? "Ty" : "Asystent"}
               </span>
 
-              <p className="font-medium whitespace-pre-wrap">{msg.text}</p>
+              <div className="mb-2 font-medium text-gray-800">{msg.text}</div>
 
               {(msg as any).jsonData && (
-                <div className="mt-2 rounded-lg border border-gray-300 bg-white/50 p-2 text-xs">
-                  <pre className="whitespace-pre-wrap">
-                    {JSON.stringify(
-                      formatEmptyValues((msg as any).jsonData),
-                      null,
-                      2
-                    )}
-                  </pre>
+                <div className="mt-1 rounded-lg border-l-4 border-green-500 bg-gray-50 p-3 text-sm">
+                  {renderFriendlyDetails((msg as any).jsonData)}
                 </div>
               )}
             </div>
