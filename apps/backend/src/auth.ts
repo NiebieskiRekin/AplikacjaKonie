@@ -61,7 +61,9 @@ export const auth = betterAuth({
         return user.role === "admin";
       },
     }),
-    openAPI(),
+    openAPI({
+      disableDefaultReference: true,
+    }),
     jwt(),
     apiKey(),
     admin({
