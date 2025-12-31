@@ -1,13 +1,16 @@
+import { eq } from "drizzle-orm";
 import { auth } from "./auth";
+import { db } from "./db";
 import { ProcessEnv } from "./env";
 import { log } from "./logs/logger";
+import { user } from "./db/schema";
 
 async function main() {
   log("seed", "info", "Seeding default admin user...");
 
-  let user;
+  let _user;
   try {
-    user = await auth.api.createUser({
+    _user = await auth.api.createUser({
       body: {
         email: "admin@example.com",
         password: ProcessEnv.INITIAL_ADMIN_PASSWORD,
@@ -15,6 +18,11 @@ async function main() {
         role: "admin",
       },
     });
+
+    await db
+      .update(user)
+      .set({ emailVerified: true })
+      .where(eq(user.id, _user.user.id));
 
     log("seed", "info", "User created successfully:" + JSON.stringify(user));
   } catch (error) {
@@ -28,7 +36,7 @@ async function main() {
       body: {
         name: "Moje konie",
         slug: "moje-konie",
-        userId: user?.user.id,
+        userId: _user?.user.id,
       },
     });
 
