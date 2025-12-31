@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/backend/db";
 import { log } from "./logs/logger";
@@ -24,6 +24,15 @@ export const auth = betterAuth({
       ...schema,
     },
   }),
+  session: {
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+      version: "1",
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
