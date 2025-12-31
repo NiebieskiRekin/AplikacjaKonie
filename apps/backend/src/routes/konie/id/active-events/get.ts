@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { auth, auth_vars } from "@/backend/auth";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, getTableColumns } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
   konie,
@@ -27,7 +27,6 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
       "Wyświetl informacje o aktywnych wydarzeniach dla danego konia",
     responses: {
       200: {
-        // ContentfulStatusCode
         description: "Pomyślne zapytanie",
         content: {
           [JsonMime]: {
@@ -77,7 +76,7 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
 
     try {
       const latestPodkucie = await db
-        .select()
+        .select({ ...getTableColumns(podkucia) })
         .from(podkucia)
         .innerJoin(konie, eq(konie.id, podkucia.kon))
         .where(and(eq(podkucia.kon, horseId), eq(konie.hodowla, orgId)))
@@ -87,7 +86,9 @@ export const konie_id_active_events_get = new Hono<auth_vars>().get(
 
       // Pobieramy najnowsze zdarzenia profilaktyczne dla każdego unikalnego rodzaju zdarzenia
       const latestProfilaktyczneEvents = await db
-        .selectDistinctOn([zdarzeniaProfilaktyczne.rodzajZdarzenia])
+        .selectDistinctOn([zdarzeniaProfilaktyczne.rodzajZdarzenia], {
+          ...getTableColumns(zdarzeniaProfilaktyczne),
+        })
         .from(zdarzeniaProfilaktyczne)
         .innerJoin(konie, eq(konie.id, zdarzeniaProfilaktyczne.kon))
         .where(

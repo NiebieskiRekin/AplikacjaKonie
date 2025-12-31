@@ -27,7 +27,6 @@ export function registerRoutes(app: Hono) {
     .basePath("/api")
     .use("*", logger(winstonHonoLogger))
     .on(["POST", "GET"], "/auth/**", (c) => {
-      log("auth", "info", "test");
       return auth.handler(c.req.raw);
     })
     .use(
