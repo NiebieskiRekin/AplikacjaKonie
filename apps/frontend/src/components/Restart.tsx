@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { authClient } from "../lib/auth";
 
 function Restart() {
   const [oldPassword, setOldPassword] = useState("");
@@ -31,20 +31,22 @@ function Restart() {
     }
 
     try {
-      const response = await APIClient.api.restart.$post({
-        json: { oldPassword, newPassword, confirmNewPassword },
+      const { data, error } = await authClient.changePassword({
+        newPassword: newPassword,
+        currentPassword: oldPassword,
+        revokeOtherSessions: true,
       });
 
-      if (response.ok) {
+      if (data) {
         setSuccess(
           "Hasło zostało zmienione! Wylogowanie nastąpi po 5s. \n Zaloguj się ponownie."
         );
         setTimeout(() => void navigate("/login"), 5000);
       } else {
-        const data = await response.json();
-        throw new Error(
-          typeof data.error === "string" ? data.error : "Błąd zmiany hasła"
-        );
+        setError(error.message || "Wystąpił nieznany błąd");
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
       }
     } catch (err) {
       const message =

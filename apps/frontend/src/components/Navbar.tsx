@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
 import { FiMenu, FiX } from "react-icons/fi";
+import { authClient } from "../lib/auth";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -76,7 +77,15 @@ const NavLinks = () => (
       Ustawienia
     </Link>
     <button
-      onClick={() => (window.location.href = "/login")}
+      onClick={() =>
+        void authClient.signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              redirect("/login");
+            },
+          },
+        })
+      }
       className="hover:text-brown-300 font-semibold transition"
     >
       Wyloguj

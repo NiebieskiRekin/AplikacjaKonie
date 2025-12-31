@@ -4,6 +4,8 @@ import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { BackendTypes } from "@aplikacja-konie/api-client";
+import { authClient } from "../lib/auth";
+import Home from "./Home";
 
 const default_setting_value = {
   active: false,
@@ -26,6 +28,7 @@ function Settings() {
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -47,6 +50,22 @@ function Settings() {
     };
     void fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (error && error.includes("TypeError")) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      void navigate("/login");
+    }
+  }, [session, isPending, navigate]);
+
+  if (isPending) return <Home />;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -102,14 +121,6 @@ function Settings() {
     setShowPopup(false);
     void navigate("/konie"); // Przekierowanie po zamknięciu popupu
   };
-
-  useEffect(() => {
-    if (error && error.includes("TypeError")) {
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    }
-  }, [error]);
 
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-6">
