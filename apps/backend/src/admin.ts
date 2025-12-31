@@ -9,9 +9,20 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
-import { auth } from "./auth";
+import { auth, auth_vars } from "./auth";
+import { log } from "./logs/logger";
 
-const admin = new Hono()
+const userSchema = usersSelectSchema.extend({
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  banExpires: z.string().nullable(),
+});
+
+const orgSchema = hodowcyKoniSelectSchema.extend({
+  createdAt: z.string(),
+});
+
+const admin = new Hono<auth_vars>()
   .post(
     "/user",
     zValidator(
@@ -31,7 +42,7 @@ const admin = new Hono()
         200: {
           description: "Pomyślne zapytanie",
           content: {
-            [JsonMime]: { schema: resolver(usersSelectSchema) },
+            [JsonMime]: { schema: resolver(userSchema) },
           },
         },
         401: {
@@ -55,8 +66,7 @@ const admin = new Hono()
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId || session?.user.role != "admin")
+        if (!userId || session?.user.role != "admin")
           return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const userParams = c.req.valid("json");
@@ -68,6 +78,7 @@ const admin = new Hono()
             name: userParams.name,
             role: "user",
           },
+          headers: c.req.raw.headers,
         });
 
         await auth.api.addMember({
@@ -76,6 +87,7 @@ const admin = new Hono()
             userId: newUser.user.id,
             organizationId: userParams.organizationId,
           },
+          headers: c.req.raw.headers,
         });
 
         const eventTypes = [
@@ -128,7 +140,7 @@ const admin = new Hono()
         200: {
           description: "Pomyślne zapytanie",
           content: {
-            [JsonMime]: { schema: resolver(hodowcyKoniSelectSchema) },
+            [JsonMime]: { schema: resolver(orgSchema) },
           },
         },
         401: {
@@ -152,8 +164,7 @@ const admin = new Hono()
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId || session?.user.role != "admin")
+        if (!userId || session?.user.role != "admin")
           return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const orgParams = c.req.valid("json");
@@ -164,6 +175,7 @@ const admin = new Hono()
             slug: orgParams.slug,
             keepCurrentActiveOrganization: true,
           },
+          headers: c.req.raw.headers,
         });
 
         return c.json(newOrg, 200);
@@ -174,13 +186,24 @@ const admin = new Hono()
   )
   .get(
     "/organization",
+    zValidator(
+      "query",
+      z
+        .object({
+          limit: z.coerce.number().int().positive(),
+          offset: z.coerce.number().int().nonnegative(),
+        })
+        .strict()
+    ),
     describeRoute({
       description: "Wypisz hodowle",
       responses: {
         200: {
           description: "Pomyślne zapytanie",
           content: {
-            [JsonMime]: { schema: resolver(hodowcyKoniSelectSchema) },
+            [JsonMime]: {
+              schema: resolver(z.object({ organizations: z.array(orgSchema) })),
+            },
           },
         },
         401: {
@@ -199,16 +222,23 @@ const admin = new Hono()
     }),
     async (c) => {
       try {
+        const { limit, offset } = c.req.valid("query");
+
         const session = await auth.api.getSession({
           headers: c.req.raw.headers,
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId || session?.user.role != "admin")
+        if (!userId || session?.user.role != "admin")
           return c.json({ error: "Błąd autoryzacji" }, 401);
 
-        const orgs = await auth.api.listOrganizations();
+        const orgs = await auth.api.listOrganizations({
+          query: {
+            limit: limit,
+            offset: offset,
+          },
+          headers: c.req.raw.headers,
+        });
 
         return c.json(orgs, 200);
       } catch (error) {
@@ -218,13 +248,24 @@ const admin = new Hono()
   )
   .get(
     "/user",
+    zValidator(
+      "query",
+      z
+        .object({
+          limit: z.coerce.number().int().positive(),
+          offset: z.coerce.number().int().nonnegative(),
+        })
+        .strict()
+    ),
     describeRoute({
       description: "Wypisz użytkowników",
       responses: {
         200: {
           description: "Pomyślne zapytanie",
           content: {
-            [JsonMime]: { schema: resolver(usersSelectSchema) },
+            [JsonMime]: {
+              schema: resolver(z.object({ users: z.array(userSchema) })),
+            },
           },
         },
         401: {
@@ -243,16 +284,24 @@ const admin = new Hono()
     }),
     async (c) => {
       try {
+        const { limit, offset } = c.req.valid("query");
+
         const session = await auth.api.getSession({
           headers: c.req.raw.headers,
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId || session?.user.role != "admin")
+        log("admin", "info", String(userId));
+        if (!userId || session?.user.role != "admin")
           return c.json({ error: "Błąd autoryzacji" }, 401);
 
-        const users = await auth.api.listUsers();
+        const users = await auth.api.listUsers({
+          query: {
+            limit: limit,
+            offset: offset,
+          },
+          headers: c.req.raw.headers,
+        });
 
         return c.json(users, 200);
       } catch (error) {

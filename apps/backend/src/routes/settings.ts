@@ -57,9 +57,7 @@ const settingsRoute = new Hono<auth_vars>()
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId)
-          return c.json({ error: "Błąd autoryzacji" }, 401);
+        if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const settings = await db
           .select()
@@ -130,9 +128,7 @@ const settingsRoute = new Hono<auth_vars>()
         });
 
         const userId = session?.user.id;
-        const orgId = session?.session.activeOrganizationId;
-        if (!userId || !orgId)
-          return c.json({ error: "Błąd autoryzacji" }, 401);
+        if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const settingsObject = c.req.valid("json");
 

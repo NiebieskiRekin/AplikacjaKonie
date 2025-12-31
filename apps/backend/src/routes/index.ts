@@ -81,8 +81,8 @@ export function registerRoutes(app: Hono) {
       .route("/images", images)
       .route("/raport", raport)
       .route("/chat", chatRoute)
+      .route("/admin", admin)
   );
-  // .route("/admin", admin);
 }
 export const apiRoutes = registerRoutes(new Hono());
 
