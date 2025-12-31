@@ -19,8 +19,8 @@ const konieRoute = new Hono<auth_vars>()
   .route("/", konie_id_delete)
   .route("/", konie_id_upload_post)
   .route("/", konie_id_imageId_delete)
-  .route("/", konie_id_events_get)
-  .route("/", konie_id_active_events_get)
-  .route("/", konie_choroby_get);
+  .route("/", konie_id_events_get);
+// .route("/", konie_id_active_events_get)
+// .route("/", konie_choroby_get);
 
 export default konieRoute;

@@ -21,8 +21,8 @@ import { wydarzenia_leczenia_put } from "./leczenia/put";
 
 const wydarzeniaRoute = new Hono<auth_vars>()
   .route("/", wydarzenia_get)
-  .route("/", wydarzenia_eventType_eventId_get)
-  .route("/", wydarzenia_horseId_eventType_get)
+  // .route("/", wydarzenia_eventType_eventId_get)
+  // .route("/", wydarzenia_horseId_eventType_get)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_put)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_post)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_delete)
