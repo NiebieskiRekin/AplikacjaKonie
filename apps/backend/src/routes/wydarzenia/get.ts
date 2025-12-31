@@ -79,8 +79,14 @@ export const wydarzenia_get = new Hono<auth_vars>().get(
         .select({
           horse: konie.nazwa || "Nieznany koń",
           date: zdarzeniaProfilaktyczne.dataZdarzenia,
-          dataWaznosci: sql<string>`coalesce(to_char(${zdarzeniaProfilaktyczne.dataWaznosci}, 'YYYY-MM-DD'), '-')`,
-          rodzajZdarzenia: sql<string>`cast(${zdarzeniaProfilaktyczne.rodzajZdarzenia} as text)`,
+          dataWaznosci:
+            sql<string>`coalesce(to_char(${zdarzeniaProfilaktyczne.dataWaznosci}, 'YYYY-MM-DD'), '-')`.as(
+              "dataWaznosci"
+            ),
+          rodzajZdarzenia:
+            sql<string>`cast(${zdarzeniaProfilaktyczne.rodzajZdarzenia} as text)`.as(
+              "rodzajZdarzenia"
+            ),
           opisZdarzenia: zdarzeniaProfilaktyczne.opisZdarzenia,
           osobaImieNazwisko: weterynarze.imieINazwisko || "Brak danych",
         })
@@ -96,9 +102,12 @@ export const wydarzenia_get = new Hono<auth_vars>().get(
         .select({
           horse: konie.nazwa || "Nieznany koń",
           date: podkucia.dataZdarzenia,
-          rodzajZdarzenia: sql<string>`'Podkuwanie'`,
-          dataWaznosci: sql<string>`coalesce(to_char(${podkucia.dataWaznosci}, 'YYYY-MM-DD'), '-')`,
-          opisZdarzenia: sql<string>`-`,
+          dataWaznosci:
+            sql<string>`coalesce(to_char(${podkucia.dataWaznosci}, 'YYYY-MM-DD'), '-')`.as(
+              "dataWaznosci"
+            ),
+          rodzajZdarzenia: sql<string>`'Podkuwanie'`.as("rodzajZdarzenia"),
+          opisZdarzenia: sql<string>`'-'`.as("opisZdarzenia"),
           osobaImieNazwisko: kowale.imieINazwisko || "Brak danych",
         })
         .from(podkucia)
@@ -121,7 +130,7 @@ export const wydarzenia_get = new Hono<auth_vars>().get(
               PARTITION BY ${events.horse}, ${events.rodzajZdarzenia} 
               ORDER BY ${events.date} DESC
             )) = 1
-          `,
+          `.as("highlighted"),
         })
         .from(events)
         .orderBy(desc(events.date));
