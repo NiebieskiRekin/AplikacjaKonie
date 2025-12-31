@@ -11,6 +11,11 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const {
+    data: orgs,
+    error: orgserror,
+    refetch: refetchOrgs,
+  } = authClient.useListOrganizations();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -26,7 +31,22 @@ function Login() {
       });
 
       if (data) {
-        await navigate("/konie");
+        await refetchOrgs();
+        if (orgs && orgs.length > 0) {
+          const { error: org_error } = await authClient.organization.setActive({
+            organizationId: orgs[0].id,
+            organizationSlug: orgs[0].slug,
+          });
+          if (data) {
+            await navigate("/konie");
+          } else {
+            setError(
+              org_error?.message || "Błąd ustalania hodowli użytkownika"
+            );
+          }
+        } else {
+          setError(orgserror?.message || "Błąd pobierania hodowli użytkownika");
+        }
       } else {
         setError(error.message || "Wystąpił nieznany błąd");
       }
