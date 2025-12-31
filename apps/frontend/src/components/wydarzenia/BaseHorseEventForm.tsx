@@ -46,7 +46,7 @@ const fetchPeople = async (type: string) => {
 const fetchChoroba = async (id: string, type: string) => {
   if (type === "leczenia") {
     try {
-      const response = await APIClient.api.konie.choroby[":id{[0-9]+}"].$get({
+      const response = await APIClient.api.konie[":id{[0-9]+}"].choroby.$get({
         param: { id: id },
       });
       if (response.status == 200) {

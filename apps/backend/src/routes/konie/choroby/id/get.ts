@@ -9,7 +9,7 @@ import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
 export const konie_choroby_get = new Hono<auth_vars>().get(
-  "/choroby/:id{[0-9]+}",
+  "/:id{[0-9]+}/choroby",
   describeRoute({
     description: "Wyświetl informacje o chorobach danego konia",
     responses: {
@@ -18,7 +18,14 @@ export const konie_choroby_get = new Hono<auth_vars>().get(
         description: "Pomyślne zapytanie",
         content: {
           [JsonMime]: {
-            schema: resolver(z.array(chorobySelectSchema)),
+            schema: resolver(
+              z.array(
+                chorobySelectSchema.extend({
+                  dataRozpoczecia: z.string(),
+                  dataZakonczenia: z.string().nullable(),
+                })
+              )
+            ),
           },
         },
       },
