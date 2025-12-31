@@ -14,6 +14,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { log } from "../logs/logger";
 import stripAnsi from "strip-ansi";
 import { auth } from "../auth";
+import { cors } from "hono/cors";
 
 const winstonHonoLogger = (message: string, ...rest: string[]) => {
   const plainMessage = stripAnsi(message);
@@ -24,8 +25,20 @@ export function registerRoutes(app: Hono) {
   return app
     .basePath("/api")
     .use("*", logger(winstonHonoLogger))
-    .route("/healthcheck", healthcheck)
-    .on(["POST", "GET"], "/auth/**", (c) => auth.handler(c.req.raw))
+    .on(["POST", "GET"], "/auth/**", (c) => {
+      log("auth", "info", "test");
+      return auth.handler(c.req.raw);
+    })
+    .use(
+      cors({
+        origin: "http://localhost:5173",
+        allowHeaders: ["Content-Type", "Authorization"],
+        allowMethods: ["POST", "GET", "OPTIONS"],
+        exposeHeaders: ["Content-Length"],
+        maxAge: 600,
+        credentials: true,
+      })
+    )
     .get(
       "/openapi",
       openAPIRouteHandler(app, {
@@ -46,6 +59,7 @@ export function registerRoutes(app: Hono) {
       })
     )
     .use("/ui", swaggerUI({ url: "/api/openapi" }))
+    .route("/healthcheck", healthcheck)
     .route("/konie", konieRoute)
     .route("/wydarzenia", wydarzeniaRoute)
     .route("/kowale", kowaleRoute)

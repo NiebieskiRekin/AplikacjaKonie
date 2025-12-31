@@ -15,7 +15,6 @@ import {
   admin,
 } from "better-auth/plugins";
 import { schema } from "@/backend/db";
-import { ProcessEnv } from "./env";
 import { localization } from "better-auth-localization";
 
 export const auth = betterAuth({
@@ -45,7 +44,7 @@ export const auth = betterAuth({
       enabled: false,
     },
   },
-  trustedOrigins: ProcessEnv.TRUSTED_ORIGINS,
+  trustedOrigins: ["http://localhost:3000", "http://localhost:5173"],
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }) => {
       log("Account", "info", "Send verification email " + token);

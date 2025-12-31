@@ -2,7 +2,7 @@ import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { konie_plec_enum } from "@/frontend/types/types";
-import { BackendTypes } from "@aplikacja-konie/api-client";
+import type { BackendTypes } from "@aplikacja-konie/api-client";
 import { GoArrowLeft } from "react-icons/go";
 
 function EditKonia() {
@@ -16,7 +16,7 @@ function EditKonia() {
   const [dataOdejscia, setDataOdejscia] = useState<string | null>(null);
   const [rodzajKonia, setRodzajKonia] =
     useState<BackendTypes.RodzajKonia>("Konie hodowlane");
-  const [plec, setPlec] = useState<BackendTypes.Plec>(BackendTypes.Plcie[0]);
+  const [plec, setPlec] = useState<BackendTypes.Plec>("klacz");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);

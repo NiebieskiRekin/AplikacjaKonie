@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
-import { BackendTypes } from "@aplikacja-konie/api-client";
+import type { BackendTypes } from "@aplikacja-konie/api-client";
 import { authClient } from "../lib/auth";
 import Home from "./Home";
 

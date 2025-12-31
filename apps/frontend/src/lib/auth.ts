@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { adminClient, organizationClient } from "better-auth/client/plugins";
 export const authClient = createAuthClient({
-  baseURL: "/api/auth",
+  baseURL: "http://localhost:3000",
   plugins: [adminClient(), organizationClient()],
 });
