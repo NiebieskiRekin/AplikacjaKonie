@@ -11,11 +11,6 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const {
-    data: orgs,
-    error: orgserror,
-    refetch: refetchOrgs,
-  } = authClient.useListOrganizations();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -31,7 +26,9 @@ function Login() {
       });
 
       if (data) {
-        await refetchOrgs();
+        // TODO: convert to sign in hook
+        const { data: orgs, error: orgserror } =
+          await authClient.organization.list();
         if (orgs && orgs.length > 0) {
           const { error: org_error } = await authClient.organization.setActive({
             organizationId: orgs[0].id,
