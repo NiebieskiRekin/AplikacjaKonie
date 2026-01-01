@@ -3,8 +3,8 @@ import { db } from "@/backend/db";
 import { and, eq } from "drizzle-orm";
 import {
   weterynarze,
-  weterynarzeInsertSchema,
   weterynarzeSelectSchema,
+  weterynarzeUpdateSchema,
 } from "@/backend/db/schema";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
@@ -15,7 +15,7 @@ import { InsertWeterynarz } from "@/backend/db/types";
 
 export const weterynarze_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
-  zValidator("json", weterynarzeInsertSchema),
+  zValidator("json", weterynarzeUpdateSchema.omit({ hodowla: true })),
   describeRoute({
     description: "Zaktualizuj informacje o weterynarzu z hodowli użytkownika",
     responses: {
@@ -52,7 +52,7 @@ export const weterynarze_id_put = new Hono<auth_vars>().put(
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
       const newWeterynarz: InsertWeterynarz = {
-        imieINazwisko,
+        imieINazwisko: imieINazwisko!,
         numerTelefonu,
         hodowla: orgId,
         active: true,

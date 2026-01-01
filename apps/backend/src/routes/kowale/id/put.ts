@@ -7,7 +7,7 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { InsertKowal } from "@/backend/db/types";
-// import { z } from "@hono/zod-openapi";
+import { z } from "@hono/zod-openapi";
 
 export const kowale_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
@@ -17,7 +17,9 @@ export const kowale_id_put = new Hono<auth_vars>().put(
       201: {
         description: "Pomyślne zapytanie",
         content: {
-          [JsonMime]: { schema: resolver(kowaleUpdateSchema) },
+          [JsonMime]: {
+            schema: resolver(kowaleUpdateSchema.omit({ hodowla: true })),
+          },
         },
       },
       400: {
@@ -54,7 +56,7 @@ export const kowale_id_put = new Hono<auth_vars>().put(
       const { imieINazwisko, numerTelefonu } = c.req.valid("json");
 
       const newKowal: InsertKowal = {
-        imieINazwisko: imieINazwisko ?? "",
+        imieINazwisko: imieINazwisko!,
         numerTelefonu,
         hodowla: orgId,
         active: true,

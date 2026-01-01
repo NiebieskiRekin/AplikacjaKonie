@@ -8,7 +8,6 @@ function AddWeterynarz() {
   const [formData, setFormData] = useState({
     imieINazwisko: "",
     numerTelefonu: "",
-    hodowla: 0,
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -27,6 +26,7 @@ function AddWeterynarz() {
 
     if (!formData.imieINazwisko.trim()) {
       setError("Imię i nazwisko jest wymagane.");
+      setLoading(false);
       return;
     }
 
@@ -35,6 +35,7 @@ function AddWeterynarz() {
       !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
     ) {
       setError("Nieprawidłowy numer telefonu.");
+      setLoading(false);
       return;
     }
 

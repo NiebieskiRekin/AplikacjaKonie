@@ -9,7 +9,6 @@ function EditWeterynarz() {
   const [formData, setFormData] = useState({
     imieINazwisko: "",
     numerTelefonu: "",
-    hodowla: 0,
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -32,7 +31,6 @@ function EditWeterynarz() {
           setFormData({
             imieINazwisko: data.imieINazwisko || "",
             numerTelefonu: data.numerTelefonu || "",
-            hodowla: data.hodowla || 0,
           });
         } else {
           const err = await response.json();

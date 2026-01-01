@@ -13,7 +13,7 @@ import { describeRoute } from "hono-openapi";
 
 export const weterynarze_post = new Hono<auth_vars>().post(
   "/",
-  zValidator("json", weterynarzeInsertSchema),
+  zValidator("json", weterynarzeInsertSchema.omit({ hodowla: true })),
   describeRoute({
     description: "Dodaj weterynarza do hodowli użytkownika",
     responses: {

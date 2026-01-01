@@ -36,7 +36,7 @@ export const kowale_post = new Hono<auth_vars>().post(
       },
     },
   }),
-  zValidator("json", kowaleInsertSchema),
+  zValidator("json", kowaleInsertSchema.omit({ hodowla: true })),
   async (c) => {
     try {
       const session = await auth.api.getSession({
