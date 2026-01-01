@@ -142,7 +142,7 @@ export const konie_id_events_get = new Hono<auth_vars>().get(
           .orderBy(desc(zdarzeniaProfilaktyczne.dataZdarzenia))
           .limit(5)
       )
-        .orderBy(desc(sql`date`))
+        .orderBy(desc(sql`2`))
         .limit(5);
 
       return c.json(after_union);
