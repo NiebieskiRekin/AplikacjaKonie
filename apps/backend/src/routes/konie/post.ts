@@ -42,6 +42,8 @@ export const konie_post = new Hono<auth_vars>().post(
       })
       .omit({
         hodowla: true,
+        active: true,
+        id: true,
       })
       .strict()
   ),

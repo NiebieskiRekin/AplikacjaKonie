@@ -101,15 +101,40 @@ function extractJsonFromText(text: string): string {
   return text;
 }
 
+const konieStringToJsonCodec = z.codec(
+  z.string(),
+  konieInsertSchema.omit({ hodowla: true, id: true }),
+  {
+    decode: (value, ctx) => {
+      if (typeof value === "string") {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          ctx.issues.push({
+            code: "custom",
+            message: (e as Error).message,
+            path: [],
+            input: value,
+          });
+        }
+      }
+      return value;
+    },
+    encode: (value) => {
+      return JSON.stringify(value);
+    },
+  }
+);
+
 const sendRequest = async (
   endpoint: string,
-  jsonData: unknown,
+  jsonData: string,
   token: string
 ) => {
   const formData = new FormData();
 
   if (endpoint === "api/konie") {
-    const kon_result = await konieInsertSchema.spa(jsonData);
+    const kon_result = konieStringToJsonCodec.safeDecode(jsonData);
     if (!kon_result.success) {
       throw new Error(
         `Błąd wysyłania zapytania: ${(kon_result.error as Error).message}`
@@ -128,7 +153,7 @@ const sendRequest = async (
     formData.append("file", "false");
 
     // Generowanie komendy curl
-    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: better-auth.session_token=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
     console.log(`[sendRequest] Mulst curlCommand: ${curlCommand}`);
 
     // Wysłanie zapytania jako multipart/form-data
@@ -141,7 +166,7 @@ const sendRequest = async (
         method: "POST",
         headers: {
           accept: "application/json",
-          Cookie: "ACCESS_TOKEN=" + token,
+          Cookie: "better-auth.session_token=" + token,
         },
         body: formData, // Wysłanie danych w formacie multipart/form-data
       });
@@ -158,8 +183,7 @@ const sendRequest = async (
     }
   } else {
     // Standardowe JSON dla innych endpointów
-    const curlJson = JSON.stringify(jsonData, null, 2).replace(/'/g, "\\'");
-    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: ACCESS_TOKEN=${token}' \\\n--data '${curlJson}'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: better-auth.session_token=${token}' \\\n--data '${jsonData}'`;
 
     console.log(`[sendRequest] curlCommand: ${curlCommand}`);
 
@@ -173,9 +197,9 @@ const sendRequest = async (
         headers: {
           accept: "application/json",
           "Content-Type": "application/json",
-          Cookie: "ACCESS_TOKEN=" + token,
+          Cookie: "better-auth.session_token=" + token,
         },
-        body: JSON.stringify(jsonData),
+        body: jsonData,
       });
 
       const fetchText = await fetchRes.text();
@@ -387,11 +411,16 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
     try {
       const { konie, kowale, weterynarze, prompt } = c.req.valid("json");
       const cookieHeader = c.req.header("cookie") || "";
-      const tokenMatch = cookieHeader.match(/ACCESS_TOKEN=([^;]+)/);
+      const tokenMatch = cookieHeader.match(
+        /better-auth.session_token=([^;]+)/
+      );
       const token = tokenMatch ? tokenMatch[1] : undefined;
       if (!API_KEY) return c.json({ error: "Brak API_KEY" }, 500);
       if (!token)
-        return c.json({ error: "Brak ACCESS_TOKEN w ciasteczkach" }, 401);
+        return c.json(
+          { error: "Brak better-auth.session_token w ciasteczkach" },
+          401
+        );
 
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
@@ -462,25 +491,11 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
       console.log("Odpowiedź Gemini:", result.response.text());
 
       const clean = extractJsonFromText(result.response.text());
+      console.log(clean);
       const actionName = endpointNames[predictedEndpoint] || "element";
-      let jsonData;
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        jsonData = JSON.parse(clean);
-      } catch (err) {
-        return c.json(
-          {
-            error: "Błąd Gemini lub parsowania",
-            message: (err as Error).message,
-            raw: clean,
-            full: result.response.text(),
-          },
-          400
-        );
-      }
       const { fetchText, curlCommand, status } = await sendRequest(
         predictedEndpoint,
-        jsonData,
+        clean,
         token
       );
 
@@ -488,12 +503,13 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
         endpoint: predictedEndpoint,
         actionName: actionName,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        generated: jsonData,
+        generated: clean,
         curl: curlCommand,
         response: fetchText,
         status: status,
       });
     } catch (err) {
+      console.log(err);
       return c.json(
         {
           error: "Błąd Gemini lub parsowania",
