@@ -12,7 +12,7 @@
     "dev": "rm -rf dist .tsbuildinfo && npm run copy-public && tsc --preserveWatchOutput && tsc-alias && concurrently -p \"[{name}]\" -n \"tsc ,node,tals\" -c \"bgBlue.bold,bgGreen.bold,bgBlueBright\" \"npx tsc --preserveWatchOutput --watch\" \"node --watch --watch-preserve-output dist\" \"npx tsc-alias -w\"",
     "db:push": "drizzle-kit push --config=./src/db/drizzle.config.ts",
     "db:pull": "drizzle-kit pull --config=./src/db/drizzle.config.ts",
-    "db:generate": "drizzle-kit generate --config=./src/db/drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config=./src/db/drizzle-build.config.ts",
     "db:copy-migrations": "node -e \"const fs = require('fs'); const src='./src/db/migrations/'; fs.glob(src+'**', (err, matches) => {if (err) throw err; console.log(matches);}); fs.cpSync(src,'./dist/db/migrations/', {recursive: true});\"",
     "typecheck": "tsc --noEmit --preserveWatchOutput",
     "copy-public": "node -e \"const fs = require('fs'); const src='./src/public/'; fs.glob(src+'**', (err, matches) => {if (err) throw err; console.log(matches);}); fs.cpSync(src,'./dist/public', {recursive: true});\""
