@@ -47,6 +47,7 @@ const ServeEnv = z.object({
   LOG_LEVEL: LogLevel,
 
   BUCKET_NAME: z.string(),
+  BUCKET_PROJECT_ID: z.string(),
   AISTUDIO_API_KEY: z.string(),
   TRUSTED_ORIGINS: z.string().transform(splitAndTrim).pipe(z.array(z.url())),
   INTERNAL_PREDICT_URL: z.string(),

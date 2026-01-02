@@ -26,7 +26,7 @@ const key = key_schema.parse(
 );
 
 const storage = new Storage({
-  projectId: "aplikacjakonie",
+  projectId: ProcessEnv.BUCKET_PROJECT_ID,
   credentials: key,
 });
 

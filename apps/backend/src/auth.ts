@@ -16,6 +16,7 @@ import {
 } from "better-auth/plugins";
 import { schema } from "@/backend/db";
 import { localization } from "better-auth-localization";
+import { ProcessEnv } from "./env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -53,7 +54,7 @@ export const auth = betterAuth({
       enabled: false,
     },
   },
-  trustedOrigins: ["http://localhost:3000", "http://localhost:5173"],
+  trustedOrigins: ProcessEnv.TRUSTED_ORIGINS,
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }) => {
       log("Account", "info", "Send verification email " + token);
