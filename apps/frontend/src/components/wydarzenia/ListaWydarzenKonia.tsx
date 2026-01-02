@@ -28,7 +28,7 @@ function HorseEventList({ type }: { type: string }) {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await APIClient.api.wydarzenia[":id{[0-9]+}"][
+        const response = await APIClient.api.konie[":id{[0-9]+}"][
           ":type{[A-Za-z_]+}"
         ].$get({ param: { id: id!, type: type } });
         if (response.ok) {

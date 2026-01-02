@@ -13,7 +13,7 @@ import {
 } from "@/backend/db/schema";
 import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { eventTypeUnionSchema } from "./schema";
+import { eventTypeUnionSchema } from "../../wydarzenia/schema";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { log } from "@/backend/logs/logger";
