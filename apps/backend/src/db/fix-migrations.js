@@ -1,5 +1,5 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+const fs = require("node:fs/promises");
+const path = require("node:path");
 
 const MIGRATIONS_DIR = "./src/db/migrations/";
 

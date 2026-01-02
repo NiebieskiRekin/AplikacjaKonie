@@ -9,10 +9,15 @@
   "scripts": {
     "build": "rm -rf dist .tsbuildinfo && tsc --preserveWatchOutput && tsc-alias && npm run copy-public && npm run db:generate && node dist/db/fix-migrations.js && npm run db:copy-migrations",
     "start": "node dist/index.js",
-    "dev": "rm -rf dist .tsbuildinfo && npm run copy-public && tsc --preserveWatchOutput && tsc-alias && concurrently -p \"[{name}]\" -n \"tsc ,node,tals\" -c \"bgBlue.bold,bgGreen.bold,bgBlueBright\" \"npx tsc --preserveWatchOutput --watch\" \"node --watch --watch-preserve-output dist\" \"npx tsc-alias -w\"",
+    "predev": "rm -rf dist .tsbuildinfo && npm run db:generate && npm run db:fix-migrations && npm run copy-public",
+    "dev": "npm run predev && concurrently -p \"[{name}]\" -n \"ts,db,pub\" -c \"bgBlue.bold,bgGreen.bold,bgMagenta.bold\" \"npm run watch:ts\" \"npm run watch:db\" \"npm run watch:public\"",
+    "watch:ts": "tsc-watch --preserveWatchOutput --onSuccess \"tsc-alias && node --watch dist/index.js\"",
+    "watch:db": "nodemon --watch src/db/schema.ts --exec \"npm run db:generate && npm run db:fix-migrations\"",
+    "watch:public": "nodemon --watch src/public --exec \"npm run copy-public\"",
     "db:push": "drizzle-kit push --config=./src/db/drizzle.config.ts",
     "db:pull": "drizzle-kit pull --config=./src/db/drizzle.config.ts",
     "db:generate": "drizzle-kit generate --config=./src/db/drizzle-build.config.ts",
+    "db:fix-migrations": "node src/db/fix-migrations.js",
     "db:copy-migrations": "node -e \"const fs = require('fs'); const src='./src/db/migrations/'; fs.glob(src+'**', (err, matches) => {if (err) throw err; console.log(matches);}); fs.cpSync(src,'./dist/db/migrations/', {recursive: true});\"",
     "typecheck": "tsc --noEmit --preserveWatchOutput",
     "copy-public": "node -e \"const fs = require('fs'); const src='./src/public/'; fs.glob(src+'**', (err, matches) => {if (err) throw err; console.log(matches);}); fs.cpSync(src,'./dist/public', {recursive: true});\""
@@ -24,7 +29,9 @@
     "@types/nodemailer": "^7.0.3",
     "@types/pg": "^8.15.5",
     "drizzle-kit": "^0.31.8",
+    "nodemon": "^3.1.11",
     "tsc-alias": "^1.8.16",
+    "tsc-watch": "^7.2.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
