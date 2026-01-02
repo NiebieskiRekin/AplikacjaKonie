@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { eq } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/backend/db";
 import {
   konie,
@@ -18,9 +18,7 @@ const konie_id_put_response_success = z.object({
   horse: konieSelectSchema,
 });
 
-export const konie_id_put = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().put(
+export const konie_id_put = new Hono<auth_vars>().put(
   "/:id{[0-9]+}",
   zValidator(
     "json",
@@ -69,10 +67,13 @@ export const konie_id_put = new Hono<{
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -99,7 +100,7 @@ export const konie_id_put = new Hono<{
           rodzajKonia: d.rodzajKonia,
           plec: d.plec,
         })
-        .where(eq(konie.id, horseId))
+        .where(and(eq(konie.id, horseId), eq(konie.hodowla, orgId)))
         .returning();
 
       if (!updatedHorse) {

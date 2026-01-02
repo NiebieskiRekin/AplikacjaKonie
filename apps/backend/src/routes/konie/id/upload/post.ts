@@ -1,9 +1,8 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { eq, and } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, zdjeciaKoni } from "@/backend/db/schema";
-import { InsertZdjecieKonia } from "@/backend/db/types";
+import { konie, zdjeciaKoni } from "@/backend/db/schema";
 import { JsonMime } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -19,9 +18,7 @@ const konie_id_upload_post_response_error = z
   .object({ error: z.string() })
   .openapi({ example: { error: "Błąd zapytania" } });
 
-export const konie_id_upload_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const konie_id_upload_post = new Hono<auth_vars>().post(
   "/:id{[0-9]+}/upload",
   describeRoute({
     description: "Dodaj wpis o dodaniu nowego zdjęcia dla danego konia",
@@ -54,37 +51,38 @@ export const konie_id_upload_post = new Hono<{
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const horseId = Number(c.req.param("id"));
       if (isNaN(horseId)) {
         return c.json({ error: "Nieprawidłowy identyfikator konia" }, 400);
       }
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
+      const kon = await db
+        .select({ kon: konie.id })
+        .from(konie)
+        .where(and(eq(konie.hodowla, orgId), eq(konie.id, horseId)));
 
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
+      if (kon.length === 0) {
+        return c.json({ error: "Nie znaleziono konia" }, 400);
       }
-
-      const defaultImage = await db
-        .select()
-        .from(zdjeciaKoni)
-        .where(
-          and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.default, true))
-        );
-
-      const img: InsertZdjecieKonia = {
-        kon: horseId,
-        default: defaultImage.length === 0,
-      };
 
       const uuid_of_image = await db
         .insert(zdjeciaKoni)
-        .values(img)
+        .values({
+          kon: horseId,
+          default: sql`NOT EXISTS (
+                SELECT 1 FROM ${zdjeciaKoni} 
+                WHERE ${zdjeciaKoni.kon} = ${horseId} 
+                AND ${zdjeciaKoni.default} = true
+              )`,
+        })
         .returning({ id: zdjeciaKoni.id });
 
       return c.json(

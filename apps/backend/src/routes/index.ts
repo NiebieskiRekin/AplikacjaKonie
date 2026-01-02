@@ -1,24 +1,21 @@
 import { Hono } from "hono";
-import login from "./login";
-import register from "./register";
 import konieRoute from "./konie";
-import restartRoutes from "./restart";
 import wydarzeniaRoute from "./wydarzenia";
-import { hodowcyKoniRoute } from "./hodowcykoni";
-import refresh from "./refresh";
 import kowaleRoute from "./kowale";
 import weterynarzeRoute from "./weterynarze";
+import admin from "../admin";
 import settingsRoute from "./settings";
 import images from "./images";
 import { healthcheck } from "./healthcheck";
 import raport from "./raport";
 import chatRoute from "./chat";
-import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { openAPIRouteHandler } from "hono-openapi";
-import { swaggerUI } from "@hono/swagger-ui";
 import { log } from "../logs/logger";
 import stripAnsi from "strip-ansi";
+import { auth } from "../auth";
+import { cors } from "hono/cors";
+import { Scalar } from "@scalar/hono-api-reference";
 
 const winstonHonoLogger = (message: string, ...rest: string[]) => {
   const plainMessage = stripAnsi(message);
@@ -28,8 +25,20 @@ const winstonHonoLogger = (message: string, ...rest: string[]) => {
 export function registerRoutes(app: Hono) {
   return app
     .basePath("/api")
-    .use("*", cors())
     .use("*", logger(winstonHonoLogger))
+    .on(["POST", "GET"], "/auth/**", (c) => {
+      return auth.handler(c.req.raw);
+    })
+    .use(
+      cors({
+        origin: "http://localhost:5173",
+        allowHeaders: ["Content-Type", "Authorization"],
+        allowMethods: ["POST", "GET", "OPTIONS"],
+        exposeHeaders: ["Content-Length"],
+        maxAge: 600,
+        credentials: true,
+      })
+    )
     .get(
       "/openapi",
       openAPIRouteHandler(app, {
@@ -41,6 +50,7 @@ export function registerRoutes(app: Hono) {
           },
           servers: [
             { url: "http://localhost:3000", description: "Local Server" },
+            { url: "http://localhost:5173", description: "Frontend Server" },
             {
               url: "https://konie-dev.at2k.pl",
               description: "Development server",
@@ -49,21 +59,26 @@ export function registerRoutes(app: Hono) {
         },
       })
     )
-    .use("/ui", swaggerUI({ url: "/api/openapi" }))
-    .route("/refresh", refresh)
-    .route("/login", login)
-    .route("/register", register)
+    .use(
+      "/ui",
+      Scalar({
+        pageTitle: "API Documentation",
+        sources: [
+          { url: "/api/openapi", title: "API" },
+          { url: "/api/auth/open-api/generate-schema", title: "Auth" },
+        ],
+      })
+    )
+    .route("/healthcheck", healthcheck)
     .route("/konie", konieRoute)
-    .route("/restart", restartRoutes)
     .route("/wydarzenia", wydarzeniaRoute)
-    .route("/hodowcykoni", hodowcyKoniRoute)
     .route("/kowale", kowaleRoute)
     .route("/weterynarze", weterynarzeRoute)
     .route("/ustawienia", settingsRoute)
     .route("/images", images)
-    .route("/healthcheck", healthcheck)
     .route("/raport", raport)
-    .route("/chat", chatRoute);
+    .route("/chat", chatRoute)
+    .route("/admin", admin);
 }
 export const apiRoutes = registerRoutes(new Hono());
 

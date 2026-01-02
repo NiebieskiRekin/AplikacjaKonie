@@ -4,11 +4,9 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { eq } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { db } from "@/backend/db";
 import {
-  users,
   konie,
   zdjeciaKoni,
   konieInsertSchema,
@@ -23,9 +21,7 @@ const konie_post_response_success = z.object({
 
 const LoggerScope = "Konie Post";
 
-export const konie_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const konie_post = new Hono<auth_vars>().post(
   "/",
   zValidator(
     "form",
@@ -68,12 +64,13 @@ export const konie_post = new Hono<{
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      const hodowla = await db
-        .select({ hodowla: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId));
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const formData = c.req.valid("form");
 
@@ -93,7 +90,7 @@ export const konie_post = new Hono<{
         dataOdejsciaZeStajni: convert_empty_to_null(
           formData.dataOdejsciaZeStajni
         ),
-        hodowla: hodowla[0].hodowla,
+        hodowla: orgId,
       };
 
       //Wstawienie danych do bazy

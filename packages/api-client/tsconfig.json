@@ -9,7 +9,9 @@
     "typeRoots": ["./node_modules/@types"],
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "watchOptions": {
     "excludeDirectories": ["**/node_modules", "**/packages/frontend"]

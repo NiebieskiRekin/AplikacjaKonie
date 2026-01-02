@@ -1,43 +1,23 @@
 import { Hono } from "hono";
-// import { eq, desc, sql, and } from "drizzle-orm";
-// import {
-//   konie,
-//   users,
-//   konieInsertSchema,
-//   choroby,
-//   leczenia,
-//   podkucia,
-//   rozrody,
-//   zdarzeniaProfilaktyczne,
-//   zdjeciaKoniInsertSchema,
-//   zdjeciaKoni,
-// } from "../db/schema";
-// import { db } from "../db";
-import {
-  authMiddleware,
-  // getUserFromContext,
-  UserPayload,
-} from "@/backend/middleware/auth";
-// import { zValidator } from "@hono/zod-validator";
-// import { randomUUID } from "node:crypto";
 import { GetSignedUrlConfig, Storage } from "@google-cloud/storage";
 import { ProcessEnv } from "@/backend/env";
 import { JsonMime, response_failure_schema } from "./constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
+import { auth, auth_vars } from "../auth";
 
 const key_schema = z.object({
   type: z.string(),
   project_id: z.string(),
   private_key_id: z.string(),
   private_key: z.string(),
-  client_email: z.string().email(),
+  client_email: z.email(),
   client_id: z.string(),
-  auth_uri: z.string().url(),
-  token_uri: z.string().url(),
-  auth_provider_x509_cert_url: z.string().url(),
-  client_x509_cert_url: z.string().url(),
+  auth_uri: z.url(),
+  token_uri: z.url(),
+  auth_provider_x509_cert_url: z.url(),
+  client_x509_cert_url: z.url(),
   universe_domain: z.string(),
 });
 
@@ -93,8 +73,7 @@ export async function generateV4ReadSignedUrl(filename: string) {
 
 const success_response_schema = z.object({ url: z.string().url() });
 
-const images = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
-  .use(authMiddleware)
+const images = new Hono<auth_vars>()
   .get(
     "/upload/:filename",
     describeRoute({
@@ -117,6 +96,15 @@ const images = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }),
     async (c) => {
       try {
+        const session = await auth.api.getSession({
+          headers: c.req.raw.headers,
+        });
+
+        const userId = session?.user.id;
+        const orgId = session?.session.activeOrganizationId;
+        if (!userId || !orgId)
+          return c.json({ error: "Błąd autoryzacji" }, 401);
+
         // Creates a client
         const filename = c.req.param("filename");
         const signed_url = await generateV4UploadSignedUrl(filename);

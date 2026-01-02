@@ -219,7 +219,7 @@ function AddEvent() {
       <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
         <button
           onClick={() => void navigate(`/wydarzenia`)}
-          className="absolute left-0 flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
         >
           <GoArrowLeft className="text-xl" />
         </button>
@@ -240,7 +240,7 @@ function AddEvent() {
         <div className="mb-4 flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
           <button
             type="button"
-            className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-blue-600 hover:to-blue-800 sm:w-auto"
+            className="w-full rounded-lg bg-linear-to-r from-blue-500 to-blue-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-blue-600 hover:to-blue-800 sm:w-auto"
             onClick={handleSelectAllHorses}
           >
             Wszystkie konie

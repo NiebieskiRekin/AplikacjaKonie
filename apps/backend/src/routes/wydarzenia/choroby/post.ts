@@ -3,17 +3,17 @@ import {
   choroby,
   chorobyInsertSchema,
   chorobySelectSchema,
+  konie,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
+import { and, eq } from "drizzle-orm";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_choroby_post = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().post(
+export const wydarzenia_choroby_post = new Hono<auth_vars>().post(
   "/choroby",
   zValidator("json", chorobyInsertSchema),
   describeRoute({
@@ -47,8 +47,25 @@ export const wydarzenia_choroby_post = new Hono<{
   }),
   async (c) => {
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const _choroby = c.req.valid("json");
       _choroby.kon = Number(_choroby.kon);
+
+      const kon = await db
+        .select({ id: konie.id })
+        .from(konie)
+        .where(and(eq(konie.hodowla, orgId), eq(konie.id, _choroby.kon)));
+
+      if (kon.length === 0) {
+        c.json({ error: "Nie znaleziono konia" }, 400);
+      }
 
       const result = await db
         .insert(choroby)

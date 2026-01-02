@@ -1,8 +1,8 @@
 import { db } from "@/backend/db";
-import { choroby, chorobySelectSchema } from "@/backend/db/schema";
+import { choroby, chorobySelectSchema, konie } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -11,9 +11,7 @@ import { log } from "@/backend/logs/logger";
 
 const successful_response = z.object({ deletedEvent: chorobySelectSchema });
 
-export const wydarzenia_choroby_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const wydarzenia_choroby_delete = new Hono<auth_vars>().delete(
   "/choroby/:id{[0-9]+}",
   describeRoute({
     description: "Usuń wskazaną chorobę konia",
@@ -45,16 +43,31 @@ export const wydarzenia_choroby_delete = new Hono<{
     },
   }),
   async (c) => {
-    const eventId = Number(c.req.param("id"));
-
-    if (isNaN(eventId)) {
-      return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
-    }
-
     try {
+      const eventId = Number(c.req.param("id"));
+
+      if (isNaN(eventId)) {
+        return c.json({ error: "Nieprawidłowy identyfikator wydarzenia" }, 400);
+      }
+
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
+      const horsesSubquery = db
+        .select({ id: konie.id })
+        .from(konie)
+        .where(eq(konie.hodowla, orgId));
+
       const deleteQuery = await db
         .delete(choroby)
-        .where(eq(choroby.id, eventId))
+        .where(
+          and(eq(choroby.id, eventId), inArray(choroby.kon, horsesSubquery))
+        )
         .returning();
 
       if (deleteQuery.length === 0) {

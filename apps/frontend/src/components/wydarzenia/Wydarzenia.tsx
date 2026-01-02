@@ -117,13 +117,13 @@ function StajniaEvents() {
       <div className="mb-4 flex w-full max-w-5xl flex-wrap justify-center gap-2 sm:gap-4">
         <button
           onClick={() => (window.location.href = "/wydarzenia/add/podkucie")}
-          className="w-full rounded-lg bg-gradient-to-r from-green-500 to-green-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-green-800 sm:w-auto sm:px-6 sm:py-3"
+          className="w-full rounded-lg bg-linear-to-r from-green-500 to-green-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-green-800 sm:w-auto sm:px-6 sm:py-3"
         >
           ➕ Podkucia
         </button>
         <button
           onClick={() => (window.location.href = "/wydarzenia/add/dentysta")}
-          className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-blue-600 hover:to-blue-800 sm:w-auto sm:px-6 sm:py-3"
+          className="w-full rounded-lg bg-linear-to-r from-blue-500 to-blue-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-blue-600 hover:to-blue-800 sm:w-auto sm:px-6 sm:py-3"
         >
           ➕ Dentysta
         </button>
@@ -131,13 +131,13 @@ function StajniaEvents() {
           onClick={() =>
             (window.location.href = "/wydarzenia/add/podanie-witamin")
           }
-          className="w-full rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-yellow-600 hover:to-yellow-800 sm:w-auto sm:px-6 sm:py-3"
+          className="w-full rounded-lg bg-linear-to-r from-yellow-500 to-yellow-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-yellow-600 hover:to-yellow-800 sm:w-auto sm:px-6 sm:py-3"
         >
           ➕ Podanie Suplementów
         </button>
         <button
           onClick={() => (window.location.href = "/wydarzenia/add/szczepienia")}
-          className="w-full rounded-lg bg-gradient-to-r from-red-500 to-red-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-red-600 hover:to-red-800 sm:w-auto sm:px-6 sm:py-3"
+          className="w-full rounded-lg bg-linear-to-r from-red-500 to-red-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-red-600 hover:to-red-800 sm:w-auto sm:px-6 sm:py-3"
         >
           ➕ Szczepienia
         </button>
@@ -145,7 +145,7 @@ function StajniaEvents() {
           onClick={() =>
             (window.location.href = "/wydarzenia/add/odrobaczanie")
           }
-          className="w-full rounded-lg bg-gradient-to-r from-purple-500 to-purple-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-purple-600 hover:to-purple-800 sm:w-auto sm:px-6 sm:py-3"
+          className="w-full rounded-lg bg-linear-to-r from-purple-500 to-purple-700 px-4 py-2 font-semibold text-white shadow-md transition hover:from-purple-600 hover:to-purple-800 sm:w-auto sm:px-6 sm:py-3"
         >
           ➕ Odrobaczanie
         </button>

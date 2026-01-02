@@ -4,19 +4,24 @@ import {
   integer,
   varchar,
   date,
-  serial,
-  uuid,
   customType,
   boolean,
   time,
+  text,
+  timestamp,
+  index,
+  uniqueIndex,
+  serial,
+  uuid,
 } from "drizzle-orm/pg-core";
-import { relations, sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import {
   createSelectSchema,
   createInsertSchema,
   createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "@hono/zod-openapi";
+import { ProcessEnv } from "../env";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -31,26 +36,28 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
-export const hodowlakoni = pgSchema("hodowlakoni");
+const customSchema = pgSchema(ProcessEnv.DATABASE_SCHEMA);
+const schemaTable = customSchema.table;
+const schemaEnum = customSchema.enum.bind(customSchema);
 
-export const rodzajeKoni = hodowlakoni.enum("rodzaje_koni", [
+export const rodzajeKoni = schemaEnum("rodzaje_koni", [
   "Konie hodowlane",
   "Konie rekreacyjne",
   "Źrebaki",
   "Konie sportowe",
 ]);
 
-export const rodzajeZdarzenProfilaktycznych = hodowlakoni.enum(
+export const rodzajeZdarzenProfilaktycznych = schemaEnum(
   "rodzaje_zdarzen_profilaktycznych",
   ["Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"]
 );
 
-export const rodzajeZdarzenRozrodczych = hodowlakoni.enum(
+export const rodzajeZdarzenRozrodczych = schemaEnum(
   "rodzaje_zdarzen_rozrodczych",
   ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
 );
 
-export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
+export const rodzajeNotifications = schemaEnum("rodzaje_notifications", [
   "Podkucia",
   "Odrobaczanie",
   "Podanie suplementów",
@@ -59,47 +66,263 @@ export const rodzajeNotifications = hodowlakoni.enum("rodzaje_notifications", [
   "Inne",
 ]);
 
-export const rodzajeWysylaniaNotifications = hodowlakoni.enum(
+export const rodzajeWysylaniaNotifications = schemaEnum(
   "rodzaje_wysylania_notifications",
   ["Push", "Email", "Oba"]
 );
 
-export const plcie = hodowlakoni.enum("plcie", ["klacz", "ogier", "wałach"]);
+export const plcie = schemaEnum("plcie", ["klacz", "ogier", "wałach"]);
 
-export const hodowcyKoni = hodowlakoni.table("hodowcy_koni", {
-  id: serial("id").primaryKey(),
-  nazwa: varchar("nazwa").notNull(),
-  email: varchar("email").notNull(),
-  numer_telefonu: NUMER_TELEFONU,
-  liczba_requestow: integer("liczba_requestow").default(0).notNull(),
+export const user = schemaTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  role: text("role"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
 });
 
-export const hodowcyKoniSelectSchema = createSelectSchema(hodowcyKoni);
-export const hodowcyKoniUpdateSchema = createUpdateSchema(hodowcyKoni);
-export const hodowcyKoniInsertSchema = createInsertSchema(hodowcyKoni);
+export const session = schemaTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    activeOrganizationId: text("active_organization_id"),
+    impersonatedBy: text("impersonated_by"),
+  },
+  (table) => [index("session_userId_idx").on(table.userId)]
+);
 
-export const hodowcyKoniRelations = relations(hodowcyKoni, ({ many }) => ({
-  konie: many(konie),
-  kowale: many(kowale),
-  weterynarze: many(weterynarze),
+export const account = schemaTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("account_userId_idx").on(table.userId)]
+);
+
+export const verification = schemaTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("verification_identifier_idx").on(table.identifier)]
+);
+
+export const organization = schemaTable(
+  "organization",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    logo: text("logo"),
+    createdAt: timestamp("created_at").notNull(),
+    liczba_requestow: integer("liczba_requestow").default(0).notNull(),
+    metadata: text("metadata"),
+  },
+  (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)]
+);
+
+export const member = schemaTable(
+  "member",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role").default("member").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+  },
+  (table) => [
+    index("member_organizationId_idx").on(table.organizationId),
+    index("member_userId_idx").on(table.userId),
+  ]
+);
+
+export const invitation = schemaTable(
+  "invitation",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role"),
+    status: text("status").default("pending").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("invitation_organizationId_idx").on(table.organizationId),
+    index("invitation_email_idx").on(table.email),
+  ]
+);
+
+export const jwks = schemaTable("jwks", {
+  id: text("id").primaryKey(),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const apikey = schemaTable(
+  "apikey",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    start: text("start"),
+    prefix: text("prefix"),
+    key: text("key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    refillInterval: integer("refill_interval"),
+    refillAmount: integer("refill_amount"),
+    lastRefillAt: timestamp("last_refill_at"),
+    enabled: boolean("enabled").default(true),
+    rateLimitEnabled: boolean("rate_limit_enabled").default(true),
+    rateLimitTimeWindow: integer("rate_limit_time_window").default(86400000),
+    rateLimitMax: integer("rate_limit_max").default(10),
+    requestCount: integer("request_count").default(0),
+    remaining: integer("remaining"),
+    lastRequest: timestamp("last_request"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    permissions: text("permissions"),
+    metadata: text("metadata"),
+  },
+  (table) => [
+    index("apikey_key_idx").on(table.key),
+    index("apikey_userId_idx").on(table.userId),
+  ]
+);
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  members: many(member),
+  invitations: many(invitation),
+  apikeys: many(apikey),
 }));
 
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const organizationRelations = relations(organization, ({ many }) => ({
+  members: many(member),
+  invitations: many(invitation),
+}));
+
+export const memberRelations = relations(member, ({ one }) => ({
+  organization: one(organization, {
+    fields: [member.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, {
+    fields: [member.userId],
+    references: [user.id],
+  }),
+}));
+
+export const invitationRelations = relations(invitation, ({ one }) => ({
+  organization: one(organization, {
+    fields: [invitation.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, {
+    fields: [invitation.inviterId],
+    references: [user.id],
+  }),
+}));
+
+export const apikeyRelations = relations(apikey, ({ one }) => ({
+  user: one(user, {
+    fields: [apikey.userId],
+    references: [user.id],
+  }),
+}));
+
+export const hodowcyKoniSelectSchema = createSelectSchema(organization);
+export const hodowcyKoniUpdateSchema = createUpdateSchema(organization);
+export const hodowcyKoniInsertSchema = createInsertSchema(organization);
+
 // TODO: drzewo genealogiczne?
-export const konie = hodowlakoni.table(
+export const konie = schemaTable(
   "konie",
   {
     id: serial("id").primaryKey(),
-    nazwa: varchar("nazwa").notNull(),
+    nazwa: text("nazwa").notNull(),
     numerPrzyzyciowy: varchar("numer_przyzyciowy", { length: 15 }), // Mogą być null'e, ale też mają być unique
     numerChipa: varchar("numer_chipa", { length: 15 }), // Mogą być null'e, ale też mają być unique
     rocznikUrodzenia: integer("rocznik_urodzenia").default(
-      sql`extract(year from CURRENT_DATE)`
+      sql`extract(year from now())`
     ),
     dataPrzybyciaDoStajni: date("data_przybycia_do_stajni").defaultNow(),
     dataOdejsciaZeStajni: date("data_odejscia_ze_stajni"),
-    hodowla: integer("hodowla")
+    hodowla: text("hodowla")
       .notNull()
-      .references(() => hodowcyKoni.id),
+      .references(() => organization.id),
     rodzajKonia: rodzajeKoni("rodzaj_konia").notNull(),
     plec: plcie("plec"),
     active: boolean("active").notNull().default(true),
@@ -124,20 +347,7 @@ export const konieSelectSchema = createSelectSchema(konie);
 export const konieUpdateSchema = createUpdateSchema(konie);
 export const konieInsertSchema = createInsertSchema(konie);
 
-export const konieRelations = relations(konie, ({ many, one }) => ({
-  zdjeciaKoni: many(zdjeciaKoni),
-  choroby: many(choroby),
-  rozrody: many(rozrody),
-  leczenia: many(leczenia),
-  zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
-  podkucia: many(podkucia),
-  hodowla: one(hodowcyKoni, {
-    fields: [konie.hodowla],
-    references: [hodowcyKoni.id],
-  }),
-}));
-
-export const zdjeciaKoni = hodowlakoni.table("zdjecia_koni", {
+export const zdjeciaKoni = schemaTable("zdjecia_koni", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
@@ -154,14 +364,7 @@ export const zdjeciaKoniSelectSchema = createSelectSchema(zdjeciaKoni);
 export const zdjeciaKoniUpdateSchema = createUpdateSchema(zdjeciaKoni);
 export const zdjeciaKoniInsertSchema = createInsertSchema(zdjeciaKoni);
 
-export const zdjeciaKoniRelations = relations(zdjeciaKoni, ({ one }) => ({
-  kon: one(konie, {
-    fields: [zdjeciaKoni.kon],
-    references: [konie.id],
-  }),
-}));
-
-export const podkucia = hodowlakoni.table("podkucia", {
+export const podkucia = schemaTable("podkucia", {
   id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   dataWaznosci: date("data_waznosci"),
@@ -177,24 +380,13 @@ export const podkuciaSelectSchema = createSelectSchema(podkucia);
 export const podkuciaUpdateSchema = createUpdateSchema(podkucia);
 export const podkuciaInsertSchema = createInsertSchema(podkucia);
 
-export const podkuciaRelations = relations(podkucia, ({ one }) => ({
-  kowal: one(kowale, {
-    fields: [podkucia.kowal],
-    references: [kowale.id],
-  }),
-  kon: one(konie, {
-    fields: [podkucia.kon],
-    references: [konie.id],
-  }),
-}));
-
-export const kowale = hodowlakoni.table("kowale", {
+export const kowale = schemaTable("kowale", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla")
+  hodowla: text("hodowla")
     .notNull()
-    .references(() => hodowcyKoni.id),
+    .references(() => organization.id),
   active: boolean("active").notNull().default(true),
 });
 
@@ -202,15 +394,7 @@ export const kowaleSelectSchema = createSelectSchema(kowale);
 export const kowaleUpdateSchema = createUpdateSchema(kowale);
 export const kowaleInsertSchema = createInsertSchema(kowale);
 
-export const kowaleRelations = relations(kowale, ({ many, one }) => ({
-  podkucia: many(podkucia),
-  hodowla: one(hodowcyKoni, {
-    fields: [kowale.hodowla],
-    references: [hodowcyKoni.id],
-  }),
-}));
-
-export const choroby = hodowlakoni.table("choroby", {
+export const choroby = schemaTable("choroby", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -224,16 +408,9 @@ export const chorobySelectSchema = createSelectSchema(choroby);
 export const chorobyUpdateSchema = createUpdateSchema(choroby);
 export const chorobyInsertSchema = createInsertSchema(choroby);
 
-export const chorobyRelations = relations(choroby, ({ one }) => ({
-  kon: one(konie, {
-    fields: [choroby.kon],
-    references: [konie.id],
-  }),
-}));
-
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
-export const leczenia = hodowlakoni.table("leczenia", {
+export const leczenia = schemaTable("leczenia", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -250,21 +427,10 @@ export const leczeniaSelectSchema = createSelectSchema(leczenia);
 export const leczeniaUpdateSchema = createUpdateSchema(leczenia);
 export const leczeniaInsertSchema = createInsertSchema(leczenia);
 
-export const leczeniaRelations = relations(leczenia, ({ one }) => ({
-  kon: one(konie, {
-    fields: [leczenia.kon],
-    references: [konie.id],
-  }),
-  weterynarz: one(weterynarze, {
-    fields: [leczenia.weterynarz],
-    references: [weterynarze.id],
-  }),
-}));
-
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: uwzględnienie potomstwa
 // TODO: uwzględnienie rodziców
-export const rozrody = hodowlakoni.table("rozrody", {
+export const rozrody = schemaTable("rozrody", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -274,43 +440,28 @@ export const rozrody = hodowlakoni.table("rozrody", {
     .references(() => weterynarze.id),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   rodzajZdarzenia: rodzajeZdarzenRozrodczych("rodzaj_zdarzenia").notNull(),
-  opisZdarzenia: varchar("opis_zdarzenia"),
+  opisZdarzenia: text("opis_zdarzenia"),
 });
 
 export const rozrodySelectSchema = createSelectSchema(rozrody);
 export const rozrodyUpdateSchema = createUpdateSchema(rozrody);
 export const rozrodyInsertSchema = createInsertSchema(rozrody);
 
-export const rozrodyRelations = relations(rozrody, ({ one }) => ({
-  kon: one(konie, {
-    fields: [rozrody.kon],
-    references: [konie.id],
-  }),
-  weterynarz: one(weterynarze, {
-    fields: [rozrody.weterynarz],
-    references: [weterynarze.id],
-  }),
-}));
-
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
-export const zdarzeniaProfilaktyczne = hodowlakoni.table(
-  "zdarzenia_profilaktyczne",
-  {
-    id: serial("id").primaryKey(),
-    kon: integer("kon")
-      .notNull()
-      .references(() => konie.id),
-    weterynarz: integer("weterynarz")
-      .notNull()
-      .references(() => weterynarze.id),
-    dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
-    dataWaznosci: date("data_waznosci"),
-    rodzajZdarzenia:
-      rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia").notNull(),
-    opisZdarzenia: varchar("opis_zdarzenia"),
-  }
-);
+export const zdarzeniaProfilaktyczne = schemaTable("zdarzenia_profilaktyczne", {
+  id: serial("id").primaryKey(),
+  kon: integer("kon")
+    .notNull()
+    .references(() => konie.id),
+  weterynarz: integer("weterynarz")
+    .notNull()
+    .references(() => weterynarze.id),
+  dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
+  dataWaznosci: date("data_waznosci"),
+  rodzajZdarzenia: rodzajeZdarzenProfilaktycznych("rodzaj_zdarzenia").notNull(),
+  opisZdarzenia: text("opis_zdarzenia"),
+});
 
 export const zdarzeniaProfilaktyczneSelectSchema = createSelectSchema(
   zdarzeniaProfilaktyczne
@@ -322,27 +473,13 @@ export const zdarzeniaProfilaktyczneInsertSchema = createInsertSchema(
   zdarzeniaProfilaktyczne
 );
 
-export const zdarzeniaProfilaktyczneRelations = relations(
-  zdarzeniaProfilaktyczne,
-  ({ one }) => ({
-    kon: one(konie, {
-      fields: [zdarzeniaProfilaktyczne.kon],
-      references: [konie.id],
-    }),
-    weterynarz: one(weterynarze, {
-      fields: [zdarzeniaProfilaktyczne.weterynarz],
-      references: [weterynarze.id],
-    }),
-  })
-);
-
-export const weterynarze = hodowlakoni.table("weterynarze", {
+export const weterynarze = schemaTable("weterynarze", {
   id: serial("id").primaryKey(),
-  imieINazwisko: varchar("imie_i_nazwisko").notNull(),
+  imieINazwisko: text("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
-  hodowla: integer("hodowla")
+  hodowla: text("hodowla")
     .notNull()
-    .references(() => hodowcyKoni.id),
+    .references(() => organization.id),
   active: boolean("active").notNull().default(true),
 });
 
@@ -350,83 +487,19 @@ export const weterynarzeSelectSchema = createSelectSchema(weterynarze);
 export const weterynarzeUpdateSchema = createUpdateSchema(weterynarze);
 export const weterynarzeInsertSchema = createInsertSchema(weterynarze);
 
-export const weterynarzeRelations = relations(weterynarze, ({ many, one }) => ({
-  rozrody: many(rozrody),
-  leczenia: many(leczenia),
-  zdarzeniaProfilaktyczne: many(zdarzeniaProfilaktyczne),
-  hodowla: one(hodowcyKoni, {
-    fields: [weterynarze.hodowla],
-    references: [hodowcyKoni.id],
-  }),
-}));
-
-// Role użytkowników (do zmiany pewnie zależne od Adama);
-export const userRolesEnum = hodowlakoni.enum("user_roles", [
-  "właściciel",
-  "członek",
-  "viewer",
-]);
-
-export const users = hodowlakoni.table("users", {
-  id: serial("id").primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  password: varchar("password", { length: 255 }).notNull(),
-  createdAt: date("created_at").notNull().defaultNow(),
-  refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
-  hodowla: integer("hodowla")
-    .notNull()
-    .references(() => hodowcyKoni.id),
-});
-
-export const usersSelectSchema = createSelectSchema(users);
-export const usersInsertSchema = createInsertSchema(users).extend({
-  createdAt: z.optional(z.string().date()),
+export const usersSelectSchema = createSelectSchema(user);
+export const usersInsertSchema = createInsertSchema(user).extend({
+  createdAt: z.optional(z.iso.date()),
   refreshTokenVersion: z.optional(z.number()),
 });
-export const usersUpdateSchema = createUpdateSchema(users);
-
-// Tabela łącząca użytkowników z uprawnieniami;
-export const user_permissions = hodowlakoni.table("user_permissions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id),
-  role: userRolesEnum("role").notNull(),
-});
-
-export const userPermissionsSelectSchema = createSelectSchema(user_permissions);
-export const userPermissionsInsertSchema = createInsertSchema(user_permissions);
-export const userPermissionsUpdateSchema = createUpdateSchema(user_permissions);
-
-// Relacja dla tabeli użytkowników
-export const usersRelations = relations(users, ({ many, one }) => ({
-  // Relacja do uprawnień
-  permissions: many(user_permissions),
-
-  // Relacja do hodowli (hodowcyKoni)
-  hodowla: one(hodowcyKoni, {
-    fields: [users.hodowla],
-    references: [hodowcyKoni.id],
-  }),
-}));
-
-export const userPermissionsRelations = relations(
-  user_permissions,
-  ({ one }) => ({
-    // Relacja do użytkownika (users)
-    user: one(users, {
-      fields: [user_permissions.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const usersUpdateSchema = createUpdateSchema(user);
 
 // tabelka z preferencji użytkownika dot. powiadomień
-export const notifications = hodowlakoni.table("notifications", {
+export const notifications = schemaTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => user.id),
   rodzajZdarzenia: rodzajeNotifications("rodzaje_notifications").notNull(),
   days: integer("days").notNull(),
   time: time({ precision: 6, withTimezone: true }).notNull(),
@@ -439,7 +512,3 @@ export const notifications = hodowlakoni.table("notifications", {
 export const notificationsSelectSchema = createSelectSchema(notifications);
 export const notificationsUpdateSchema = createUpdateSchema(notifications);
 export const notificationsInsertSchema = createInsertSchema(notifications);
-
-// TODO
-// export const notificationsRelations =
-// }));

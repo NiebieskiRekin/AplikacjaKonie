@@ -46,7 +46,7 @@ const fetchPeople = async (type: string) => {
 const fetchChoroba = async (id: string, type: string) => {
   if (type === "leczenia") {
     try {
-      const response = await APIClient.api.konie.choroby[":id{[0-9]+}"].$get({
+      const response = await APIClient.api.konie[":id{[0-9]+}"].choroby.$get({
         param: { id: id },
       });
       if (response.status == 200) {
@@ -376,7 +376,7 @@ const BaseHorseEventForm = ({
       <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
         <button
           onClick={() => void navigate(`/wydarzenia/${id}/${displayType}`)}
-          className="absolute left-0 flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
         >
           <GoArrowLeft className="text-xl" />
         </button>

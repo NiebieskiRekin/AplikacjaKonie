@@ -3,10 +3,11 @@ import {
   choroby,
   chorobySelectSchema,
   chorobyUpdateSchema,
+  konie,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { and, eq } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -15,9 +16,7 @@ import { log } from "@/backend/logs/logger";
 
 const successful_response = z.object({ updatedEvent: chorobySelectSchema });
 
-export const wydarzenia_choroby_put = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().put(
+export const wydarzenia_choroby_put = new Hono<auth_vars>().put(
   "/choroby/:id{[0-9]+}",
   zValidator("json", chorobyUpdateSchema),
   describeRoute({
@@ -58,10 +57,26 @@ export const wydarzenia_choroby_put = new Hono<{
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
+      // eslint-disable-next-line drizzle/enforce-update-with-where
       const updateQuery = await db
         .update(choroby)
         .set(updatedData)
-        .where(eq(choroby.id, eventId))
+        .from(konie)
+        .where(
+          and(
+            eq(choroby.id, eventId),
+            eq(konie.id, choroby.kon),
+            eq(konie.hodowla, orgId)
+          )
+        )
         .returning();
       if (updateQuery.length === 0) {
         return c.json(

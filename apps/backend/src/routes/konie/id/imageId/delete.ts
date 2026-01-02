@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, desc } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, zdjeciaKoni } from "@/backend/db/schema";
+import { zdjeciaKoni, konie } from "@/backend/db/schema";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -13,9 +13,7 @@ const konie_id_imageId_delete_response_success = z.object({
   message: z.string(),
 });
 
-export const konie_id_imageId_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const konie_id_imageId_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}/:imageId{[A-Za-z0-9-]+}",
   describeRoute({
     description: "Usuń wskazane zdjęcie danego konia",
@@ -48,7 +46,14 @@ export const konie_id_imageId_delete = new Hono<{
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       const horseId = Number(c.req.param("id"));
       const imageId = String(c.req.param("imageId"));
 
@@ -59,21 +64,18 @@ export const konie_id_imageId_delete = new Hono<{
         return c.json({ error: "Nieprawidłowy identyfikator zdjęcia" }, 400);
       }
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
-
       const imageToDelete = await db
         .select()
         .from(zdjeciaKoni)
-        .where(and(eq(zdjeciaKoni.kon, horseId), eq(zdjeciaKoni.id, imageId)))
-        .then((res) => res[0]);
+        .innerJoin(konie, eq(konie.id, zdjeciaKoni.kon))
+        .where(
+          and(
+            eq(zdjeciaKoni.kon, horseId),
+            eq(konie.hodowla, orgId),
+            eq(zdjeciaKoni.id, imageId)
+          )
+        )
+        .then((res) => res[0].zdjecia_koni);
 
       if (imageToDelete.default == true) {
         const nextDefaultImage = await db

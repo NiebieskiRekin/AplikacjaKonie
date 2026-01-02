@@ -14,4 +14,4 @@ export const db = drizzle({
   logger: new DrizzleWinstonLogger(),
 });
 
-export { eq } from "drizzle-orm";
+export { schema };

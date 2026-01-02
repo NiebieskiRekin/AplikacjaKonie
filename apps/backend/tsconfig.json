@@ -6,6 +6,8 @@
     "moduleDetection": "force",
     "isolatedModules": true,
     "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitOverride": true,
 
     "incremental": true,

@@ -1,11 +1,6 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
 import { notifications } from "@/backend/db/schema";
-import {
-  authMiddleware,
-  getUserFromContext,
-  UserPayload,
-} from "@/backend/middleware/auth";
 import { eq, and, asc } from "drizzle-orm";
 import {
   RodzajPowiadomienia,
@@ -17,6 +12,7 @@ import { resolver, validator as zValidator } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "../logs/logger";
+import { auth, auth_vars } from "../auth";
 
 const common_settings = z.object({
   days: z.number().int().nonnegative(),
@@ -28,8 +24,7 @@ const common_settings = z.object({
 const settings_schema = z.record(z.enum(RodzajePowiadomien), common_settings);
 const LoggerScope = "Ustawienia";
 
-const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
-  .use(authMiddleware)
+const settingsRoute = new Hono<auth_vars>()
   .get(
     "/",
     describeRoute({
@@ -57,7 +52,11 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }),
     async (c) => {
       try {
-        const userId = getUserFromContext(c);
+        const session = await auth.api.getSession({
+          headers: c.req.raw.headers,
+        });
+
+        const userId = session?.user.id;
         if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const settings = await db
@@ -124,7 +123,11 @@ const settingsRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
     }),
     async (c) => {
       try {
-        const userId = getUserFromContext(c);
+        const session = await auth.api.getSession({
+          headers: c.req.raw.headers,
+        });
+
+        const userId = session?.user.id;
         if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
         const settingsObject = c.req.valid("json");

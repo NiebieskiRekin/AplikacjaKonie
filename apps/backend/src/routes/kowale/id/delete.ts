@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
-import { kowale, users } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { and, eq } from "drizzle-orm";
+import { kowale } from "@/backend/db/schema";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
@@ -11,9 +11,7 @@ import { log } from "@/backend/logs/logger";
 
 const response_success_schema = z.object({ success: z.string() });
 
-export const kowale_id_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const kowale_id_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}",
   describeRoute({
     description: "Usuń wskazanego kowala z hodowli użytkownika",
@@ -47,36 +45,18 @@ export const kowale_id_delete = new Hono<{
   async (c) => {
     try {
       const eventId = Number(c.req.param("id"));
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      if (!userId) {
-        return c.json({ error: "Błąd autoryzacji" }, 401);
-      }
-
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
-
-      // await db
-      //   .delete(kowale)
-      //   .where(
-      //     and(
-      //       eq(kowale.id, eventId),
-      //       eq(kowale.hodowla, Number(hodowla.hodowlaId))
-      //     )
-      //   )
-      //   .returning();
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       await db
         .update(kowale)
         .set({ active: false })
-        .where(eq(kowale.id, eventId))
+        .where(and(eq(kowale.id, eventId), eq(kowale.hodowla, orgId)))
         .returning();
 
       return c.json({ success: "Kowal został usunięty" });

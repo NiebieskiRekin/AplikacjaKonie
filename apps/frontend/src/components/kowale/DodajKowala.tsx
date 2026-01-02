@@ -9,7 +9,6 @@ function AddKowal() {
   const [formData, setFormData] = useState({
     imieINazwisko: "",
     numerTelefonu: "",
-    hodowla: 0,
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,10 +25,9 @@ function AddKowal() {
     setLoading(true);
 
     try {
-      const response = await APIClient.api.kowale.$post({ json: formData });
-
       if (!formData.imieINazwisko.trim()) {
         setError("Pole imię i nazwisko jest wymagane.");
+        setLoading(false);
         return;
       }
 
@@ -38,8 +36,11 @@ function AddKowal() {
         !/^\+?\d{9,15}$/.test(formData.numerTelefonu)
       ) {
         setError("Nieprawidłowy numer telefonu.");
+        setLoading(false);
         return;
       }
+
+      const response = await APIClient.api.kowale.$post({ json: formData });
 
       if (response.ok) {
         setSuccess("Kowal został dodany!");

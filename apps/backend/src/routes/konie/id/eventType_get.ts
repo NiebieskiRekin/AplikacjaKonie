@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   weterynarze,
   konie,
@@ -11,17 +11,15 @@ import {
   leczenia,
   rozrody,
 } from "@/backend/db/schema";
-import { UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { eventTypeUnionSchema } from "./schema";
+import { eventTypeUnionSchema } from "../../wydarzenia/schema";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { log } from "@/backend/logs/logger";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_horseId_eventType_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_horseId_eventType_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}/:type{[A-Za-z_]+}",
   describeRoute({
     description: "Wyświetl listę wydarzeń danego typu dla wybranego konia",
@@ -60,6 +58,14 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       let events;
 
       switch (eventType) {
@@ -74,7 +80,13 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
             })
             .from(choroby)
             .leftJoin(konie, eq(choroby.kon, konie.id))
-            .where(eq(konie.id, horseId));
+            .where(
+              and(
+                eq(konie.id, horseId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "leczenia":
           events = await db
@@ -90,7 +102,13 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
             .leftJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
             .leftJoin(choroby, eq(leczenia.choroba, choroby.id))
             .rightJoin(konie, eq(leczenia.kon, konie.id))
-            .where(eq(konie.id, horseId));
+            .where(
+              and(
+                eq(konie.id, horseId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "rozrody":
           events = await db
@@ -105,7 +123,13 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
             .from(konie)
             .leftJoin(rozrody, eq(rozrody.kon, konie.id))
             .leftJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
-            .where(eq(konie.id, horseId));
+            .where(
+              and(
+                eq(konie.id, horseId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "zdarzenia_profilaktyczne":
           events = await db
@@ -127,7 +151,13 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
               weterynarze,
               eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id)
             )
-            .where(eq(konie.id, horseId));
+            .where(
+              and(
+                eq(konie.id, horseId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "podkucia":
           events = await db
@@ -141,7 +171,13 @@ export const wydarzenia_horseId_eventType_get = new Hono<{
             .from(konie)
             .leftJoin(podkucia, eq(podkucia.kon, konie.id))
             .leftJoin(kowale, eq(podkucia.kowal, kowale.id))
-            .where(eq(konie.id, horseId));
+            .where(
+              and(
+                eq(konie.id, horseId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         default:
           return c.json({ error: "Nieznany typ zdarzenia" }, 400);

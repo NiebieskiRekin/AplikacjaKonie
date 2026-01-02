@@ -28,7 +28,7 @@ function HorseEventList({ type }: { type: string }) {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await APIClient.api.wydarzenia[":id{[0-9]+}"][
+        const response = await APIClient.api.konie[":id{[0-9]+}"][
           ":type{[A-Za-z_]+}"
         ].$get({ param: { id: id!, type: type } });
         if (response.ok) {
@@ -49,7 +49,7 @@ function HorseEventList({ type }: { type: string }) {
       <div className="relative mt-12 mb-16 flex w-full max-w-7xl items-center justify-center px-6 sm:mt-0 sm:mb-10">
         <button
           onClick={() => void navigate(`/konie/${id}`)}
-          className="absolute left-0 flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
         >
           <GoArrowLeft className="text-xl" />
         </button>

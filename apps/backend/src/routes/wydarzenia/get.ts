@@ -1,25 +1,25 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 import {
   weterynarze,
-  users,
   konie,
   zdarzeniaProfilaktyczne,
   podkucia,
   kowale,
 } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
+import { unionAll } from "drizzle-orm/pg-core";
 
 const resultEventSchema = z.array(
   z.object({
     horse: z.string(),
-    date: z.string().date(),
+    date: z.iso.date(),
     rodzajZdarzenia: z.enum([
       "Odrobaczanie",
       "Podanie suplementów",
@@ -28,16 +28,14 @@ const resultEventSchema = z.array(
       "Inne",
       "Podkuwanie",
     ]),
-    dataWaznosci: z.string().date().nullable(),
+    dataWaznosci: z.iso.date().nullable(),
     osobaImieNazwisko: z.string(),
     opisZdarzenia: z.string().nullable(),
     highlighted: z.boolean(),
   })
 );
 
-export const wydarzenia_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_get = new Hono<auth_vars>().get(
   "/",
   describeRoute({
     description: "Wyświetl listę zdarzeń",
@@ -64,48 +62,33 @@ export const wydarzenia_get = new Hono<{
   }),
   async (c) => {
     try {
-      const user = getUserFromContext(c);
-      if (!user) return c.json({ error: "Błąd autoryzacji" }, 401);
-      log("Wydarzenia", "debug", `User: ${user.toString()}`);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      const hodowla = await db
-        .select({ hodowla: users.hodowla })
-        .from(users)
-        .where(eq(users.id, user))
-        .then((res) => res[0]?.hodowla);
-
-      log("Wydarzenia", "debug", `Hodowla: ${hodowla.toString()}`);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli użytkownika" }, 403);
-      }
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const konie_condition = and(
-        eq(konie.hodowla, hodowla),
+        eq(konie.hodowla, orgId),
         eq(konie.active, true)
       );
 
-      const konieUzytkownika = await db
-        .select({ id: konie.id, nazwa: konie.nazwa })
-        .from(konie)
-        .where(konie_condition);
-
-      log("Wydarzenia", "debug", `Konie: ${JSON.stringify(konieUzytkownika)}`);
-
-      const konieMap = Object.fromEntries(
-        konieUzytkownika.map((kon) => [kon.id, kon.nazwa])
-      );
-
-      const zdarzenia = await db
+      const zdarzenia = db
         .select({
-          id: zdarzeniaProfilaktyczne.id,
-          kon: zdarzeniaProfilaktyczne.kon,
-          dataZdarzenia: zdarzeniaProfilaktyczne.dataZdarzenia,
-          dataWaznosci: zdarzeniaProfilaktyczne.dataWaznosci,
-          rodzajZdarzenia: zdarzeniaProfilaktyczne.rodzajZdarzenia,
+          horse: konie.nazwa || "Nieznany koń",
+          date: zdarzeniaProfilaktyczne.dataZdarzenia,
+          dataWaznosci:
+            sql<string>`coalesce(to_char(${zdarzeniaProfilaktyczne.dataWaznosci}, 'YYYY-MM-DD'), '-')`.as(
+              "dataWaznosci"
+            ),
+          rodzajZdarzenia:
+            sql<string>`cast(${zdarzeniaProfilaktyczne.rodzajZdarzenia} as text)`.as(
+              "rodzajZdarzenia"
+            ),
           opisZdarzenia: zdarzeniaProfilaktyczne.opisZdarzenia,
-          weterynarzId: zdarzeniaProfilaktyczne.weterynarz,
-          weterynarzImieNazwisko: weterynarze.imieINazwisko,
+          osobaImieNazwisko: weterynarze.imieINazwisko || "Brak danych",
         })
         .from(zdarzeniaProfilaktyczne)
         .innerJoin(
@@ -115,77 +98,44 @@ export const wydarzenia_get = new Hono<{
         .innerJoin(konie, eq(zdarzeniaProfilaktyczne.kon, konie.id))
         .where(konie_condition);
 
-      log(
-        "Wydarzenia",
-        "debug",
-        `Zdarzenia Profilaktyczne: ${JSON.stringify(zdarzenia)}`
-      );
-
-      const podkuciaData = await db
+      const podkuciaData = db
         .select({
-          id: podkucia.id,
-          kon: podkucia.kon,
-          dataPodkucia: podkucia.dataZdarzenia,
-          dataWaznosci: podkucia.dataWaznosci,
-          kowalId: podkucia.kowal,
-          kowalImieNazwisko: kowale.imieINazwisko,
+          horse: konie.nazwa || "Nieznany koń",
+          date: podkucia.dataZdarzenia,
+          dataWaznosci:
+            sql<string>`coalesce(to_char(${podkucia.dataWaznosci}, 'YYYY-MM-DD'), '-')`.as(
+              "dataWaznosci"
+            ),
+          rodzajZdarzenia: sql<string>`'Podkuwanie'`.as("rodzajZdarzenia"),
+          opisZdarzenia: sql<string>`'-'`.as("opisZdarzenia"),
+          osobaImieNazwisko: kowale.imieINazwisko || "Brak danych",
         })
         .from(podkucia)
         .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
         .innerJoin(konie, eq(podkucia.kon, konie.id))
         .where(konie_condition);
 
-      log("Wydarzenia", "debug", `Podkucia: ${JSON.stringify(podkuciaData)}`);
+      const events = unionAll(zdarzenia, podkuciaData).as("sq");
 
-      const events = [
-        ...zdarzenia.map((event) => ({
-          horse: konieMap[event.kon] || "Nieznany koń",
-          date: event.dataZdarzenia,
-          rodzajZdarzenia: event.rodzajZdarzenia,
-          dataWaznosci: event.dataWaznosci || "-",
-          osobaImieNazwisko: event.weterynarzImieNazwisko || "Brak danych",
-          opisZdarzenia: event.opisZdarzenia,
-          highlighted: false,
-        })),
-        ...podkuciaData.map((event) => ({
-          horse: konieMap[event.kon] || "Nieznany koń",
-          date: event.dataPodkucia,
-          rodzajZdarzenia: "Podkuwanie",
-          dataWaznosci: event.dataWaznosci || "-",
-          osobaImieNazwisko: event.kowalImieNazwisko || "Brak danych",
-          opisZdarzenia: "-",
-          highlighted: false,
-        })),
-      ];
+      const result = await db
+        .select({
+          horse: events.horse,
+          date: events.date,
+          dataWaznosci: events.dataWaznosci,
+          rodzajZdarzenia: events.rodzajZdarzenia,
+          opisZdarzenia: events.opisZdarzenia,
+          osobaImieNazwisko: events.osobaImieNazwisko,
+          highlighted: sql<boolean>`
+            (ROW_NUMBER() OVER (
+              PARTITION BY ${events.horse}, ${events.rodzajZdarzenia} 
+              ORDER BY ${events.date} DESC
+            )) = 1
+          `.as("highlighted"),
+        })
+        .from(events)
+        .orderBy(desc(events.date));
 
-      log("Wydarzenia", "debug", `Events: ${JSON.stringify(events)}`);
-
-      const latestByCategory = new Map<
-        string,
-        { date: string; index: number }
-      >();
-
-      events.forEach((event, index) => {
-        const key = `${event.horse}-${event.rodzajZdarzenia}`;
-        const current = latestByCategory.get(key);
-        if (
-          !current ||
-          new Date(event.date).getTime() > new Date(current.date).getTime()
-        ) {
-          latestByCategory.set(key, { date: event.date, index });
-        }
-      });
-
-      events.forEach((event, index) => {
-        const key = `${event.horse}-${event.rodzajZdarzenia}`;
-        event.highlighted = latestByCategory.get(key)?.index === index;
-      });
-
-      events.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-
-      return c.json(events);
+      return c.json(result, 200);
     } catch (e: unknown) {
       if (e instanceof Error) {
         log("Wydarzenia", "error", "", e);

@@ -3,17 +3,12 @@ import { describeRoute } from "hono-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { db } from "@/backend/db";
 import { eq } from "drizzle-orm";
-import {
-  hodowcyKoni,
-  hodowcyKoniSelectSchema,
-  users,
-} from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { organization } from "@/backend/db/schema";
 import { resolver } from "hono-openapi";
+import { auth, auth_vars } from "@/backend/auth";
+import z from "zod";
 
-export const liczba_requestow_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const liczba_requestow_get = new Hono<auth_vars>().get(
   "/",
   describeRoute({
     description: "Wyświetl liczbę requestów do SI dla danej hodowli",
@@ -22,11 +17,7 @@ export const liczba_requestow_get = new Hono<{
         description: "Pomyślne zapytanie",
         content: {
           [JsonMime]: {
-            schema: resolver(
-              hodowcyKoniSelectSchema.openapi({
-                description: "Liczba requestów",
-              })
-            ),
+            schema: resolver(z.object({ liczba_requestow: z.int() })),
           },
         },
       },
@@ -46,25 +37,21 @@ export const liczba_requestow_get = new Hono<{
   }),
   async (c) => {
     try {
-      const userId = getUserFromContext(c);
-      if (!userId) return c.json({ error: "Błąd autoryzacji" }, 401);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const result = await db
-        .select({ liczba_requestow: hodowcyKoni.liczba_requestow })
-        .from(hodowcyKoni)
-        .where(eq(hodowcyKoni.id, hodowla.hodowlaId))
+        .select({ liczba_requestow: organization.liczba_requestow })
+        .from(organization)
+        .where(eq(organization.id, orgId))
         .then((res) => res[0]);
-      return c.json(result);
+
+      return c.json(result, 200);
     } catch {
       return c.json({ error: "Błąd pobierania liczby requestów" }, 500);
     }

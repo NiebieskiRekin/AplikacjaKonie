@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router";
-import { APIClient } from "@/frontend/lib/api-client";
 import formatApiError from "@/frontend/lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
+import { authClient } from "../lib/auth";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -19,16 +19,33 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await APIClient.api.login.$post({
-        json: { email, password },
+      const { data, error } = await authClient.signIn.email({
+        email: email,
+        password: password,
+        rememberMe: true,
       });
 
-      if (response.status === 200) {
-        await response.json();
-        await navigate("/konie");
+      if (data) {
+        // TODO: convert to sign in hook
+        const { data: orgs, error: orgserror } =
+          await authClient.organization.list();
+        if (orgs && orgs.length > 0) {
+          const { error: org_error } = await authClient.organization.setActive({
+            organizationId: orgs[0].id,
+            organizationSlug: orgs[0].slug,
+          });
+          if (data) {
+            await navigate("/konie");
+          } else {
+            setError(
+              org_error?.message || "Błąd ustalania hodowli użytkownika"
+            );
+          }
+        } else {
+          setError(orgserror?.message || "Błąd pobierania hodowli użytkownika");
+        }
       } else {
-        const data = await response.json();
-        throw new Error(data.error || "Błąd logowania");
+        setError(error.message || "Wystąpił nieznany błąd");
       }
     } catch (err) {
       const message =
@@ -49,7 +66,7 @@ function Login() {
   };
 
   return (
-    <div className="to-brown-600 flex min-h-screen items-center justify-center bg-gradient-to-br from-green-800">
+    <div className="to-brown-600 flex min-h-screen items-center justify-center bg-linear-to-br from-green-800">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
         <h2 className="text-center text-2xl font-bold text-green-900">
           Logowanie
@@ -79,7 +96,7 @@ function Login() {
               Hasło
             </label>
             <input
-              type={showPassword ? "text" : "password"} // 👁 Dynamiczna zmiana typu
+              type={showPassword ? "text" : "password"}
               className="mt-2 w-full rounded-lg border px-4 py-2 focus:ring focus:ring-green-500 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

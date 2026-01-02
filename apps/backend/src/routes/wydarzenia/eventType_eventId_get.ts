@@ -10,8 +10,8 @@ import {
   kowale,
 } from "@/backend/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import { UserPayload } from "@/backend/middleware/auth";
+import { eq, and } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { eventTypeUnionSchema } from "./schema";
 import { resolver } from "hono-openapi";
@@ -19,9 +19,7 @@ import { describeRoute } from "hono-openapi";
 import { log } from "@/backend/logs/logger";
 // import { z } from "@hono/zod-openapi";
 
-export const wydarzenia_eventType_eventId_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const wydarzenia_eventType_eventId_get = new Hono<auth_vars>().get(
   "/:type{[A-Za-z_-]+}/:id{[0-9]+}",
   describeRoute({
     description:
@@ -61,6 +59,14 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
     }
 
     try {
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
+
       let events;
 
       switch (eventType) {
@@ -75,7 +81,13 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
             })
             .from(choroby)
             .innerJoin(konie, eq(choroby.kon, konie.id))
-            .where(eq(choroby.id, eventId));
+            .where(
+              and(
+                eq(choroby.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "leczenia":
           events = await db
@@ -91,7 +103,13 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
             .innerJoin(weterynarze, eq(leczenia.weterynarz, weterynarze.id))
             .innerJoin(choroby, eq(leczenia.choroba, choroby.id))
             .innerJoin(konie, eq(leczenia.kon, konie.id))
-            .where(eq(leczenia.id, eventId));
+            .where(
+              and(
+                eq(leczenia.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "rozrody":
           events = await db
@@ -106,7 +124,13 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
             .from(rozrody)
             .innerJoin(weterynarze, eq(rozrody.weterynarz, weterynarze.id))
             .innerJoin(konie, eq(rozrody.kon, konie.id))
-            .where(eq(rozrody.id, eventId));
+            .where(
+              and(
+                eq(rozrody.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "zdarzenia_profilaktyczne":
           events = await db
@@ -125,7 +149,13 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
               weterynarze,
               eq(zdarzeniaProfilaktyczne.weterynarz, weterynarze.id)
             )
-            .where(eq(zdarzeniaProfilaktyczne.id, eventId));
+            .where(
+              and(
+                eq(zdarzeniaProfilaktyczne.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         case "podkucie":
           events = await db
@@ -139,7 +169,13 @@ export const wydarzenia_eventType_eventId_get = new Hono<{
             .from(podkucia)
             .innerJoin(konie, eq(podkucia.kon, konie.id))
             .innerJoin(kowale, eq(podkucia.kowal, kowale.id))
-            .where(eq(podkucia.id, eventId));
+            .where(
+              and(
+                eq(podkucia.id, eventId),
+                eq(konie.hodowla, orgId),
+                eq(konie.active, true)
+              )
+            );
           break;
         default:
           return c.json({ error: "Nieznany typ zdarzenia" }, 400);

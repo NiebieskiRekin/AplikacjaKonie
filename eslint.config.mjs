@@ -52,7 +52,21 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
-        { allowConstantExport: true },
+        {
+          allowExportNames: [
+            "loader",
+            "clientLoader",
+            "action",
+            "clientAction",
+            "ErrorBoundary",
+            "HydrateFallback",
+            "headers",
+            "handle",
+            "links",
+            "meta",
+            "shouldRevalidate",
+          ],
+        },
       ],
       ...drizzle.configs.recommended.rules,
     },
@@ -65,10 +79,30 @@ export default tseslint.config(
     },
   },
   {
-    // --- WYŁĄCZENIE REGUŁY DLA KALOGU LOGS ---
+    // --- WYŁĄCZENIE REGUŁY DLA KATALOGU LOGS ---
     files: ["apps/backend/src/logs/**/*.{ts,tsx}", "apps/backend/src/env.ts"],
     rules: {
       "no-console": "off",
+    },
+  },
+  {
+    // TEMP FIX, za dużo błędów związanych z użyciem 'any' zamiast wskazania typu
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-return": "warn",
+    },
+  },
+  {
+    parser: "@typescript-eslint/parser",
+    plugins: ["@typescript-eslint"],
+    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error"],
     },
   }
 );

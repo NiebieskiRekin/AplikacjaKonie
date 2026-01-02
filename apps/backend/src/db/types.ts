@@ -1,6 +1,6 @@
 import { z } from "@hono/zod-openapi";
 import {
-  hodowcyKoni,
+  organization,
   konie,
   zdjeciaKoni,
   podkucia,
@@ -14,8 +14,7 @@ import {
   rodzajeKoni,
   rodzajeZdarzenProfilaktycznych,
   rodzajeZdarzenRozrodczych,
-  users,
-  user_permissions,
+  user,
   rodzajeNotifications,
   rodzajeWysylaniaNotifications,
 } from "./schema";
@@ -46,8 +45,8 @@ export type RodzajPowiadomienia = (typeof RodzajePowiadomien)[number];
 export type RodzajWysylaniaPowiadomienia =
   (typeof RodzajeWysylaniaPowiadomien)[number];
 
-export type SelectHodowcaKoni = typeof hodowcyKoni.$inferSelect;
-export type InsertHodowcaKoni = typeof hodowcyKoni.$inferInsert;
+export type SelectHodowcaKoni = typeof organization.$inferSelect;
+export type InsertHodowcaKoni = typeof organization.$inferInsert;
 export type SelectKon = typeof konie.$inferSelect;
 export type InsertKon = typeof konie.$inferInsert;
 export type SelectZdjecieKonia = typeof zdjeciaKoni.$inferSelect;
@@ -68,10 +67,8 @@ export type InsertZdarzenieProfilaktyczne =
   typeof zdarzeniaProfilaktyczne.$inferInsert;
 export type SelectWeterynarz = typeof weterynarze.$inferSelect;
 export type InsertWeterynarz = typeof weterynarze.$inferInsert;
-export type SelectUser = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-export type SelectUserPermissions = typeof user_permissions.$inferSelect;
-export type InsertUserPermissions = typeof user_permissions.$inferInsert;
+export type SelectUser = typeof user.$inferSelect;
+export type InsertUser = typeof user.$inferInsert;
 
 const common_settings = z.object({
   days: z.number().int().nonnegative(),

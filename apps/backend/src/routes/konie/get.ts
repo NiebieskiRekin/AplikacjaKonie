@@ -4,17 +4,16 @@ import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { auth, auth_vars } from "@/backend/auth";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { users, konie, zdjeciaKoni } from "@/backend/db/schema";
+import { konie, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
 
 const konieGetResponseSchemaSuccess = z.object({
   data: z.array(
     z.object({
       img_url: z
-        .string()
         .url()
         .nullable()
         .openapi({
@@ -30,14 +29,12 @@ const konieGetResponseSchemaSuccess = z.object({
         .nullable()
         .openapi({ examples: ["POL007530107098", "POL0008660043801"] }),
       rodzajKonia: z.enum(RodzajeKoni),
-      imageId: z.string().uuid().nullable(),
+      imageId: z.uuid().nullable(),
     })
   ),
 });
 
-export const konie_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_get = new Hono<auth_vars>().get(
   "/",
   describeRoute({
     description: "Wyświetl listę koni z hodowli użytkownika",
@@ -57,15 +54,14 @@ export const konie_get = new Hono<{
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
     try {
-      const user = db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .as("user_hodowla");
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      // Pobieramy konie tylko tej samej hodowli
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
       const horsesList = await db
         .select({
@@ -81,11 +77,8 @@ export const konie_get = new Hono<{
           // plec: konie.plec,
           imageId: zdjeciaKoni.id,
         })
-        .from(user)
-        .innerJoin(
-          konie,
-          and(eq(user.hodowla, konie.hodowla), eq(konie.active, true))
-        )
+        .from(konie)
+        .where(and(eq(konie.hodowla, orgId), eq(konie.active, true)))
         .leftJoin(
           zdjeciaKoni,
           and(eq(konie.id, zdjeciaKoni.kon), eq(zdjeciaKoni.default, true))

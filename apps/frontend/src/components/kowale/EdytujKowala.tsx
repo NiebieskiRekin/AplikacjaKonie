@@ -150,7 +150,7 @@ function EditKowal() {
 
       <button
         onClick={() => setIsDeletePopupOpen(true)}
-        className="mt-4 w-full max-w-md rounded-lg bg-gradient-to-r from-rose-900 to-red-700 py-3 text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
+        className="mt-4 w-full max-w-md rounded-lg bg-linear-to-r from-rose-900 to-red-700 py-3 text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
       >
         ❌ Usuń Kowala
       </button>

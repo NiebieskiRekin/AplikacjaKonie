@@ -3,7 +3,9 @@ import { Link, useNavigate } from "react-router";
 import { APIClient } from "../lib/api-client";
 import formatApiError from "../lib/format-api-error";
 import type { ErrorSchema } from "@aplikacja-konie/api-client";
-import { BackendTypes } from "@aplikacja-konie/api-client";
+import type { BackendTypes } from "@aplikacja-konie/api-client";
+import { authClient } from "../lib/auth";
+import Home from "./Home";
 
 const default_setting_value = {
   active: false,
@@ -26,6 +28,7 @@ function Settings() {
   const [success, setSuccess] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -47,6 +50,22 @@ function Settings() {
     };
     void fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (error && error.includes("TypeError")) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      void navigate("/login");
+    }
+  }, [session, isPending, navigate]);
+
+  if (isPending) return <Home />;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -103,16 +122,8 @@ function Settings() {
     void navigate("/konie"); // Przekierowanie po zamknięciu popupu
   };
 
-  useEffect(() => {
-    if (error && error.includes("TypeError")) {
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    }
-  }, [error]);
-
   return (
-    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
+    <div className="to-brown-600 flex min-h-screen flex-col items-center bg-linear-to-br from-green-800 p-6">
       <h2 className="mb-6 text-center text-3xl font-bold text-white sm:text-left">
         ⚙️ Ustawienia Powiadomień
       </h2>
@@ -140,7 +151,7 @@ function Settings() {
                   type="checkbox"
                   checked={value.active}
                   onChange={(e) => handleInputChange(e, key, "active")}
-                  className="h-5 w-5 flex-shrink-0"
+                  className="h-5 w-5 shrink-0"
                 />
                 <span className="text-sm text-gray-700 sm:hidden">Aktywne</span>
               </div>
@@ -191,7 +202,7 @@ function Settings() {
 
         <button
           onClick={() => void handleSaveSettings()}
-          className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
+          className="w-full rounded-lg bg-linear-to-r from-blue-600 to-blue-700 py-3 text-white shadow-lg transition hover:from-blue-700 hover:to-blue-800"
         >
           💾 Zapisz ustawienia
         </button>
@@ -199,7 +210,7 @@ function Settings() {
         <div className="mt-6">
           <Link
             to="/restart"
-            className="block w-full rounded-lg bg-gradient-to-r from-red-600 to-red-700 py-3 text-center text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
+            className="block w-full rounded-lg bg-linear-to-r from-red-600 to-red-700 py-3 text-center text-white shadow-lg transition hover:from-red-700 hover:to-red-800"
           >
             🔄 Zmień hasło
           </Link>

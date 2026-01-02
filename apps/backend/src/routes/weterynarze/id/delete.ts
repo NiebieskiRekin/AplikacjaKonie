@@ -1,17 +1,15 @@
 import { Hono } from "hono";
 import { db } from "@/backend/db";
-import { eq } from "drizzle-orm";
-import { weterynarze, users } from "@/backend/db/schema";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
+import { and, eq } from "drizzle-orm";
+import { weterynarze } from "@/backend/db/schema";
+import { auth, auth_vars } from "@/backend/auth";
 import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { log } from "@/backend/logs/logger";
 
-export const weterynarze_id_delete = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().delete(
+export const weterynarze_id_delete = new Hono<auth_vars>().delete(
   "/:id{[0-9]+}",
   describeRoute({
     description:
@@ -40,37 +38,23 @@ export const weterynarze_id_delete = new Hono<{
   async (c) => {
     try {
       const eventId = Number(c.req.param("id"));
-      const userId = getUserFromContext(c);
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
 
-      if (!userId) {
-        return c.json({ error: "Błąd autoryzacji" }, 401);
-      }
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
-      const hodowla = await db
-        .select({ hodowlaId: users.hodowla })
-        .from(users)
-        .where(eq(users.id, userId))
-        .then((res) => res[0]);
-
-      if (!hodowla) {
-        return c.json({ error: "Nie znaleziono hodowli dla użytkownika" }, 400);
-      }
-
-      // await db
-      //   .delete(weterynarze)
-      //   .where(
-      //     and(
-      //       eq(weterynarze.id, eventId),
-      //       eq(weterynarze.hodowla, Number(hodowla.hodowlaId))
-      //     )
-      //   )
-      //   .returning();
-
-      await db
+      const wet = await db
         .update(weterynarze)
         .set({ active: false })
-        .where(eq(weterynarze.id, eventId))
+        .where(and(eq(weterynarze.id, eventId), eq(weterynarze.hodowla, orgId)))
         .returning();
+
+      if (wet.length === 0) {
+        return c.json({ error: "Błąd podczas usuwania Weterynarz" }, 500);
+      }
 
       return c.json({ success: "Weterynarz został usunięty" }, 201);
     } catch (error) {

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { getUserFromContext, UserPayload } from "@/backend/middleware/auth";
-import { eq, and } from "drizzle-orm";
+import { auth, auth_vars } from "@/backend/auth";
+import { eq, and, getTableColumns } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { konie, konieSelectSchema, zdjeciaKoni } from "@/backend/db/schema";
 import { generateV4ReadSignedUrl } from "@/backend/routes/images";
@@ -10,12 +10,10 @@ import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 
 const konie_id_get_response_success = konieSelectSchema.extend({
-  images_signed_urls: z.array(z.string().url()),
+  images_signed_urls: z.array(z.url()),
 });
 
-export const konie_id_get = new Hono<{
-  Variables: { jwtPayload: UserPayload };
-}>().get(
+export const konie_id_get = new Hono<auth_vars>().get(
   "/:id{[0-9]+}",
   describeRoute({
     description: "Wyświetl szczegółowe informacje o koniu",
@@ -55,10 +53,13 @@ export const konie_id_get = new Hono<{
     },
   }),
   async (c) => {
-    const userId = getUserFromContext(c);
-    if (!userId) {
-      return c.json({ error: "Błąd autoryzacji" }, 401);
-    }
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    const userId = session?.user.id;
+    const orgId = session?.session.activeOrganizationId;
+    if (!userId || !orgId) return c.json({ error: "Błąd autoryzacji" }, 401);
 
     const horseId = Number(c.req.param("id"));
     if (isNaN(horseId)) {
@@ -66,9 +67,15 @@ export const konie_id_get = new Hono<{
     }
 
     const horse = await db
-      .select()
+      .select({ ...getTableColumns(konie) })
       .from(konie)
-      .where(and(eq(konie.id, horseId), eq(konie.active, true)))
+      .where(
+        and(
+          eq(konie.id, horseId),
+          eq(konie.hodowla, orgId),
+          eq(konie.active, true)
+        )
+      )
       .then((res) => res[0]);
 
     if (!horse) {

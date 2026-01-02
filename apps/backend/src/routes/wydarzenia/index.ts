@@ -1,8 +1,7 @@
 import { Hono } from "hono";
-import { authMiddleware, UserPayload } from "@/backend/middleware/auth";
+import { auth_vars } from "@/backend/auth";
 import { wydarzenia_eventType_eventId_get } from "./eventType_eventId_get";
 import { wydarzenia_get } from "./get";
-import { wydarzenia_horseId_eventType_get } from "./horseId_eventType_get";
 import { wydarzenia_zdarzenia_profilaktyczne_delete } from "./zdarzenia_profilaktyczne/delete";
 import { wydarzenia_zdarzenia_profilaktyczne_post } from "./zdarzenia_profilaktyczne/post";
 import { wydarzenia_zdarzenia_profilaktyczne_put } from "./zdarzenia_profilaktyczne/put";
@@ -19,11 +18,9 @@ import { wydarzenia_leczenia_delete } from "./leczenia/delete";
 import { wydarzenia_leczenia_post } from "./leczenia/post";
 import { wydarzenia_leczenia_put } from "./leczenia/put";
 
-const wydarzeniaRoute = new Hono<{ Variables: { jwtPayload: UserPayload } }>()
-  .use(authMiddleware)
+const wydarzeniaRoute = new Hono<auth_vars>()
   .route("/", wydarzenia_get)
   .route("/", wydarzenia_eventType_eventId_get)
-  .route("/", wydarzenia_horseId_eventType_get)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_put)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_post)
   .route("/", wydarzenia_zdarzenia_profilaktyczne_delete)
