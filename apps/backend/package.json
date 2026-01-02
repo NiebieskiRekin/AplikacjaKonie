@@ -35,6 +35,7 @@
     "@hono/zod-openapi": "^1.2.0",
     "@hono/zod-validator": "^0.7.4",
     "@scalar/hono-api-reference": "^0.9.30",
+    "@standard-community/standard-json": "0.3.5",
     "bcrypt": "^6.0.0",
     "better-auth": "^1.4.10",
     "better-auth-localization": "^2.2.2",
@@ -51,10 +52,5 @@
     "winston": "^3.18.3",
     "zod": "^4.3.4",
     "zod-openapi": "^5.4.5"
-  },
-  "overrides": {
-    "@standard-community/standard-openapi": {
-      "zod-openapi": "5.4.5"
-    }
   }
 }
