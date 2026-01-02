@@ -1,5 +1,4 @@
 import {
-  pgSchema,
   check,
   integer,
   varchar,
@@ -13,6 +12,8 @@ import {
   uniqueIndex,
   serial,
   uuid,
+  pgEnum,
+  pgTable,
 } from "drizzle-orm/pg-core";
 import { sql, relations } from "drizzle-orm";
 import {
@@ -21,7 +22,6 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import { z } from "@hono/zod-openapi";
-import { ProcessEnv } from "../env";
 
 const NUMER_TELEFONU = varchar("numer_telefonu", { length: 15 });
 // const NUMER_TELEFONU_CHECK_DRIZZLE = check(
@@ -36,28 +36,26 @@ export const bytea = customType<{ data: Buffer }>({
   },
 });
 
-const customSchema = pgSchema(ProcessEnv.DATABASE_SCHEMA);
-const schemaTable = customSchema.table;
-const schemaEnum = customSchema.enum.bind(customSchema);
-
-export const rodzajeKoni = schemaEnum("rodzaje_koni", [
+export const rodzajeKoni = pgEnum("rodzaje_koni", [
   "Konie hodowlane",
   "Konie rekreacyjne",
   "Źrebaki",
   "Konie sportowe",
 ]);
 
-export const rodzajeZdarzenProfilaktycznych = schemaEnum(
+export const rodzajeZdarzenProfilaktycznych = pgEnum(
   "rodzaje_zdarzen_profilaktycznych",
   ["Odrobaczanie", "Podanie suplementów", "Szczepienie", "Dentysta", "Inne"]
 );
 
-export const rodzajeZdarzenRozrodczych = schemaEnum(
-  "rodzaje_zdarzen_rozrodczych",
-  ["Inseminacja konia", "Sprawdzenie źrebności", "Wyźrebienie", "Inne"]
-);
+export const rodzajeZdarzenRozrodczych = pgEnum("rodzaje_zdarzen_rozrodczych", [
+  "Inseminacja konia",
+  "Sprawdzenie źrebności",
+  "Wyźrebienie",
+  "Inne",
+]);
 
-export const rodzajeNotifications = schemaEnum("rodzaje_notifications", [
+export const rodzajeNotifications = pgEnum("rodzaje_notifications", [
   "Podkucia",
   "Odrobaczanie",
   "Podanie suplementów",
@@ -66,14 +64,14 @@ export const rodzajeNotifications = schemaEnum("rodzaje_notifications", [
   "Inne",
 ]);
 
-export const rodzajeWysylaniaNotifications = schemaEnum(
+export const rodzajeWysylaniaNotifications = pgEnum(
   "rodzaje_wysylania_notifications",
   ["Push", "Email", "Oba"]
 );
 
-export const plcie = schemaEnum("plcie", ["klacz", "ogier", "wałach"]);
+export const plcie = pgEnum("plcie", ["klacz", "ogier", "wałach"]);
 
-export const user = schemaTable("user", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
@@ -90,7 +88,7 @@ export const user = schemaTable("user", {
   banExpires: timestamp("ban_expires"),
 });
 
-export const session = schemaTable(
+export const session = pgTable(
   "session",
   {
     id: text("id").primaryKey(),
@@ -111,7 +109,7 @@ export const session = schemaTable(
   (table) => [index("session_userId_idx").on(table.userId)]
 );
 
-export const account = schemaTable(
+export const account = pgTable(
   "account",
   {
     id: text("id").primaryKey(),
@@ -135,7 +133,7 @@ export const account = schemaTable(
   (table) => [index("account_userId_idx").on(table.userId)]
 );
 
-export const verification = schemaTable(
+export const verification = pgTable(
   "verification",
   {
     id: text("id").primaryKey(),
@@ -151,7 +149,7 @@ export const verification = schemaTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
-export const organization = schemaTable(
+export const organization = pgTable(
   "organization",
   {
     id: text("id").primaryKey(),
@@ -165,7 +163,7 @@ export const organization = schemaTable(
   (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)]
 );
 
-export const member = schemaTable(
+export const member = pgTable(
   "member",
   {
     id: text("id").primaryKey(),
@@ -184,7 +182,7 @@ export const member = schemaTable(
   ]
 );
 
-export const invitation = schemaTable(
+export const invitation = pgTable(
   "invitation",
   {
     id: text("id").primaryKey(),
@@ -206,7 +204,7 @@ export const invitation = schemaTable(
   ]
 );
 
-export const jwks = schemaTable("jwks", {
+export const jwks = pgTable("jwks", {
   id: text("id").primaryKey(),
   publicKey: text("public_key").notNull(),
   privateKey: text("private_key").notNull(),
@@ -214,7 +212,7 @@ export const jwks = schemaTable("jwks", {
   expiresAt: timestamp("expires_at"),
 });
 
-export const apikey = schemaTable(
+export const apikey = pgTable(
   "apikey",
   {
     id: text("id").primaryKey(),
@@ -308,7 +306,7 @@ export const hodowcyKoniUpdateSchema = createUpdateSchema(organization);
 export const hodowcyKoniInsertSchema = createInsertSchema(organization);
 
 // TODO: drzewo genealogiczne?
-export const konie = schemaTable(
+export const konie = pgTable(
   "konie",
   {
     id: serial("id").primaryKey(),
@@ -347,7 +345,7 @@ export const konieSelectSchema = createSelectSchema(konie);
 export const konieUpdateSchema = createUpdateSchema(konie);
 export const konieInsertSchema = createInsertSchema(konie);
 
-export const zdjeciaKoni = schemaTable("zdjecia_koni", {
+export const zdjeciaKoni = pgTable("zdjecia_koni", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
@@ -364,7 +362,7 @@ export const zdjeciaKoniSelectSchema = createSelectSchema(zdjeciaKoni);
 export const zdjeciaKoniUpdateSchema = createUpdateSchema(zdjeciaKoni);
 export const zdjeciaKoniInsertSchema = createInsertSchema(zdjeciaKoni);
 
-export const podkucia = schemaTable("podkucia", {
+export const podkucia = pgTable("podkucia", {
   id: serial("id").primaryKey(),
   dataZdarzenia: date("data_zdarzenia").notNull().defaultNow(),
   dataWaznosci: date("data_waznosci"),
@@ -380,7 +378,7 @@ export const podkuciaSelectSchema = createSelectSchema(podkucia);
 export const podkuciaUpdateSchema = createUpdateSchema(podkucia);
 export const podkuciaInsertSchema = createInsertSchema(podkucia);
 
-export const kowale = schemaTable("kowale", {
+export const kowale = pgTable("kowale", {
   id: serial("id").primaryKey(),
   imieINazwisko: varchar("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
@@ -394,7 +392,7 @@ export const kowaleSelectSchema = createSelectSchema(kowale);
 export const kowaleUpdateSchema = createUpdateSchema(kowale);
 export const kowaleInsertSchema = createInsertSchema(kowale);
 
-export const choroby = schemaTable("choroby", {
+export const choroby = pgTable("choroby", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -410,7 +408,7 @@ export const chorobyInsertSchema = createInsertSchema(choroby);
 
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
-export const leczenia = schemaTable("leczenia", {
+export const leczenia = pgTable("leczenia", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -430,7 +428,7 @@ export const leczeniaInsertSchema = createInsertSchema(leczenia);
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: uwzględnienie potomstwa
 // TODO: uwzględnienie rodziców
-export const rozrody = schemaTable("rozrody", {
+export const rozrody = pgTable("rozrody", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -449,7 +447,7 @@ export const rozrodyInsertSchema = createInsertSchema(rozrody);
 
 // TODO: zastanów się nad złożonym primary_key(id,kon)
 // TODO: grupowanie zdarzeń?
-export const zdarzeniaProfilaktyczne = schemaTable("zdarzenia_profilaktyczne", {
+export const zdarzeniaProfilaktyczne = pgTable("zdarzenia_profilaktyczne", {
   id: serial("id").primaryKey(),
   kon: integer("kon")
     .notNull()
@@ -473,7 +471,7 @@ export const zdarzeniaProfilaktyczneInsertSchema = createInsertSchema(
   zdarzeniaProfilaktyczne
 );
 
-export const weterynarze = schemaTable("weterynarze", {
+export const weterynarze = pgTable("weterynarze", {
   id: serial("id").primaryKey(),
   imieINazwisko: text("imie_i_nazwisko").notNull(),
   numerTelefonu: NUMER_TELEFONU,
@@ -495,7 +493,7 @@ export const usersInsertSchema = createInsertSchema(user).extend({
 export const usersUpdateSchema = createUpdateSchema(user);
 
 // tabelka z preferencji użytkownika dot. powiadomień
-export const notifications = schemaTable("notifications", {
+export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: text("user_id")
     .notNull()

@@ -2,7 +2,7 @@ import { defineConfig } from "drizzle-kit";
 import { ProcessEnv } from "../env";
 
 export default defineConfig({
-  out: "./src/db/migrations/" + ProcessEnv.NODE_ENV,
+  out: "./src/db/migrations/",
   schema: "./src/db/schema.ts",
   dialect: "postgresql",
   schemaFilter: [ProcessEnv.DATABASE_SCHEMA],
