@@ -6,12 +6,12 @@ import { JsonMime, response_failure_schema } from "@/backend/routes/constants";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
-import { auth_vars } from "@/backend/auth";
-import { konieInsertSchema } from "@/backend/db/schema";
+import { auth, auth_vars } from "@/backend/auth";
+import { konieInsertSchema, organization } from "@/backend/db/schema";
 import { ProcessEnv } from "@/backend/env";
 import { db } from "@/backend/db";
 import { choroby } from "@/backend/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { log } from "@/backend/logs/logger";
 
 const BASE_DIR = path.resolve(__dirname, "../../public");
@@ -409,18 +409,33 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
   }),
   async (c) => {
     try {
-      const { konie, kowale, weterynarze, prompt } = c.req.valid("json");
-      const cookieHeader = c.req.header("cookie") || "";
-      const tokenMatch = cookieHeader.match(
-        /better-auth.session_token=([^;]+)/
-      );
-      const token = tokenMatch ? tokenMatch[1] : undefined;
-      if (!API_KEY) return c.json({ error: "Brak API_KEY" }, 500);
-      if (!token)
+      const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+
+      const userId = session?.user.id;
+      const orgId = session?.session.activeOrganizationId;
+      const token = session?.session.token;
+      if (!userId || !orgId || !token)
+        return c.json({ error: "Błąd autoryzacji" }, 401);
+      const req_num = await db
+        .select({
+          liczba_requestow: organization.liczba_requestow,
+        })
+        .from(organization)
+        .where(eq(organization.id, orgId))
+        .then((v) => v[0].liczba_requestow);
+      if (req_num <= 0) {
         return c.json(
-          { error: "Brak better-auth.session_token w ciasteczkach" },
-          401
+          {
+            error: "Limit zapytań został wyczerpany",
+          },
+          400
         );
+      }
+
+      const { konie, kowale, weterynarze, prompt } = c.req.valid("json");
+      if (!API_KEY) return c.json({ error: "Brak API_KEY" }, 500);
 
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
@@ -487,11 +502,16 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
       console.log("Wysyłam:", fullPrompt);
 
       const result = await chat.sendMessage(fullPrompt);
+      await db
+        .update(organization)
+        .set({
+          liczba_requestow: sql<Number>`${organization.liczba_requestow} - 1`,
+        })
+        .where(eq(organization.id, orgId));
 
       console.log("Odpowiedź Gemini:", result.response.text());
 
       const clean = extractJsonFromText(result.response.text());
-      console.log(clean);
       const actionName = endpointNames[predictedEndpoint] || "element";
       const { fetchText, curlCommand, status } = await sendRequest(
         predictedEndpoint,
@@ -509,7 +529,7 @@ export const gemini_chat_post = new Hono<auth_vars>().post(
         status: status,
       });
     } catch (err) {
-      console.log(err);
+      log("Chat", "error", String(err));
       return c.json(
         {
           error: "Błąd Gemini lub parsowania",

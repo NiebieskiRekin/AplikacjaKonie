@@ -266,12 +266,6 @@ function GeminiChat() {
           { role: "gemini", text: data.response },
         ]);
       }
-
-      // Odejmij 1 request w bazie danych
-      const updateRes = await APIClient.api.chat.decrease.$post();
-      if (!updateRes.ok) {
-        throw new Error("Błąd aktualizacji liczby zapytań");
-      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
