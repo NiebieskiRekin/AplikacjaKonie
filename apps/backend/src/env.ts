@@ -32,6 +32,7 @@ const ServeEnv = z.object({
   INITIAL_ADMIN_EMAIL: z.email().default("admin@example.com"),
   INITIAL_ADMIN_PASSWORD: z.string().default("admin"),
   BETTER_AUTH_SECRET: z.string(),
+  BETTER_AUTH_URL: z.url(),
   GOOGLE_API_KEY_BASE64: z.base64(),
 
   EMAIL_USER: z.email(),
