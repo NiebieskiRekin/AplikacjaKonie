@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
-import { ArrowRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, XCircle } from "lucide-react";
 import { APIClient } from "../../lib/api-client";
 
 type HorseDetails = {
@@ -235,8 +235,6 @@ function KonieDetails() {
       }
 
       const data = await response.json();
-
-      // Generate a signature
       const response_image_url_upload = await APIClient.api.images.upload[
         ":filename"
       ].$get({
@@ -250,8 +248,6 @@ function KonieDetails() {
         );
 
       const image_url_upload = await response_image_url_upload.json();
-
-      // Upload to bucket
       const response_uploaded_image = await fetch(image_url_upload.url, {
         method: "PUT",
         headers: {
@@ -403,12 +399,13 @@ function KonieDetails() {
               </button>
             </>
           )}
-
-          <div className="relative mb-4 h-64 w-64">
+          <div className="relative mb-4 h-64 w-64 overflow-hidden rounded-lg bg-gray-100 shadow-lg">
             {!isImageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-200">
-                <Loader2 className="animate-spin text-4xl text-green-700" />
-              </div>
+              <img
+                src={default_img}
+                alt="Loading..."
+                className="absolute inset-0 h-full w-full object-contain opacity-50 blur-xs transition-all duration-300"
+              />
             )}
             <img
               src={currentImageUrl}
@@ -416,7 +413,7 @@ function KonieDetails() {
               onClick={() => setIsImageModalOpen(true)}
               onLoad={() => setIsImageLoaded(true)}
               onError={() => setIsImageLoaded(true)}
-              className={`h-full w-full cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 h-full w-full cursor-pointer object-contain transition-all duration-500 hover:scale-105 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
             />
           </div>
 
