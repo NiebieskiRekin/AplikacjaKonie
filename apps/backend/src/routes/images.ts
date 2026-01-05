@@ -6,6 +6,7 @@ import { resolver } from "hono-openapi";
 import { describeRoute } from "hono-openapi";
 import { z } from "@hono/zod-openapi";
 import { auth, auth_vars } from "../auth";
+import { zValidator } from "@hono/zod-validator";
 
 const key_schema = z.object({
   type: z.string(),
@@ -32,19 +33,18 @@ const storage = new Storage({
 
 const bucketName = ProcessEnv.BUCKET_NAME;
 
-// const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5 MB
-// const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
-
 // https://github.com/googleapis/nodejs-storage/blob/main/samples/generateV4UploadSignedUrl.js
-export async function generateV4UploadSignedUrl(filename: string) {
-  // These options will allow temporary uploading of the file with outgoing
+export async function generateV4UploadSignedUrl(
+  filename: string,
+  contentType: string
+) {
   const options: GetSignedUrlConfig = {
     version: "v4",
     action: "write",
     expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+    contentType: contentType,
   };
 
-  // Get a v4 signed URL for uploading file
   const [url] = await storage
     .bucket(bucketName)
     .file(filename)
@@ -55,14 +55,12 @@ export async function generateV4UploadSignedUrl(filename: string) {
 
 // https://github.com/googleapis/nodejs-storage/blob/main/samples/generateV4ReadSignedUrl.js
 export async function generateV4ReadSignedUrl(filename: string) {
-  // These options will allow temporary read access to the file
   const options: GetSignedUrlConfig = {
     version: "v4",
     action: "read",
     expires: Date.now() + 15 * 60 * 1000, // 15 minutes
   };
 
-  // Get a v4 signed URL for reading the file
   const [url] = await storage
     .bucket(bucketName)
     .file(filename)
@@ -71,14 +69,20 @@ export async function generateV4ReadSignedUrl(filename: string) {
   return url;
 }
 
-const success_response_schema = z.object({ url: z.string().url() });
+const success_response_schema = z.object({ url: z.url() });
 
 const images = new Hono<auth_vars>()
   .get(
     "/upload/:filename",
+    zValidator(
+      "query",
+      z.object({
+        contentType: z.string().openapi({ example: "image/jpeg" }),
+      })
+    ),
     describeRoute({
       description:
-        "Pobierz link do przesłania zdjęcia o wzkazanym id (filename)",
+        "Pobierz link do przesłania zdjęcia o wskazanym id (filename)",
       responses: {
         200: {
           description: "Pomyślne zapytanie",
@@ -105,17 +109,16 @@ const images = new Hono<auth_vars>()
         if (!userId || !orgId)
           return c.json({ error: "Błąd autoryzacji" }, 401);
 
-        // Creates a client
         const filename = c.req.param("filename");
-        const signed_url = await generateV4UploadSignedUrl(filename);
-
-        return c.json(
-          {
-            url: signed_url,
-          },
-          200
+        const { contentType } = c.req.valid("query");
+        const signed_url = await generateV4UploadSignedUrl(
+          filename,
+          contentType
         );
-      } catch {
+
+        return c.json({ url: signed_url }, 200);
+      } catch (e) {
+        console.error("Error generating upload URL:", e);
         return c.json({ error: "Błąd serwera" }, 500);
       }
     }
@@ -142,7 +145,6 @@ const images = new Hono<auth_vars>()
     }),
     async (c) => {
       try {
-        // Creates a client
         const filename = c.req.param("filename");
         const signed_url = await generateV4ReadSignedUrl(filename);
 
