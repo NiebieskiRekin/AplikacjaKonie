@@ -6,7 +6,7 @@ import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import Kon from "../components/Kon";
 import BigImageOverlay from "../components/BigImageOverlay";
 import { type Horse } from "../components/Kon";
-import PWABadge from "../PWABadge.tsx";
+import PWABadge from "../PWABadge";
 
 const default_img = "/horses/default.png";
 
@@ -25,11 +25,13 @@ function Konie() {
         if (resp.ok) {
           const horses = await resp.json();
           const data = horses.data;
-          data.forEach((element) => {
-            element.img_url = element.img_url ?? default_img;
-          });
-          setHorses(data);
-          setFilteredHorses(data);
+          const mappedData = data.map((element) => ({
+            ...element,
+            img_url: element.img_url ?? default_img,
+          }));
+
+          setHorses(mappedData);
+          setFilteredHorses(mappedData);
         } else {
           const data = await resp.json();
           throw new Error(data?.error || "Błąd pobierania koni");
@@ -41,16 +43,10 @@ function Konie() {
           "Wystąpił nieznany błąd";
 
         setError(message);
-
-        if (message.includes("TypeError") || message.includes("NetworkError")) {
-          setTimeout(() => window.location.reload(), 2000);
-        }
       }
     };
 
-    fetchHorses()
-      .then(() => {})
-      .catch(() => {});
+    void fetchHorses();
   }, []);
 
   useEffect(() => {
@@ -81,12 +77,16 @@ function Konie() {
       <h2 className="mb-6 text-center text-3xl font-bold text-white">
         Konie na hodowli
       </h2>
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="mb-4 font-bold text-red-600">{error}</p>}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
         {filteredHorses.length > 0 ? (
           filteredHorses.map((horse) => (
-            <Kon horse={horse} setSelectedImage={setSelectedImage}></Kon>
+            <Kon
+              key={horse.id}
+              horse={horse}
+              setSelectedImage={setSelectedImage}
+            ></Kon>
           ))
         ) : (
           <p className="text-center text-lg text-white">Brak wyników.</p>

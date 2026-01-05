@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
-import { GoArrowRight, GoArrowLeft } from "react-icons/go";
-import { IoMdCloseCircle } from "react-icons/io";
-import { FaSpinner } from "react-icons/fa";
-import { APIClient } from "@/frontend/lib/api-client";
+import { ArrowRight, ArrowLeft, XCircle, Loader2 } from "lucide-react";
+import { APIClient } from "../../lib/api-client";
 
 type HorseDetails = {
   id: number;
@@ -52,7 +50,6 @@ function KonieDetails() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const imageDataCache = useRef<{ [url: string]: string }>({});
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingRemoveImage, setLoadingRemoveImage] = useState(false);
   const [showImagePopup, setShowImagePopup] = useState(false);
@@ -72,7 +69,6 @@ function KonieDetails() {
       if (!response.ok) throw new Error("Błąd pobierania danych konia");
 
       const data = await response.json();
-
       setHorse(data);
     } catch (err) {
       setError((err as Error).message || "Błąd pobierania danych konia");
@@ -82,14 +78,11 @@ function KonieDetails() {
   useEffect(() => {
     const fetchHorseEvents = async () => {
       try {
-        // Pobieramy ostatnie 5 zdarzeń
         const response = await APIClient.api.konie[":id{[0-9]+}"].events.$get({
           param: { id: id! },
         });
 
-        if (!response.ok) {
-          throw new Error("Błąd pobierania zdarzeń");
-        }
+        if (!response.ok) throw new Error("Błąd pobierania zdarzeń");
 
         const data = (await response.json()) as Event[];
         setEvents(data);
@@ -136,45 +129,24 @@ function KonieDetails() {
       }
     };
 
-    Promise.allSettled([
+    void Promise.allSettled([
       fetchActiveEvents(),
       fetchHorseDetails(),
       fetchHorseEvents(),
-    ])
-      .then(() => {})
-      .catch(() => {});
-  }, [id]); // TODO: specify missing dependency or use useCallback
+    ]);
+  }, [id]);
 
+  // Reset loading state when index changes
   useEffect(() => {
-    setIsImageLoaded(false);
-    const loadImage = async () => {
-      if (
-        !horse ||
-        !horse.images_signed_urls ||
-        horse.images_signed_urls.length === 0
-      ) {
-        setIsImageLoaded(true);
-        return;
-      }
-
-      const url = horse.images_signed_urls[currentImageIndex];
-      if (imageDataCache.current[url]) {
-        setIsImageLoaded(true);
-        return;
-      }
-
-      try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const dataUrl = await blobToDataURL(blob);
-        imageDataCache.current[url] = dataUrl;
-        setIsImageLoaded(true);
-      } catch (err) {
-        console.error("Błąd ładowania obrazu:", err);
-      }
-    };
-
-    void loadImage();
+    if (
+      horse &&
+      horse.images_signed_urls &&
+      horse.images_signed_urls.length > 0
+    ) {
+      setIsImageLoaded(false);
+    } else {
+      setIsImageLoaded(true); // No image to load, so we are "done"
+    }
   }, [currentImageIndex, horse]);
 
   if (error) return <p className="text-red-600">{error}</p>;
@@ -214,15 +186,6 @@ function KonieDetails() {
     );
   };
 
-  const blobToDataURL = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-
   const getDateColor = (dataWaznosci: string) => {
     if (dataWaznosci === "-" || dataWaznosci === "Brak") {
       return "text-red-600 font-bold";
@@ -258,9 +221,9 @@ function KonieDetails() {
     }
 
     setLoadingImageUpload(true);
-    const formData = new FormData();
-    formData.append("image", file);
 
+    // Don't send the file in FormData to the first endpoint.
+    // We just trigger the intent to upload to get a UUID.
     try {
       const response = await APIClient.api.konie[":id{[0-9]+}"].upload.$post({
         param: { id: id! },
@@ -272,22 +235,33 @@ function KonieDetails() {
       }
 
       const data = await response.json();
+
+      // Generate a signature
       const response_image_url_upload = await APIClient.api.images.upload[
         ":filename"
-      ].$get({ param: { filename: data.image_uuid.id } });
+      ].$get({
+        param: { filename: data.image_uuid.id },
+        query: { contentType: file.type },
+      });
+
       if (!response_image_url_upload.ok)
         throw new Error(
           "Błąd przy generowaniu odnośnika do przesłania zdjęcia"
         );
+
       const image_url_upload = await response_image_url_upload.json();
 
+      // Upload to bucket
       const response_uploaded_image = await fetch(image_url_upload.url, {
         method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
         body: file,
       });
 
       if (!response_uploaded_image.ok)
-        throw new Error("Błąd przy przesyłaniu zdjęcia");
+        throw new Error("Błąd przy przesyłaniu zdjęcia do chmury");
 
       setShowImagePopup(true);
       void (await fetchHorseDetails());
@@ -308,7 +282,7 @@ function KonieDetails() {
 
     const imageUrl = horse.images_signed_urls[currentImageIndex];
     const parts = imageUrl.split("/");
-    const imageId = parts[parts.length - 1].split("?")[0]; // obcina query params
+    const imageId = parts[parts.length - 1].split("?")[0];
 
     setPendingDeleteImageId(imageId);
     setShowConfirmDeleteImagePopup(true);
@@ -338,6 +312,11 @@ function KonieDetails() {
     }
   };
 
+  const currentImageUrl =
+    horse.images_signed_urls && horse.images_signed_urls.length > 0
+      ? horse.images_signed_urls[currentImageIndex]
+      : default_img;
+
   return (
     <div className="to-brown-600 flex min-h-screen flex-col items-center bg-gradient-to-br from-green-800 p-6">
       <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
@@ -345,7 +324,7 @@ function KonieDetails() {
           onClick={() => void navigate("/konie")}
           className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
         >
-          <GoArrowLeft className="text-xl" />
+          <ArrowLeft className="text-xl" />
         </button>
 
         <h2 className="absolute left-1/2 -translate-x-1/2 transform text-center text-3xl font-bold text-white">
@@ -357,7 +336,6 @@ function KonieDetails() {
           <h3 className="mb-4 text-xl font-bold text-green-900">
             🐎 Informacje o koniu
           </h3>
-
           <p className="text-gray-800">
             <strong>Numer przyżyciowy:</strong>{" "}
             {horse.numerPrzyzyciowy || "Nie podano"}
@@ -415,34 +393,33 @@ function KonieDetails() {
                 className="bg-opacity-50 hover:bg-opacity-75 absolute top-1/2 left-3 -translate-y-1/2 transform rounded-full bg-green-700 px-2 py-1 text-3xl font-bold text-white transition"
                 onClick={prevImage}
               >
-                <GoArrowLeft />
+                <ArrowLeft />
               </button>
               <button
                 className="bg-opacity-50 hover:bg-opacity-75 absolute top-1/2 right-3 -translate-y-1/2 transform rounded-full bg-green-700 px-2 py-1 text-3xl font-bold text-white transition"
                 onClick={nextImage}
               >
-                <GoArrowRight />
+                <ArrowRight />
               </button>
             </>
           )}
-          {isImageLoaded ? (
+
+          <div className="relative mb-4 h-64 w-64">
+            {!isImageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-200">
+                <Loader2 className="animate-spin text-4xl text-green-700" />
+              </div>
+            )}
             <img
-              src={
-                horse.images_signed_urls && horse.images_signed_urls.length > 0
-                  ? (imageDataCache.current[
-                      horse.images_signed_urls[currentImageIndex]
-                    ] ?? default_img)
-                  : default_img
-              }
+              src={currentImageUrl}
               alt={horse.nazwa}
               onClick={() => setIsImageModalOpen(true)}
-              className="mb-4 h-64 w-64 cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105"
+              onLoad={() => setIsImageLoaded(true)}
+              onError={() => setIsImageLoaded(true)}
+              className={`h-full w-full cursor-pointer rounded-lg object-contain shadow-lg transition hover:scale-105 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
             />
-          ) : (
-            <div className="mb-4 flex h-64 w-64 items-center justify-center rounded-lg bg-gray-200">
-              <FaSpinner className="animate-spin text-4xl text-green-700" />
-            </div>
-          )}
+          </div>
+
           <div className="mt-2 flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
               <label
@@ -458,10 +435,11 @@ function KonieDetails() {
                   className="hidden"
                   onChange={(e) => void handleImageUpload(e)}
                   disabled={loadingImageUpload}
+                  accept="image/png, image/jpeg, image/webp"
                 />
               </label>
               {showImagePopup && (
-                <div className="to-brown-600 fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-800">
+                <div className="to-brown-600 fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-green-800">
                   <div className="rounded-lg bg-white p-6 text-center shadow-lg">
                     <p className="mb-4 text-lg font-bold text-green-600">
                       Zdjęcie dodane pomyślnie!
@@ -495,7 +473,7 @@ function KonieDetails() {
             </div>
 
             {showConfirmDeleteImagePopup && (
-              <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center backdrop-blur-lg">
+              <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-lg">
                 <div className="rounded-lg bg-white p-6 text-center shadow-lg">
                   <p className="mb-4 text-lg font-bold text-red-600">
                     Czy na pewno chcesz usunąć to zdjęcie?
@@ -543,18 +521,13 @@ function KonieDetails() {
           <div className="bg-opacity-80 fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
             <div className="relative flex w-full max-w-3xl flex-col items-center">
               <button
-                className="absolute top-4 right-4 rounded-full bg-red-600 px-4 py-2 text-lg font-bold text-white"
+                className="absolute top-4 right-4 z-50 rounded-full bg-red-600 px-4 py-2 text-lg font-bold text-white hover:bg-red-700"
                 onClick={() => setIsImageModalOpen(false)}
               >
-                <IoMdCloseCircle />
+                <XCircle />
               </button>
               <img
-                src={
-                  horse.images_signed_urls &&
-                  horse.images_signed_urls.length > 0
-                    ? horse.images_signed_urls[currentImageIndex]
-                    : default_img
-                }
+                src={currentImageUrl}
                 alt="Powiększone zdjęcie"
                 className="h-auto max-h-[90vh] w-full rounded-lg object-contain"
               />
@@ -590,7 +563,7 @@ function KonieDetails() {
             <h3 className="mb-4 text-xl font-bold text-red-700">
               📅 Ostatnie zdarzenia
             </h3>
-            <ul className="rounded-lg bg-gray-100 p-4 shadow-md">
+            <ul className="max-h-[60vh] overflow-y-auto rounded-lg bg-gray-100 p-4 shadow-md">
               {events.length > 0 ? (
                 events.map((event, index) => (
                   <li key={index} className="border-b py-2">
@@ -612,14 +585,14 @@ function KonieDetails() {
       )}
 
       {isDeletePopupOpen && (
-        <div className="bg-opacity-10 fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div className="bg-opacity-10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="rounded-lg bg-white p-6 text-center shadow-lg">
             <p className="mb-4 text-lg font-bold text-red-600">
               Czy na pewno chcesz usunąć konia?
             </p>
             <p className="text-gray-700">Ta operacja jest nieodwracalna.</p>
 
-            <div className="mt-6 flex gap-4">
+            <div className="mt-6 flex justify-center gap-4">
               <button
                 className="rounded-lg bg-gray-400 px-4 py-2 text-white transition hover:bg-gray-500"
                 onClick={() => setIsDeletePopupOpen(false)}

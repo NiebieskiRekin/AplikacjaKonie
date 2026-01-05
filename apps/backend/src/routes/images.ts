@@ -76,9 +76,11 @@ const images = new Hono<auth_vars>()
     "/upload/:filename",
     zValidator(
       "query",
-      z.object({
-        contentType: z.string().openapi({ example: "image/jpeg" }),
-      })
+      z
+        .object({
+          contentType: z.string().openapi({ example: "image/jpeg" }),
+        })
+        .strict()
     ),
     describeRoute({
       description:

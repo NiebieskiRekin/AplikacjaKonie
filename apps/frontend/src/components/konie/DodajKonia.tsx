@@ -1,10 +1,10 @@
-import { APIClient } from "@/frontend/lib/api-client";
-import formatApiError from "@/frontend/lib/format-api-error";
-import type { ErrorSchema } from "@aplikacja-konie/api-client";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { konie_plec_enum } from "@/frontend/types/types";
-import { GoArrowLeft } from "react-icons/go";
+import { ArrowLeft } from "lucide-react";
+import { APIClient } from "../../lib/api-client";
+import formatApiError from "../../lib/format-api-error";
+import type { ErrorSchema } from "@aplikacja-konie/api-client";
+import { konie_plec_enum } from "../../types/types";
 
 function AddKonia() {
   const navigate = useNavigate();
@@ -59,57 +59,63 @@ function AddKonia() {
 
       if (!response.ok) {
         const data = await response.json();
-        setError("Wystąpił błąd.");
         console.log(data);
         throw new Error(data?.error || "Błąd przy dodawaniu konia");
       }
 
-      setSuccess("Koń został dodany!");
-      setShowPopup(true);
-      setNazwa("");
-      setNumerPrzyzyciowy("");
-      setNumerChipa("");
-      setRocznikUrodzenia("");
-      setDataPrzybycia("");
-      setDataOdejscia("");
-      setRodzajKonia("");
-      setPlec("");
-      // setFile(null);
+      const responseData = await response.json();
 
-      if (response.status == 200 && file) {
-        const data = await response.json();
+      // Handle Image Upload if file exists
+      if (file && responseData.image_uuid) {
+        // Get Signed URL
         const response_image_url_upload = await APIClient.api.images.upload[
           ":filename"
         ].$get({
-          param: { filename: data.image_uuid.id },
+          param: { filename: responseData.image_uuid.id },
+          query: { contentType: file.type },
         });
 
         if (!response_image_url_upload.ok)
-          throw new Error(data.message || "Błąd przy przesyłaniu zdjęcia");
+          throw new Error(
+            "Błąd przy generowaniu odnośnika do przesłania zdjęcia"
+          );
 
         const image_url_upload = await response_image_url_upload.json();
+
+        // Upload to bucket
         const response_uploaded_image = await fetch(image_url_upload.url, {
           method: "PUT",
+          headers: {
+            "Content-Type": file.type,
+          },
           body: file,
         });
 
         if (!response_uploaded_image.ok)
-          throw new Error("Błąd przy przesyłaniu zdjęcia");
+          throw new Error("Błąd przy przesyłaniu zdjęcia do chmury");
       }
+
+      setSuccess("Koń został dodany!");
+      setShowPopup(true);
+
+      setNazwa("");
+      setNumerPrzyzyciowy("");
+      setNumerChipa("");
+      setRocznikUrodzenia("2025");
+      setDataPrzybycia("");
+      setDataOdejscia("");
+      setRodzajKonia("");
+      setPlec("");
+      setFile(null);
     } catch (err) {
-      setLoading(false);
       const message =
         (err instanceof Error && err.message) ||
         formatApiError(err as ErrorSchema) ||
         "Nieznany błąd";
 
       setError(message);
-
-      if (message.includes("TypeError") || message.includes("NetworkError")) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,9 +129,9 @@ function AddKonia() {
       <div className="relative mb-10 flex w-full max-w-7xl items-center justify-center sm:mb-6">
         <button
           onClick={() => void navigate(`/konie`)}
-          className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition sm:relative sm:mr-auto"
+          className="absolute left-0 flex items-center gap-2 rounded-lg bg-linear-to-r from-gray-500 to-gray-700 px-4 py-2 text-white transition hover:from-gray-600 hover:to-gray-800 sm:relative sm:mr-auto"
         >
-          <GoArrowLeft className="text-xl" />
+          <ArrowLeft className="text-xl" />
         </button>
 
         <h2 className="absolute left-1/2 -translate-x-1/2 transform text-center text-3xl font-bold text-white">
@@ -133,79 +139,108 @@ function AddKonia() {
         </h2>
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
-      {success && <p className="text-green-400">{success}</p>}
+      {error && (
+        <p className="mb-4 rounded-lg bg-red-900/20 p-2 text-center font-bold text-red-400">
+          {error}
+        </p>
+      )}
+      {success && (
+        <p className="mb-4 rounded-lg bg-green-900/20 p-2 text-center font-bold text-green-400">
+          {success}
+        </p>
+      )}
 
       <form
         onSubmit={(e) => void handleSubmit(e)}
-        className="w-96 rounded-lg bg-white p-6 shadow-md"
+        className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
       >
-        <label className="mb-2 block">
-          Nazwa konia:
+        <div className="mb-4">
+          <label className="mb-1 block font-semibold text-gray-700">
+            Nazwa konia <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={nazwa}
             onChange={(e) => setNazwa(e.target.value)}
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            required
           />
-        </label>
+        </div>
 
-        <label className="mb-2 block">
-          Numer przyżyciowy:
-          <input
-            type="text"
-            value={numerPrzyzyciowy}
-            onChange={(e) => setNumerPrzyzyciowy(e.target.value)}
-            className="w-full rounded-lg border p-2"
-          />
-        </label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mb-4">
+            <label className="mb-1 block font-semibold text-gray-700">
+              Numer przyżyciowy
+            </label>
+            <input
+              type="text"
+              value={numerPrzyzyciowy}
+              onChange={(e) => setNumerPrzyzyciowy(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            />
+          </div>
 
-        <label className="mb-2 block">
-          Numer chipa:
-          <input
-            type="text"
-            value={numerChipa}
-            onChange={(e) => setNumerChipa(e.target.value)}
-            className="w-full rounded-lg border p-2"
-          />
-        </label>
+          <div className="mb-4">
+            <label className="mb-1 block font-semibold text-gray-700">
+              Numer chipa
+            </label>
+            <input
+              type="text"
+              value={numerChipa}
+              onChange={(e) => setNumerChipa(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            />
+          </div>
+        </div>
 
-        <label className="mb-2 block">
-          Rocznik urodzenia:
+        <div className="mb-4">
+          <label className="mb-1 block font-semibold text-gray-700">
+            Rocznik urodzenia <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             value={rocznikUrodzenia}
             onChange={(e) => setRocznikUrodzenia(e.target.value)}
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            required
           />
-        </label>
+        </div>
 
-        <label className="mb-2 block">
-          Data przybycia do stajni:
-          <input
-            type="date"
-            value={dataPrzybycia}
-            onChange={(e) => setDataPrzybycia(e.target.value)}
-            className="w-full rounded-lg border p-2"
-          />
-        </label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mb-4">
+            <label className="mb-1 block font-semibold text-gray-700">
+              Data przybycia
+            </label>
+            <input
+              type="date"
+              value={dataPrzybycia}
+              onChange={(e) => setDataPrzybycia(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            />
+          </div>
 
-        <label className="mb-2 block">
-          Data odejścia ze stajni:
-          <input
-            type="date"
-            value={dataOdejscia}
-            onChange={(e) => setDataOdejscia(e.target.value)}
-            className="w-full rounded-lg border p-2"
-          />
-        </label>
+          <div className="mb-4">
+            <label className="mb-1 block font-semibold text-gray-700">
+              Data odejścia
+            </label>
+            <input
+              type="date"
+              value={dataOdejscia}
+              onChange={(e) => setDataOdejscia(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            />
+          </div>
+        </div>
 
-        <label className="mb-2 block">
-          Rodzaj konia:
+        <div className="mb-4">
+          <label className="mb-1 block font-semibold text-gray-700">
+            Rodzaj konia <span className="text-red-500">*</span>
+          </label>
           <select
             value={rodzajKonia}
             onChange={(e) => setRodzajKonia(e.target.value)}
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            required
           >
             <option value="">Wybierz...</option>
             <option value="Konie hodowlane">Koń hodowlany</option>
@@ -213,14 +248,17 @@ function AddKonia() {
             <option value="Źrebaki">Źrebak</option>
             <option value="Konie sportowe">Koń sportowy</option>
           </select>
-        </label>
+        </div>
 
-        <label className="mb-2 block">
-          Płeć:
+        <div className="mb-4">
+          <label className="mb-1 block font-semibold text-gray-700">
+            Płeć <span className="text-red-500">*</span>
+          </label>
           <select
             value={plec}
             onChange={(e) => setPlec(e.target.value)}
-            className="w-full rounded-lg border p-2"
+            className="w-full rounded-lg border border-gray-300 p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-hidden"
+            required
           >
             <option value="">Wybierz...</option>
             {Object.values(konie_plec_enum).map((value) => (
@@ -229,21 +267,24 @@ function AddKonia() {
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label className="mb-4 block">
-          Zdjęcie konia:
+        <div className="mb-6">
+          <label className="mb-1 block font-semibold text-gray-700">
+            Zdjęcie konia
+          </label>
           <input
             type="file"
             onChange={handleFileChange}
-            className="w-full p-2"
+            accept="image/png, image/jpeg, image/webp"
+            className="w-full rounded-lg border border-gray-300 p-2 file:mr-4 file:rounded-full file:border-0 file:bg-green-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-green-700 hover:file:bg-green-100"
           />
-        </label>
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className={`w-full rounded-lg py-2 text-white transition ${
+          className={`w-full rounded-lg py-3 font-bold text-white shadow-md transition ${
             loading
               ? "cursor-not-allowed bg-gray-400"
               : "bg-green-600 hover:bg-green-700"
@@ -254,14 +295,15 @@ function AddKonia() {
       </form>
 
       {showPopup && (
-        <div className="to-brown-600 fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-800">
-          <div className="rounded-lg bg-white p-6 text-center shadow-lg">
-            <p className="mb-4 text-lg font-bold text-green-600">
-              Koń został dodany!
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 text-center shadow-xl">
+            <h3 className="mb-2 text-xl font-bold text-green-600">Sukces!</h3>
+            <p className="mb-6 text-gray-600">
+              Koń został pomyślnie dodany do bazy.
             </p>
             <button
               onClick={() => void handleClosePopup()}
-              className="rounded-lg bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
             >
               OK
             </button>
