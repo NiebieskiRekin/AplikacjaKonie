@@ -7,11 +7,7 @@ log("Cron", "info", "CRON subprocess started");
 
 cron.schedule("0 * * * *", (time) => {
   // Co każdą pełną godzinę
-  log(
-    "Cron",
-    "info",
-    "CRON Job fetchUserEvents run at " + JSON.stringify(time)
-  );
+  log("Cron", "info", "CRON Job fetchUserEvents run at " + time.dateLocalIso);
   fetchUserEvents()
     .then(async (rawUserNotifications) => {
       log(
