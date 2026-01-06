@@ -88,7 +88,7 @@ export const auth = betterAuth({
   ],
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
+      sameSite: "Strict",
       httpOnly: true,
       secure: true,
       partitioned: true,
