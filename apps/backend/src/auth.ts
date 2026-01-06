@@ -33,7 +33,7 @@ export const auth = betterAuth({
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url, token }) => {
       log("Account", "info", "Password reset email " + token);
-      await sendResetPasswordEmail(user.email, user.name, url);
+      void sendResetPasswordEmail(user.email, user.name, url);
     },
     resetPasswordTokenExpiresIn: 24 * 60 * 60,
     disableSignUp: true,
@@ -52,11 +52,11 @@ export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }) => {
       log("Account", "info", "Send verification email " + token);
-      await sendAccountConfirmationEmail(user.email, user.name, url);
+      void sendAccountConfirmationEmail(user.email, user.name, url);
     },
     expiresIn: 24 * 60 * 60,
-    autoSignInAfterVerification: true,
-    sendOnSignUp: true,
+    autoSignInAfterVerification: false,
+    sendOnSignIn: true,
   },
   plugins: [
     organization({
