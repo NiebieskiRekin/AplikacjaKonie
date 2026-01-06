@@ -19,6 +19,12 @@ const konie_post_response_success = z.object({
   horse: konieSelectSchema,
 });
 
+const boolSchema = z.union([
+  z.boolean(),
+  z.enum(["true", "false"]).transform((v) => v === "true"),
+  z.coerce.number().transform((v) => v > 0),
+]);
+
 const LoggerScope = "Konie Post";
 
 export const konie_post = new Hono<auth_vars>().post(
@@ -30,15 +36,7 @@ export const konie_post = new Hono<auth_vars>().post(
         rocznikUrodzenia: z.coerce.number(),
         dataPrzybyciaDoStajni: z.optional(z.string()),
         dataOdejsciaZeStajni: z.optional(z.string()),
-        file: z.coerce.boolean(),
-        // .custom<File | undefined>()
-        // .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
-        //   message: "Maksymalny rozmiar pliku wynosi 5MB.",
-        // })
-        // .refine(
-        //   (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
-        //   "Akceptowane są wyłącznie pliki o rozszerzeniach: .jpg, .jpeg, .png, .webp"
-        // )
+        file: boolSchema,
       })
       .omit({
         hodowla: true,
@@ -76,6 +74,8 @@ export const konie_post = new Hono<auth_vars>().post(
 
       const formData = c.req.valid("form");
 
+      log("konie", "debug", JSON.stringify(formData));
+
       const convert_empty_to_null = (date: string | null | undefined) => {
         if (date === null || date === undefined || date?.length == 0) {
           return null;
@@ -101,24 +101,6 @@ export const konie_post = new Hono<auth_vars>().post(
       )[0];
 
       if (formData.file == true) {
-        // const dimensions = imageSize(await formData.file!.bytes());
-
-        // const photoValidationResult = zdjeciaKoniInsertSchema.safeParse({
-        //   id: randomUUID(),
-        //   kon: newHorse.id,
-        //   width: dimensions.width,
-        //   height: dimensions.height,
-        //   file: formData.file?.name!,
-        //   default: true,
-        // });
-
-        // if (!photoValidationResult.success) {
-        //   return c.json(
-        //     { success: false, error: photoValidationResult.error.flatten() },
-        //     400
-        //   );
-        // }
-
         const img: InsertZdjecieKonia = {
           kon: newHorse.id,
           default: true,
