@@ -46,9 +46,11 @@ const fetchPeople = async (type: string) => {
 const fetchChoroba = async (id: string, type: string) => {
   if (type === "leczenia") {
     try {
-      const response = await APIClient.api.konie[":id{[0-9]+}"].choroby.$get({
-        param: { id: id },
-      });
+      const response = (await APIClient.api.konie[":id{[0-9]+}"][
+        ":type{[A-Za-z_]+}"
+      ].$get({
+        param: { id: id, type: "choroby" },
+      })) as any;
       if (response.status == 200) {
         const data = await response.json();
         return data;
@@ -93,7 +95,7 @@ const getExpirationDate = (eventType: string, horseType: string) => {
         ? 180
         : 365, // +6 miesięcy dla koni sportowych i rekreacyjnych, +1 rok dla innych
   };
-  // console.log(horseType, expirationRules[eventType], eventType);
+
   let daysToAdd = 365;
   if (expirationRules[eventType]) {
     daysToAdd = expirationRules[eventType];
@@ -147,7 +149,6 @@ const BaseHorseEventForm = ({
           const data = await response.json();
           const eventData = data[0];
 
-          // Tutaj x3 zabawa w id i wyświetlanie nazwy, i opowiednie co wysyłanie
           if ("weterynarz" in eventData) {
             const vet = peopleData.find(
               (person) => person.imieINazwisko === eventData.weterynarz
@@ -194,7 +195,7 @@ const BaseHorseEventForm = ({
             dataRozpoczecia: new Date().toISOString().split("T")[0],
           }));
         }
-        // Nie wiem czemu to tu jest, chyba do usunięcia
+
         if (edit) {
           setFormData((prev) => ({
             ...prev,
@@ -206,8 +207,8 @@ const BaseHorseEventForm = ({
         const chorobaData = await fetchChoroba(id, type);
         const HorseType = await fetchHorseType(id);
 
-        const chr = chorobaData.map((v: { id: any; opisZdarzenia: any }) => {
-          return { id: v.id, opisZdarzenia: v.opisZdarzenia || "" };
+        const chr = chorobaData.map((v: { _id: any; opisZdarzenia: any }) => {
+          return { id: v._id, opisZdarzenia: v.opisZdarzenia || "" };
         });
         setPeople(peopleData);
         setChoroba(chr);
@@ -222,7 +223,6 @@ const BaseHorseEventForm = ({
     };
 
     void fetchData();
-    // TODO: check line below
   }, [type, id, eventId, edit, eventTypes]);
 
   const handleInputChange = (
@@ -231,11 +231,9 @@ const BaseHorseEventForm = ({
     >
   ) => {
     const { name, value } = e.target;
-    // console.log(name, value);
 
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
-      // Upgardes dataWaznosci when rodzajZdarzenia changes
       if (name === "rodzajZdarzenia" && type === "zdarzenia_profilaktyczne") {
         updatedData.dataWaznosci = getExpirationDate(type, horseType);
       }
@@ -244,8 +242,6 @@ const BaseHorseEventForm = ({
     });
   };
 
-  // Można chyba będzie to w jedno wrzucić, ale do testu
-  // + nie wiem czy dla zdarzen to potrzebne
   useEffect(() => {
     if (type === "zdarzenia_profilaktyczne" && formData.rodzajZdarzenia) {
       const expirationDate = getExpirationDate(
@@ -386,8 +382,6 @@ const BaseHorseEventForm = ({
         </h2>
       </div>
 
-      {/* <h2 className="mb-6 text-3xl font-bold text-white"></h2> */}
-
       {error && <p className="text-red-600">{error}</p>}
       {success && <p className="text-green-500">{success}</p>}
 
@@ -441,10 +435,10 @@ const BaseHorseEventForm = ({
             <select
               name="choroba"
               className="mb-3 w-full rounded border p-2"
-              value={(formData.choroba as string) || ""}
+              value={formData.choroba ? String(formData.choroba) : ""}
               onChange={handleInputChange}
             >
-              <option value="">-- Wybierz chrobę --</option>
+              <option value="">-- Wybierz chorobę --</option>
               {choroba.map((choroba) => (
                 <option key={choroba.id} value={choroba.id}>
                   {choroba.opisZdarzenia}
