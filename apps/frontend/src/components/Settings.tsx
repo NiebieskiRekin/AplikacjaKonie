@@ -9,7 +9,7 @@ const default_setting_value = {
   active: false,
   days: 7,
   time: "09:00",
-  rodzajWysylania: "Oba" as BackendTypes.RodzajWysylaniaPowiadomienia,
+  rodzajWysylania: "Email" as BackendTypes.RodzajWysylaniaPowiadomienia,
 };
 
 function Settings() {
@@ -59,17 +59,19 @@ function Settings() {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     field: string,
-    type: "days" | "time" | "active" | "notify"
+    type: "days" | "time" | "active" | "rodzajWysylania"
   ) => {
-    let value: string | number | boolean = e.target.value;
+    let value: string | number | boolean;
 
     if (type === "active") {
       value = (e.target as HTMLInputElement).checked;
     } else if (type === "days") {
-      value = Math.max(0, Number(value));
+      value = Math.max(0, Number(e.target.value));
     } else if (type === "time") {
-      const hour = value.split(":")[0];
+      const hour = e.target.value.split(":")[0];
       value = `${hour}:00`;
+    } else if (type === "rodzajWysylania") {
+      value = e.target.value;
     }
 
     setSettings((prev) => ({
@@ -178,7 +180,7 @@ function Settings() {
                 name={`${key}-notify`}
                 className="w-full rounded border p-2"
                 value={value.rodzajWysylania}
-                onChange={(e) => handleInputChange(e, key, "notify")}
+                onChange={(e) => handleInputChange(e, key, "rodzajWysylania")}
                 disabled={!value.active}
               >
                 <option value="Oba">Oba</option>
