@@ -183,8 +183,12 @@ function Settings() {
                 onChange={(e) => handleInputChange(e, key, "rodzajWysylania")}
                 disabled={!value.active}
               >
-                <option value="Oba">Oba</option>
-                <option value="Push">Push</option>
+                <option disabled={true} value="Oba">
+                  Oba
+                </option>
+                <option disabled={true} value="Push">
+                  Push
+                </option>
                 <option value="Email">Email</option>
               </select>
             </div>
