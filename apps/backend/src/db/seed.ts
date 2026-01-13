@@ -79,7 +79,7 @@ export async function seed_db() {
   }
 
   const existingApiKey = await db.query.apikey.findFirst({
-    where: (users, { eq }) => eq(users.id, _user.id),
+    where: (apikey, { eq }) => eq(apikey.userId, _user.id),
   });
 
   if (existingApiKey) {
