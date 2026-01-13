@@ -74,7 +74,9 @@ export const auth = betterAuth({
     openAPI({
       disableDefaultReference: true,
     }),
-    apiKey(),
+    apiKey({
+      enableSessionForAPIKeys: true,
+    }),
     admin({
       defaultRole: "user",
       adminRole: "admin",
