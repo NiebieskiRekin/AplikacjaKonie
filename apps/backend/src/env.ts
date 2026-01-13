@@ -7,6 +7,12 @@ dotenv.config({
   override: true,
 });
 
+export const boolSchema = z.union([
+  z.boolean(),
+  z.enum(["true", "false"]).transform((v) => v.toLowerCase() === "true"),
+  z.coerce.number().transform((v) => v > 0),
+]);
+
 const splitAndTrim = (val: string) =>
   val
     .split(",")
@@ -55,6 +61,8 @@ const ServeEnv = z.object({
   INTERNAL_PREDICT_URL: z.string(),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
   DATABASE_SCHEMA: z.string().default("public"),
+
+  SKIP_SEED: boolSchema.default(false),
 });
 
 export const ProcessEnv = ServeEnv.parse(process.env);

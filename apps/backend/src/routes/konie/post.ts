@@ -13,17 +13,12 @@ import {
   konieSelectSchema,
 } from "@/backend/db/schema";
 import { log } from "@/backend/logs/logger";
+import { boolSchema } from "@/backend/env";
 
 const konie_post_response_success = z.object({
   message: z.string(),
   horse: konieSelectSchema,
 });
-
-const boolSchema = z.union([
-  z.boolean(),
-  z.enum(["true", "false"]).transform((v) => v === "true"),
-  z.coerce.number().transform((v) => v > 0),
-]);
 
 const LoggerScope = "Konie Post";
 

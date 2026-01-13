@@ -4,8 +4,14 @@ import { db } from ".";
 import { ProcessEnv } from "../env";
 import { log } from "../logs/logger";
 import { user } from "./schema";
+import { exit } from "node:process";
 
 export async function seed_db() {
+  if (ProcessEnv.SKIP_SEED) {
+    log("seed", "info", "Skipping seed.");
+    return;
+  }
+
   const existingAdmin = await db.query.user.findFirst({
     where: eq(user.role, "admin"),
   });
@@ -14,22 +20,25 @@ export async function seed_db() {
 
   if (existingAdmin) {
     log("seed", "info", "Admin already exists. Skipping seed.");
+    _user = existingAdmin;
   } else {
     log("seed", "info", "Seeding default admin user...");
     try {
-      _user = await auth.api.createUser({
-        body: {
-          email: ProcessEnv.INITIAL_ADMIN_EMAIL,
-          password: ProcessEnv.INITIAL_ADMIN_PASSWORD,
-          name: "Admin",
-          role: "admin",
-        },
-      });
+      _user = (
+        await auth.api.createUser({
+          body: {
+            email: ProcessEnv.INITIAL_ADMIN_EMAIL,
+            password: ProcessEnv.INITIAL_ADMIN_PASSWORD,
+            name: "Admin",
+            role: "admin",
+          },
+        })
+      ).user;
 
       await db
         .update(user)
         .set({ emailVerified: true })
-        .where(eq(user.id, _user.user.id));
+        .where(eq(user.id, _user.id));
 
       log(
         "seed",
@@ -38,6 +47,7 @@ export async function seed_db() {
       );
     } catch (error) {
       log("seed", "error", `Error creating user: ${String(error)}`);
+      exit(1);
     }
   }
 
@@ -53,7 +63,7 @@ export async function seed_db() {
         body: {
           name: "Moje konie",
           slug: "moje-konie",
-          userId: _user?.user.id,
+          userId: _user.id,
         },
       });
 
@@ -64,6 +74,35 @@ export async function seed_db() {
       );
     } catch (error) {
       log("seed", "error", `Error creating organization: ${String(error)}`);
+      exit(1);
+    }
+  }
+
+  const existingApiKey = await db.query.apikey.findFirst({
+    where: (users, { eq }) => eq(users.id, _user.id),
+  });
+
+  if (existingApiKey) {
+    log("seed", "info", "Admin API key already exists. Skipping seed.");
+  } else {
+    log("seed", "info", "Seeding default admin API key...");
+
+    try {
+      const _apiKey = await auth.api.createApiKey({
+        body: {
+          name: "admin-api-key",
+          userId: _user.id,
+        },
+      });
+
+      log(
+        "seed",
+        "info",
+        "Default admin API key created successfully: " + JSON.stringify(_apiKey)
+      );
+    } catch (error) {
+      log("seed", "warn", `Error creating API key: ${String(error)}`);
+      // Not fatal
     }
   }
 }
