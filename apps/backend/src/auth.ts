@@ -6,7 +6,13 @@ import {
   sendAccountConfirmationEmail,
   sendResetPasswordEmail,
 } from "./mailer/accountMailer";
-import { openAPI, organization, apiKey, admin } from "better-auth/plugins";
+import {
+  openAPI,
+  organization,
+  apiKey,
+  admin,
+  bearer,
+} from "better-auth/plugins";
 import { schema } from "@/backend/db";
 import { localization } from "better-auth-localization";
 import { ProcessEnv } from "./env";
@@ -59,6 +65,7 @@ export const auth = betterAuth({
     sendOnSignIn: true,
   },
   plugins: [
+    bearer(),
     organization({
       allowUserToCreateOrganization: (user) => {
         return user.role === "admin";

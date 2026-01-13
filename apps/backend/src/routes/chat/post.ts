@@ -153,7 +153,7 @@ const sendRequest = async (
     formData.append("file", "false");
 
     // Generowanie komendy curl
-    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Cookie: better-auth.session_token=${token}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: multipart/form-data' \\\n--header 'Authorization": Bearer ${token}' --header 'Origin: ${ProcessEnv.BETTER_AUTH_URL}' \\\n--form 'nazwa=${kon.nazwa}' \\\n--form 'numerPrzyzyciowy=${kon.numerPrzyzyciowy}' \\\n--form 'numerChipa=${kon.numerChipa}' \\\n--form 'rocznikUrodzenia=${kon.rocznikUrodzenia}' \\\n--form 'dataPrzybyciaDoStajni=${kon.dataPrzybyciaDoStajni}' \\\n--form 'dataOdejsciaZeStajni=${kon.dataOdejsciaZeStajni}' \\\n--form 'rodzajKonia=${kon.rodzajKonia}' \\\n--form 'plec=${kon.plec}' \\\n--form 'file=false'`;
     console.log(`[sendRequest] Mulst curlCommand: ${curlCommand}`);
 
     // Wysłanie zapytania jako multipart/form-data
@@ -166,7 +166,8 @@ const sendRequest = async (
         method: "POST",
         headers: {
           accept: "application/json",
-          Cookie: "better-auth.session_token=" + token,
+          Authorization: `Bearer ${token}`,
+          Origin: ProcessEnv.BETTER_AUTH_URL,
         },
         body: formData, // Wysłanie danych w formacie multipart/form-data
       });
@@ -183,7 +184,7 @@ const sendRequest = async (
     }
   } else {
     // Standardowe JSON dla innych endpointów
-    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Cookie: better-auth.session_token=${token}' \\\n--data '${jsonData}'`;
+    const curlCommand = `curl --location 'http://localhost:${PORT}/${endpoint}' \\\n--header 'accept: application/json' \\\n--header 'Content-Type: application/json' \\\n--header 'Authorization: Bearer ${token}' \\\n--header 'Origin: ${ProcessEnv.BETTER_AUTH_URL}' \\\n--data '${jsonData}'`;
 
     console.log(`[sendRequest] curlCommand: ${curlCommand}`);
 
@@ -197,7 +198,8 @@ const sendRequest = async (
         headers: {
           accept: "application/json",
           "Content-Type": "application/json",
-          Cookie: "better-auth.session_token=" + token,
+          Authorization: `Bearer ${token}`,
+          Origin: ProcessEnv.BETTER_AUTH_URL,
         },
         body: jsonData,
       });
