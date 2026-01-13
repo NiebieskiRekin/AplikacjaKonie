@@ -8,7 +8,6 @@ import { konie_id_upload_post } from "./id/upload/post";
 import { konie_id_imageId_delete } from "./id/imageId/delete";
 import { konie_id_events_get } from "./id/events/get";
 import { konie_id_active_events_get } from "./id/active-events/get";
-import { konie_choroby_get } from "./choroby/id/get";
 import { auth_vars } from "@/backend/auth";
 import { wydarzenia_horseId_eventType_get } from "./id/eventType_get";
 
@@ -22,7 +21,6 @@ const konieRoute = new Hono<auth_vars>()
   .route("/", konie_id_imageId_delete)
   .route("/", konie_id_events_get)
   .route("/", konie_id_active_events_get)
-  .route("/", konie_choroby_get)
   .route("/", wydarzenia_horseId_eventType_get);
 
 export default konieRoute;

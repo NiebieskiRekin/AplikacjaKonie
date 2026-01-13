@@ -57,15 +57,10 @@ function HorseEventList({ type }: { type: string }) {
         <h2 className="absolute left-1/2 -translate-x-1/2 transform px-4 text-center text-xl font-bold text-white sm:w-auto sm:text-3xl">
           📅 {type.charAt(0).toUpperCase() + type.replace("_", " ").slice(1)}{" "}
           Konia:{" "}
-          {
-            // TODO: assign proper types
-            Array.isArray(events) && events.length > 0
-              ? events[0].nazwaKonia.charAt(0).toUpperCase() +
-                events[0].nazwaKonia.slice(1)
-              : // : typeof events === "object" && events.nazwaKonia
-                // ? events.nazwaKonia.charAt(0).toUpperCase() + events.nazwaKonia.slice(1)
-                "Brak danych"
-          }
+          {Array.isArray(events) && events.length > 0
+            ? events[0].nazwaKonia.charAt(0).toUpperCase() +
+              events[0].nazwaKonia.slice(1)
+            : "Brak danych"}
         </h2>
       </div>
       {error && <p className="text-red-600">{error}</p>}
