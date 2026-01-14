@@ -180,11 +180,11 @@ function HorseEventList({ type }: { type: string }) {
                           : null;
 
                         let textColor = "text-green-600 font-bold";
-                        let Icon = <ImCheckmark className="mr-1 mb-1 inline" />;
+                        let Icon = <ImCheckmark className="mr-2" />;
 
                         if (!expirationDate || expirationDate <= today) {
                           textColor = "text-red-600 font-bold";
-                          Icon = <ImCross className="mr-1 mb-1 inline" />;
+                          Icon = <ImCross className="mr-2" />;
                         } else if (
                           expirationDate &&
                           (expirationDate.getTime() - today.getTime()) /
@@ -192,16 +192,16 @@ function HorseEventList({ type }: { type: string }) {
                             7
                         ) {
                           textColor = "text-orange-400 font-bold";
-                          Icon = <ImMinus className="mr-1 mb-1 inline" />;
+                          Icon = <ImMinus className="mr-2" />;
                         }
 
                         return (
-                          <span
-                            className={`flex items-center justify-center ${textColor}`}
+                          <div
+                            className={`flex w-full items-center justify-center ${textColor}`}
                           >
                             {Icon}
                             <span>{event.dataWaznosci || "Brak danych"}</span>
-                          </span>
+                          </div>
                         );
                       })()}
                     </td>
