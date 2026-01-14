@@ -1,5 +1,6 @@
 import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
+import { FaSmile, FaMeh, FaFrown } from "react-icons/fa";
 
 type Event = {
   horse: string;
@@ -211,7 +212,29 @@ function StajniaEvents() {
                     {event.rodzajZdarzenia}
                   </td>
                   <td className="border border-gray-300 px-2 py-2 md:px-4">
-                    {event.dataWaznosci}
+                    <div className="flex items-center justify-center gap-2">
+                      {(() => {
+                        if (
+                          !event.dataWaznosci ||
+                          event.dataWaznosci === "-" ||
+                          event.dataWaznosci === "Brak"
+                        ) {
+                          return <FaFrown />;
+                        }
+
+                        const today = new Date();
+                        const expirationDate = new Date(event.dataWaznosci);
+                        const diff = Math.ceil(
+                          (expirationDate.getTime() - today.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        );
+
+                        if (diff <= 0) return <FaFrown />;
+                        if (diff <= 7) return <FaMeh />;
+                        return <FaSmile />;
+                      })()}
+                      <span>{event.dataWaznosci}</span>
+                    </div>
                   </td>
                   <td className="border border-gray-300 px-2 py-2 md:px-4">
                     {event.osobaImieNazwisko}

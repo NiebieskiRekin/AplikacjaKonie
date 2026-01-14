@@ -2,6 +2,7 @@ import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { GoArrowLeft } from "react-icons/go";
+import { FaSmile, FaMeh, FaFrown } from "react-icons/fa";
 
 // TODO: consider a type that is anything more than undefined
 type Event = {
@@ -178,10 +179,12 @@ function HorseEventList({ type }: { type: string }) {
                           ? new Date(event.dataWaznosci)
                           : null;
 
-                        let textColor = "text-green-600"; // Domyślnie zielony
+                        let textColor = "text-green-600 font-bold";
+                        let Icon = <FaSmile className="mr-1 mb-1 inline" />; // Domyślnie uśmiechnięta
 
                         if (!expirationDate || expirationDate <= today) {
                           textColor = "text-red-600 font-bold";
+                          Icon = <FaFrown className="mr-1 mb-1 inline" />; // Smutna dla przeterminowanych/braku
                         } else if (
                           expirationDate &&
                           (expirationDate.getTime() - today.getTime()) /
@@ -189,11 +192,13 @@ function HorseEventList({ type }: { type: string }) {
                             7
                         ) {
                           textColor = "text-orange-400 font-bold";
+                          Icon = <FaMeh className="mr-1 mb-1 inline" />; // Neutralna dla krótkiego terminu
                         }
 
                         return (
-                          <span className={textColor}>
-                            {event.dataWaznosci || "Brak danych"}
+                          <span className={`flex items-center ${textColor}`}>
+                            {Icon}
+                            <span>{event.dataWaznosci || "Brak danych"}</span>
                           </span>
                         );
                       })()}
