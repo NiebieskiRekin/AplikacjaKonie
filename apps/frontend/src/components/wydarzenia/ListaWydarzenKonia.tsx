@@ -196,7 +196,9 @@ function HorseEventList({ type }: { type: string }) {
                         }
 
                         return (
-                          <span className={`flex items-center ${textColor}`}>
+                          <span
+                            className={`flex items-center justify-center ${textColor}`}
+                          >
                             {Icon}
                             <span>{event.dataWaznosci || "Brak danych"}</span>
                           </span>

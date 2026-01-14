@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { ArrowRight, ArrowLeft, XCircle } from "lucide-react";
 import { APIClient } from "../../lib/api-client";
-import { LuSmile, LuMeh, LuFrown } from "react-icons/lu";
+import { FaSmile, FaMeh, FaFrown } from "react-icons/fa";
 
 type HorseDetails = {
   id: number;
@@ -191,7 +191,7 @@ function KonieDetails() {
     // Stan domyślny: Brak daty lub błąd (Smutna buźka)
     const fallback = {
       classes: "text-red-600 font-bold",
-      icon: <LuFrown className="mr-1 inline" />,
+      icon: <FaFrown className="mr-1 inline" />,
     };
 
     if (dataWaznosci === "-" || dataWaznosci === "Brak") {
@@ -208,19 +208,19 @@ function KonieDetails() {
       // Po terminie - Smutna buźka
       return {
         classes: "text-red-600 font-bold",
-        icon: <LuFrown className="mr-1 inline" />,
+        icon: <FaFrown className="mr-1 inline" />,
       };
     } else if (differenceInDays <= 7) {
       // Kończy się (do 7 dni) - Neutralna buźka
       return {
         classes: "text-yellow-600 font-bold",
-        icon: <LuMeh className="mr-1 inline" />,
+        icon: <FaMeh className="mr-1 inline" />,
       };
     } else {
       // Dużo czasu - Uśmiechnięta buźka
       return {
         classes: "text-green-600 font-bold",
-        icon: <LuSmile className="mr-1 inline" />,
+        icon: <FaSmile className="mr-1 inline" />,
       };
     }
   };
