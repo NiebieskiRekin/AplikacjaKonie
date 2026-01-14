@@ -2,7 +2,7 @@ import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { GoArrowLeft } from "react-icons/go";
-import { FaSmile, FaMeh, FaFrown } from "react-icons/fa";
+import { ImCheckmark, ImMinus, ImCross } from "react-icons/im";
 
 // TODO: consider a type that is anything more than undefined
 type Event = {
@@ -180,11 +180,11 @@ function HorseEventList({ type }: { type: string }) {
                           : null;
 
                         let textColor = "text-green-600 font-bold";
-                        let Icon = <FaSmile className="mr-1 mb-1 inline" />; // Domyślnie uśmiechnięta
+                        let Icon = <ImCheckmark className="mr-1 mb-1 inline" />;
 
                         if (!expirationDate || expirationDate <= today) {
                           textColor = "text-red-600 font-bold";
-                          Icon = <FaFrown className="mr-1 mb-1 inline" />; // Smutna dla przeterminowanych/braku
+                          Icon = <ImCross className="mr-1 mb-1 inline" />;
                         } else if (
                           expirationDate &&
                           (expirationDate.getTime() - today.getTime()) /
@@ -192,7 +192,7 @@ function HorseEventList({ type }: { type: string }) {
                             7
                         ) {
                           textColor = "text-orange-400 font-bold";
-                          Icon = <FaMeh className="mr-1 mb-1 inline" />; // Neutralna dla krótkiego terminu
+                          Icon = <ImMinus className="mr-1 mb-1 inline" />;
                         }
 
                         return (

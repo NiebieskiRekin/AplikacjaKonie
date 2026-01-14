@@ -1,6 +1,6 @@
 import { APIClient } from "@/frontend/lib/api-client";
 import { useEffect, useState } from "react";
-import { FaSmile, FaMeh, FaFrown } from "react-icons/fa";
+import { ImCheckmark, ImMinus, ImCross } from "react-icons/im";
 
 type Event = {
   horse: string;
@@ -219,7 +219,7 @@ function StajniaEvents() {
                           event.dataWaznosci === "-" ||
                           event.dataWaznosci === "Brak"
                         ) {
-                          return <FaFrown />;
+                          return <ImCross />;
                         }
 
                         const today = new Date();
@@ -229,9 +229,9 @@ function StajniaEvents() {
                             (1000 * 60 * 60 * 24)
                         );
 
-                        if (diff <= 0) return <FaFrown />;
-                        if (diff <= 7) return <FaMeh />;
-                        return <FaSmile />;
+                        if (diff <= 0) return <ImCross />;
+                        if (diff <= 7) return <ImMinus />;
+                        return <ImCheckmark />;
                       })()}
                       <span>{event.dataWaznosci}</span>
                     </div>
