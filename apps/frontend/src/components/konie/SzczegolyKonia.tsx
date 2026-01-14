@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { ArrowRight, ArrowLeft, XCircle } from "lucide-react";
 import { APIClient } from "../../lib/api-client";
+import { LuSmile, LuMeh, LuFrown } from "react-icons/lu";
 
 type HorseDetails = {
   id: number;
@@ -186,9 +187,15 @@ function KonieDetails() {
     );
   };
 
-  const getDateColor = (dataWaznosci: string) => {
+  const getDateStatus = (dataWaznosci: string) => {
+    // Stan domyślny: Brak daty lub błąd (Smutna buźka)
+    const fallback = {
+      classes: "text-red-600 font-bold",
+      icon: <LuFrown className="mr-1 inline" />,
+    };
+
     if (dataWaznosci === "-" || dataWaznosci === "Brak") {
-      return "text-red-600 font-bold";
+      return fallback;
     }
 
     const today = new Date();
@@ -198,11 +205,23 @@ function KonieDetails() {
     );
 
     if (differenceInDays <= 0) {
-      return "text-red-600 font-bold";
+      // Po terminie - Smutna buźka
+      return {
+        classes: "text-red-600 font-bold",
+        icon: <LuFrown className="mr-1 inline" />,
+      };
     } else if (differenceInDays <= 7) {
-      return "text-yellow-600 font-bold";
+      // Kończy się (do 7 dni) - Neutralna buźka
+      return {
+        classes: "text-yellow-600 font-bold",
+        icon: <LuMeh className="mr-1 inline" />,
+      };
     } else {
-      return "text-green-600 font-bold";
+      // Dużo czasu - Uśmiechnięta buźka
+      return {
+        classes: "text-green-600 font-bold",
+        icon: <LuSmile className="mr-1 inline" />,
+      };
     }
   };
 
@@ -542,9 +561,15 @@ function KonieDetails() {
                 <li key={index} className="border-b py-2">
                   <strong>{event.type}:</strong>
                   <br />
-                  <span className={getDateColor(event.dataWaznosci || "")}>
-                    Ważne do {event.dataWaznosci}
-                  </span>
+                  {(() => {
+                    const status = getDateStatus(event.dataWaznosci || "");
+                    return (
+                      <span className={`flex items-center ${status.classes}`}>
+                        {status.icon}
+                        <span>Ważne do {event.dataWaznosci}</span>
+                      </span>
+                    );
+                  })()}
                 </li>
               ))
             ) : (
