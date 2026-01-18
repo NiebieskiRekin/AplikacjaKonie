@@ -65,7 +65,7 @@ const renderFriendlyDetails = (
     rodzajZdarzenia: "Rodzaj Zdarzenia",
   };
 
-  const keysToHide = ["hodowla", "id", "imageId", "img_url", "active"];
+  const keysToHide = ["hodowla", "id", "imageId", "img_url", "active", "file"];
 
   return Object.entries(data)
     .filter(([key]) => !keysToHide.includes(key))
