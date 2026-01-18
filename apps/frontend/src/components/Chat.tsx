@@ -28,7 +28,17 @@ const renderFriendlyDetails = (
 ) => {
   console.log("Rendering details for object:", obj);
   console.log("type of obj:", typeof obj);
-  if (!obj || typeof obj !== "object") return null;
+
+  let data = obj;
+  if (typeof obj === "string") {
+    try {
+      data = JSON.parse(obj);
+    } catch (e) {
+      console.error("Failed to parse jsonData string", e);
+      return null;
+    }
+  }
+  if (!data || typeof data !== "object") return null;
 
   const keyLabels: Record<string, string> = {
     imieINazwisko: "Imię i Nazwisko",
@@ -57,7 +67,7 @@ const renderFriendlyDetails = (
 
   const keysToHide = ["hodowla", "id", "imageId", "img_url", "active"];
 
-  return Object.entries(obj)
+  return Object.entries(data)
     .filter(([key]) => !keysToHide.includes(key))
     .map(([key, value]) => {
       let displayValue: string;
@@ -333,7 +343,9 @@ function GeminiChat() {
               {(msg as any).jsonData && (
                 <div className="mt-1 rounded-lg border-l-4 border-green-500 bg-gray-50 p-3 text-sm">
                   {renderFriendlyDetails(
-                    (msg as any).jsonData,
+                    typeof (msg as any).jsonData === "string"
+                      ? JSON.parse((msg as any).jsonData)
+                      : (msg as any).jsonData,
                     horses,
                     kowalRes,
                     weterynarzRes
